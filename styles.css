@@ -842,49 +842,28 @@ select option {
 /* --- Media Queries (ajustes para escritorio) --- */
 @media (min-width: 768px) {
     .main-grid {
-        grid-template-columns: 1.2fr 1fr 1fr;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr; /* 3 columnas en escritorio */
+        grid-template-areas:
+            "event-card team-home team-away"
+            "result-card result-card result-card"
+            "predictions predictions predictions"
+            "reset reset reset";
         gap: 2.5rem;
     }
 
-    .event-card {
-        grid-area: initial;
-        order: initial;
-    }
+    .event-card { grid-area: event-card; }
+    #card-home { grid-area: team-home; }
+    #card-away { grid-area: team-away; }
+    .result-card { grid-area: result-card; }
+    .recommendation-ia-grid { grid-area: predictions; }
+    .reset-container { grid-area: reset; }
 
-    #card-home {
-        grid-area: initial;
-        order: initial;
-    }
-
-    #card-away {
-        grid-area: initial;
-        order: initial;
-    }
-
-    .result-card {
-        grid-column: 1 / span 3;
-        grid-row: 2;
-        order: initial;
-    }
-    
+    /* Estilos para el nuevo contenedor de pronósticos en escritorio */
     .recommendation-ia-grid {
-        grid-column: 1 / span 3;
-        grid-row: 3;
-        grid-template-columns: 1fr 1fr; /* Una al lado de la otra en escritorio */
-        order: initial;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Esto las pone una al lado de la otra */
         gap: 2.5rem;
-    }
-
-    .ia-card {
-        grid-column: 1 / span 3;
-        grid-row: 4;
-        order: initial;
-    }
-
-    .reset-container {
-        grid-column: 1 / span 3;
-        grid-row: 5;
-        order: initial;
     }
 
     .team-card { margin-bottom: 0; }
