@@ -691,30 +691,84 @@ function dixonColesProbabilities(tH, tA, league) {
 // FUSIÓN DE PREDICCIONES
 // ----------------------
 function extractAndParseJson(text) {
-    if (!text || typeof text !== 'string') return null;
-    try {
-        // Eliminar saltos de línea, tabulaciones y espacios extra
-        const cleanedText = text.replace(/\s+/g, ' ');
-        
-        // Buscar el inicio y fin del objeto JSON
-        const startIndex = cleanedText.indexOf('{');
-        const endIndex = cleanedText.lastIndexOf('}') + 1;
-        
-        if (startIndex === -1 || endIndex === 0) {
-            console.warn("No se encontró un objeto JSON válido en el texto.");
-            return null;
-        }
-        
-        const jsonString = cleanedText.substring(startIndex, endIndex);
-        
-        // Reemplazar comas incorrectas y eliminar comas finales
-        const sanitizedJsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
-        
-        return JSON.parse(sanitizedJsonString);
-    } catch (e) {
-        console.error("Error al extraer o parsear JSON de la IA:", e);
+    if (!text || typeof text !== 'string') {
+        console.warn("Input no válido. Se esperaba una cadena de texto.");
         return null;
     }
+
+    try {
+        const cleanedText = text.replace(/\s+/g, ' ').trim();
+        const startIndex = cleanedText.indexOf('{');
+        const endIndex = cleanedText.lastIndexOf('}') + 1;
+
+        if (startIndex !== -1 && endIndex > 0) {
+            const jsonString = cleanedText.substring(startIndex, endIndex);
+            const sanitizedJsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
+            return JSON.parse(sanitizedJsonString);
+        }
+    } catch (e) {
+        console.warn("Error al intentar parsear JSON de la IA:", e);
+    }
+    
+    // Si la extracción de JSON falla, intenta parsear el texto plano
+    return parsePlainText(text);
+}
+
+function parsePlainText(text) {
+    const aiProbs = {};
+    const aiJustification = {
+        home: "Sin justificación detallada.",
+        draw: "Sin justificación detallada.",
+        away: "Sin justificación detallada."
+    };
+
+    // Extraer probabilidades 1X2
+    const probsMatch = text.match(/Probabilidades:\s*(.*?)(?:Ambos Anotan|$)/s);
+    if (probsMatch && probsMatch[1]) {
+        const probsText = probsMatch[1];
+        const localMatch = probsText.match(/(\d+)%\s+para\s+.*?/i);
+        const drawMatch = probsText.match(/(\d+)%\s+para\s+el\s+Empate/i);
+        const awayMatch = probsText.match(/(\d+)%\s+para\s+.*?/i);
+        
+        // Asignación de porcentajes
+        const percentages = probsText.match(/(\d+)%/g) || [];
+        if (percentages.length >= 3) {
+            aiProbs.home = parseFloat(percentages[0]) / 100;
+            aiProbs.draw = parseFloat(percentages[1]) / 100;
+            aiProbs.away = parseFloat(percentages[2]) / 100;
+        }
+
+    }
+    
+    // Extraer justificación
+    const analysisMatch = text.match(/Análisis del Partido:(.*?)Probabilidades:/s);
+    if (analysisMatch && analysisMatch[1]) {
+        const analysisText = analysisMatch[1];
+        const localJustification = analysisText.match(/Municipal:(.*?)(?:Empate:|$)/s);
+        const drawJustification = analysisText.match(/Empate:(.*?)(?:Deportivo Mixco:|$)/s);
+        const awayJustification = analysisText.match(/Deportivo Mixco:(.*?)(?:Probabilidades:|$)/s);
+
+        if (localJustification) aiJustification.home = localJustification[1].trim();
+        if (drawJustification) aiJustification.draw = drawJustification[1].trim();
+        if (awayJustification) aiJustification.away = awayJustification[1].trim();
+    }
+    
+    return {
+        "1X2": {
+            victoria_local: {
+                probabilidad: (aiProbs.home * 100).toFixed(0),
+                justificacion: aiJustification.home
+            },
+            empate: {
+                probabilidad: (aiProbs.draw * 100).toFixed(0),
+                justificacion: aiJustification.draw
+            },
+            victoria_visitante: {
+                probabilidad: (aiProbs.away * 100).toFixed(0),
+                justificacion: aiJustification.away
+            }
+        }
+    };
 }
 
 
@@ -722,7 +776,7 @@ function getCombinedPrediction(stats, aiPrediction, matchData) {
     const combined = {};
     const ai = extractAndParseJson(aiPrediction);
 
-    if (!ai) {
+    if (!ai || !ai["1X2"] || Object.values(ai["1X2"]).every(p => !p?.probabilidad)) {
         combined.header = "Análisis Estadístico Principal";
         combined.body = `<p>No se encontró un pronóstico de IA válido. El análisis se basa únicamente en datos estadísticos.</p>`;
         return combined;
