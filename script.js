@@ -189,14 +189,20 @@ function displaySelectedLeagueEvents(leagueCode) {
         const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
 
         const currentItems = selectedEventsList.querySelectorAll('.event-item');
-        currentItems.forEach(item => item.classList.add('fade-out'));
+        
+        if (currentItems.length > 0) {
+            currentItems.forEach(item => {
+                item.classList.remove('slide-in');
+                item.classList.add('slide-out');
+            });
+        }
 
         setTimeout(() => {
             selectedEventsList.innerHTML = ''; 
             eventsToShow.forEach((event, index) => {
                 const div = document.createElement('div');
-                div.className = 'event-item fade-in';
-                div.style.animationDelay = `${index * 0.1}s`; // Pequeño retraso para efecto en cascada
+                div.className = 'event-item slide-in';
+                div.style.animationDelay = `${index * 0.1}s`;
                 div.dataset.homeTeam = event.local;
                 div.dataset.awayTeam = event.visitante;
 
@@ -230,7 +236,7 @@ function displaySelectedLeagueEvents(leagueCode) {
 
             currentPage = (currentPage + 1) % totalPages;
 
-        }, 500); // El tiempo de espera debe coincidir con la duración de la animación CSS (0.5s)
+        }, 400);
     }
 
     showCurrentPage();
@@ -558,7 +564,7 @@ function dixonColesProbabilities(tH, tA, league) {
     const awayDefenseStrength = awayDefenseAdj / (leagueAvgGaAway || 1);
 
     const lambdaHome = homeAttackStrength * awayDefenseStrength * (leagueAvgGfHome || 1);
-    const lambdaAway = awayAttackStrength * homeDefenseStrength * (leagueAvgGfAway || 1);
+    const lambdaAway = awayAttackStrength * homeDefenseStrength * (leagueAvgGaAway || 1);
 
     const maxGoals = 6;
     let pHome = 0, pDraw = 0, pAway = 0, pBTTS = 0, pO25 = 0;
@@ -665,4 +671,3 @@ function calculateAll() {
         $('suggestion').innerHTML = '<p>No se encontraron recomendaciones con una probabilidad superior al 30%. Analiza otros mercados.</p>';
     }
 }
-
