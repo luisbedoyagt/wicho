@@ -54,6 +54,9 @@ const leagueNames = {
     "crc.1": "Liga Promerica Costa Rica",
     "hon.1": "Liga Nacional Honduras",
     "ksa.1": "Pro League Arabia Saudita"
+    "fifa.worldq.conmebol": "Eliminatorias CONMEBOL",
+    "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
+    "fifa.worldq.uefa": "Eliminatorias UEFA"
 };
 
 const leagueCodeToName = {
@@ -73,7 +76,10 @@ const leagueCodeToName = {
     "gua.1": "Guatemala_LigaNacional",
     "crc.1": "CostaRica_LigaPromerica",
     "hon.1": "Honduras_LigaNacional",
-    "ksa.1": "Arabia_Saudi_ProLeague"
+    "ksa.1": "Arabia_Saudi_ProLeague",
+    "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
+    "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
+    "fifa.worldq.uefa": "Eliminatorias_UEFA"
 };
 
 // ----------------------
@@ -632,6 +638,7 @@ function calculateAll() {
         $('suggestion').innerHTML = '<p>No se encontraron recomendaciones con una probabilidad superior al 30%. Analiza otros mercados.</p>';
     }
 }
+
 
 
 
