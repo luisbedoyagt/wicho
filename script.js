@@ -53,7 +53,7 @@ const leagueNames = {
     "gua.1": "Liga Nacional Guatemala",
     "crc.1": "Liga Promerica Costa Rica",
     "hon.1": "Liga Nacional Honduras",
-    "ksa.1": "Pro League Arabia Saudita"
+    "ksa.1": "Pro League Arabia Saudita",
     "fifa.worldq.conmebol": "Eliminatorias CONMEBOL",
     "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
     "fifa.worldq.uefa": "Eliminatorias UEFA"
@@ -129,8 +129,9 @@ async function fetchAllData() {
         }
         allData = await res.json();
 
-        if (!allData.calendario || !allData.ligas) {
-            throw new Error('Estructura de datos inválida: faltan "calendario" o "ligas"');
+        // VALIDACIÓN MEJORADA
+        if (!allData || !allData.calendario || !allData.ligas) {
+            throw new Error('Estructura de datos inválida: la respuesta está vacía o faltan "calendario" o "ligas".');
         }
 
         const normalized = {};
@@ -638,8 +639,3 @@ function calculateAll() {
         $('suggestion').innerHTML = '<p>No se encontraron recomendaciones con una probabilidad superior al 30%. Analiza otros mercados.</p>';
     }
 }
-
-
-
-
-
