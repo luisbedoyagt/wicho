@@ -32,7 +32,7 @@ function factorial(n) {
 // ----------------------
 // CONFIGURACIÓN DE LIGAS
 // ----------------------
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwcy4cnUloLMpC5yud4RvdCDqDQY9rDRfKjE0krtiSnYJdBPquGNXw5a9tvRCgKVlsvNw/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyaLnP1wS9C2XKZH2oM2ptyfYzGYz50JzicpYiRTCnaP4ybm-73D8PV-Wr40OYZmK04Og/exec";
 let teamsByLeague = {};
 let allData = {};
 
@@ -591,8 +591,6 @@ function calculateAll() {
     const ligaName = leagueCodeToName[league];
     const event = (allData.calendario[ligaName] || []).find(e => e.local === teamHome && e.visitante === teamAway);
 
-    // --- CORRECCIÓN CRÍTICA ---
-    // Se ha cambiado 'Pronóstico IA' por 'pronostico' para que coincida con la clave del JSON
     const detailedPredictionBox = $('detailed-prediction');
     if (event && event['pronostico']) {
         const formattedPrediction = event['pronostico'].replace(/\n/g, '<br>').replace(/###\s*(.*)/g, '<h4>$1</h4>');
@@ -600,7 +598,6 @@ function calculateAll() {
     } else {
         detailedPredictionBox.innerHTML = `<p>No hay un pronóstico detallado disponible para este partido en la hoja de cálculo.</p>`;
     }
-
 
     const { finalHome, finalDraw, finalAway, pBTTSH, pO25H } = dixonColesProbabilities(tH, tA, league);
 
@@ -639,4 +636,3 @@ function calculateAll() {
         $('suggestion').innerHTML = '<p>No se encontraron recomendaciones con una probabilidad superior al 30%. Analiza otros mercados.</p>';
     }
 }
-
