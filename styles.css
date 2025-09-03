@@ -1,4 +1,459 @@
-/* ... (tu código CSS existente) ... */
+:root {
+    --bg-color-main: #282c34;
+    --bg-color-card: #20232a;
+    --text-color-primary: #ffffff;
+    --text-color-secondary: #a0a0a0;
+    --border-color: #3e4451;
+    --accent-blue: #007acc;
+    --accent-green: #37cc8e;
+    --accent-red: #e06c75;
+    --accent-yellow: #e5c07b;
+    --accent-purple: #c678dd;
+    --highlight-blue: #61dafb;
+    --metal-gradient-dark: linear-gradient(145deg, #1a1e24, #262930);
+    --metal-gradient-light: linear-gradient(145deg, #262a32, #1a1e24);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-color-main);
+    color: var(--text-color-primary);
+    line-height: 1.6;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.app-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.app-header h1 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    color: var(--highlight-blue);
+    text-shadow: 0 0 15px rgba(97, 218, 251, 0.5), 0 0 5px rgba(97, 218, 251, 0.8);
+    animation: glow-text 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow-text {
+    from {
+        text-shadow: 0 0 5px rgba(97, 218, 251, 0.5), 0 0 10px rgba(97, 218, 251, 0.5);
+    }
+    to {
+        text-shadow: 0 0 10px rgba(97, 218, 251, 0.8), 0 0 20px rgba(97, 218, 251, 0.6);
+    }
+}
+
+.app-header p {
+    font-size: 1.1rem;
+    color: var(--text-color-secondary);
+}
+
+.main-grid {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: 1fr;
+}
+
+.card {
+    background: var(--metal-gradient-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+    background: var(--metal-gradient-light);
+    color: var(--highlight-blue);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.card-header h3 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+}
+
+.card-header .fas {
+    font-size: 1.5rem;
+    color: var(--accent-blue);
+    text-shadow: 0 0 5px var(--accent-blue);
+}
+
+.card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.team-card .card-header {
+    justify-content: center;
+}
+
+.team-card .card-header .fas {
+    font-size: 2rem;
+}
+
+.team-card .card-header h3 {
+    font-size: 2rem;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.control-group label {
+    font-weight: 500;
+    color: var(--text-color-secondary);
+}
+
+select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-color-card);
+    color: var(--text-color-primary);
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23a0a0a0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.8rem top 50%;
+    background-size: 1.5rem auto;
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--highlight-blue);
+    box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.3);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.stat-box {
+    background-color: #2c303a;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.stat-box .stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+}
+
+.stat-box .stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-green);
+    margin-top: 0.5rem;
+    text-shadow: 0 0 5px rgba(55, 204, 142, 0.5);
+}
+
+.team-details {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    text-align: center;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.stat-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 100px;
+}
+
+.stat-section .section-title {
+    font-weight: bold;
+    color: var(--highlight-blue);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+}
+
+.probabilities-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.probability-tile {
+    flex: 1 1 calc(50% - 0.5rem);
+    background-color: #2c303a;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+    min-width: 150px;
+    transition: transform 0.2s ease;
+}
+
+.probability-tile:hover {
+    transform: translateY(-3px);
+}
+
+.probability-tile .label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+}
+
+.probability-tile .value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 5px rgba(229, 192, 123, 0.5);
+}
+
+/* Colores específicos para los resultados 1X2 */
+.probability-tile:nth-child(1) .value { color: var(--accent-green); text-shadow: 0 0 5px rgba(55, 204, 142, 0.5); }
+.probability-tile:nth-child(2) .value { color: var(--accent-yellow); text-shadow: 0 0 5px rgba(229, 192, 123, 0.5); }
+.probability-tile:nth-child(3) .value { color: var(--accent-red); text-shadow: 0 0 5px rgba(224, 108, 117, 0.5); }
+
+.team-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-right: 10px;
+}
+
+.error, .warning {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.error {
+    background-color: #381216;
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+}
+
+.warning {
+    background-color: #382c16;
+    border: 1px solid var(--accent-yellow);
+    color: var(--accent-yellow);
+}
+
+#detailed-prediction, #suggestion {
+    font-size: 1.1rem;
+    padding: 1rem;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--text-color-primary);
+}
+
+.loading .card-body {
+    filter: blur(5px);
+    pointer-events: none;
+}
+
+.event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.event-item {
+    background-color: #2c303a;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden;
+}
+
+.event-item:hover {
+    background-color: #3e4451;
+    transform: translateY(-3px);
+}
+
+.event-item strong {
+    font-weight: 700;
+    color: var(--highlight-blue);
+    font-size: 1.1rem;
+}
+
+.event-item span {
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-out forwards;
+}
+
+.slide-out {
+    animation: slideOut 0.5s ease-out forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
+.placeholder {
+    background-color: #1a1e24;
+    cursor: default;
+    opacity: 0.7;
+    transition: none;
+    text-align: center;
+}
+.placeholder:hover {
+    background-color: #1a1e24;
+    transform: none;
+}
+.placeholder span {
+    width: 100%;
+    font-style: italic;
+}
+
+.reset-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-secondary {
+    background-color: var(--border-color);
+    color: var(--text-color-primary);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.transition-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--highlight-blue);
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(32, 35, 42, 0.8);
+    padding: 1rem;
+    border-radius: 8px;
+    backdrop-filter: blur(3px);
+    border: 1px solid var(--highlight-blue);
+    box-shadow: 0 0 10px rgba(97, 218, 251, 0.5);
+    z-index: 10;
+    width: 80%;
+}
+
+.loading-text {
+    font-style: italic;
+    opacity: 0.8;
+}
 
 /* --- Nuevos estilos para los grupos de ligas --- */
 select optgroup {
@@ -39,8 +494,6 @@ select option {
 .recommendation-ia-grid .card-header .fas {
     text-shadow: 0 0 5px var(--highlight-blue);
 }
-
-/* ... (el resto de tu código CSS) ... */
 
 /* --- Media Queries (ajustes para escritorio) --- */
 @media (min-width: 768px) {
@@ -114,5 +567,4 @@ select option {
         min-width: unset;
         max-width: unset;
     }
-
 }
