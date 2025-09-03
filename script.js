@@ -1,969 +1,764 @@
 /**
- * @fileoverview Script mejorado para interfaz web que muestra estadísticas de fútbol y calcula probabilidades de partidos
- * usando datos de una API de Google Apps Script. Ahora usa un modelo basado en la distribución de Poisson
- * con el ajuste de Dixon y Coles y "shrinkage" para una mejor predicción de empates y resultados realistas.
+ * @fileoverview Google Apps Script para descargar estadísticas y pronósticos de fútbol,
+ * con un sistema agresivo de caché, control de cuota, verificación en hojas para evitar fetches innecesarios,
+ * y limpieza de TODOS los sufijos entre paréntesis en los nombres de los equipos para todas las ligas.
+ * Evita borrar datos existentes a menos que haya nuevos datos válidos.
  */
-
-// ----------------------
-// UTILIDADES
-// ----------------------
-const $ = id => document.getElementById(id);
-const formatPct = x => (100 * (isFinite(x) ? x : 0)).toFixed(1) + '%';
-const formatDec = x => (isFinite(x) ? x.toFixed(2) : '0.00');
-const parseNumberString = val => {
-    const s = String(val || '').replace(/,/g, '.');
-    const n = Number(s);
-    return isFinite(n) ? n : 0;
-};
-
-// Funciones auxiliares para Poisson y Dixon-Coles
-function poissonProbability(lambda, k) {
-    if (lambda <= 0 || k < 0) return 0;
-    return (Math.exp(-lambda) * Math.pow(lambda, k)) / factorial(k);
-}
-
-function factorial(n) {
-    if (n === 0 || n === 1) return 1;
-    let res = 1;
-    for (let i = 2; i <= n; i++) res *= i;
-    return res;
-}
 
 // ----------------------
 // CONFIGURACIÓN DE LIGAS
 // ----------------------
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxGIfhGSUNbKg_Ffjvf_PJXD1hyaQjtqQHqWPOtOB2H55ND2eusuB-W4h1AUUDGE0lJjA/exec";
-let teamsByLeague = {};
-let allData = {};
-let currentEventPage = 0;
-let eventInterval;
-
-const leagueNames = {
-    "esp.1": "LaLiga España",
-    "esp.2": "Segunda España",
-    "eng.1": "Premier League Inglaterra",
-    "eng.2": "Championship Inglaterra",
-    "ita.1": "Serie A Italia",
-    "ger.1": "Bundesliga Alemania",
-    "fra.1": "Ligue 1 Francia",
-    "ned.1": "Eredivisie Países Bajos",
-    "ned.2": "Eerste Divisie Países Bajos",
-    "por.1": "Liga Portugal",
-    "mex.1": "Liga MX México",
-    "mex.2": "Liga de Expansión MX",
-    "usa.1": "MLS Estados Unidos",
-    "bra.1": "Brasileirão Brasil",
-    "gua.1": "Liga Nacional Guatemala",
-    "crc.1": "Liga Promerica Costa Rica",
-    "hon.1": "Honduras LigaNacional",
-    "slv.1": "El Salvador Liga Primera División",
-    "ksa.1": "Pro League Arabia Saudita",
-    "tur.1": "Super Lig de Turquía",
-    "ger.2": "Bundesliga 2 de Alemania",
-    "arg.1": "Liga Profesional de Fútbol de Argentina",
-    "conmebol.sudamericana": "CONMEBOL Sudamericana",
-    "conmebol.libertadores": "CONMEBOL Libertadores",
-    "chn.1": "Superliga China",
-    "fifa.worldq.conmebol": "Eliminatorias CONMEBOL",
-    "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
-    "fifa.worldq.uefa": "Eliminatorias UEFA"
-};
-
-const leagueCodeToName = {
-    "esp.1": "España_LaLiga",
-    "esp.2": "España_Segunda",
-    "eng.1": "Inglaterra_PremierLeague",
-    "eng.2": "Inglaterra_Championship",
-    "ita.1": "Italia_SerieA",
-    "ger.1": "Alemania_Bundesliga",
-    "fra.1": "Francia_Ligue1",
-    "ned.1": "PaísesBajos_Eredivisie",
-    "ned.2": "PaísesBajos_EersteDivisie",
-    "por.1": "Portugal_LigaPortugal",
-    "mex.1": "México_LigaMX",
-    "mex.2": "México_ExpansionMX",
-    "usa.1": "EstadosUnidos_MLS",
-    "bra.1": "Brasil_Brasileirao",
-    "gua.1": "Guatemala_LigaNacional",
-    "crc.1": "CostaRica_LigaPromerica",
-    "hon.1": "Honduras_LigaNacional",
-    "slv.1": "ElSalvador_LigaPrimeraDivision",
-    "ksa.1": "Arabia_Saudi_ProLeague",
-    "tur.1": "Turquia_SuperLig",
-    "ger.2": "Alemania_Bundesliga2",
-    "arg.1": "Argentina_LigaProfesional",
-    "conmebol.sudamericana": "CONMEBOL_Sudamericana",
-    "conmebol.libertadores": "CONMEBOL_Libertadores",
-    "chn.1": "China_Superliga",
-    "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
-    "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
-    "fifa.worldq.uefa": "Eliminatorias_UEFA"
-};
-
-// Nuevo objeto para agrupar ligas por región
-const leagueRegions = {
-    "esp.1": "Europa",
-    "esp.2": "Europa",
-    "eng.1": "Europa",
-    "eng.2": "Europa",
-    "ita.1": "Europa",
-    "ger.1": "Europa",
-    "fra.1": "Europa",
-    "ned.1": "Europa",
-    "ned.2": "Europa",
-    "por.1": "Europa",
-    "tur.1": "Europa",
-    "ger.2": "Europa",
-    "arg.1": "Sudamérica",
-    "bra.1": "Sudamérica",
-    "mex.1": "Norteamérica",
-    "mex.2": "Norteamérica",
-    "usa.1": "Norteamérica",
-    "gua.1": "Centroamérica",
-    "crc.1": "Centroamérica",
-    "hon.1": "Centroamérica",
-    "slv.1": "Centroamérica",
-    "ksa.1": "Asia",
-    "chn.1": "Asia",
-    "conmebol.sudamericana": "Copas Internacionales",
-    "conmebol.libertadores": "Copas Internacionales",
-    "fifa.worldq.conmebol": "Eliminatorias Mundiales",
-    "fifa.worldq.concacaf": "Eliminatorias Mundiales",
-    "fifa.worldq.uefa": "Eliminatorias Mundiales"
+const ligas = {
+  "esp.1": "España_LaLiga",
+  "esp.2": "España_Segunda",
+  "eng.1": "Inglaterra_PremierLeague",
+  "eng.2": "Inglaterra_Championship",
+  "ita.1": "Italia_SerieA",
+  "ger.1": "Alemania_Bundesliga",
+  "fra.1": "Francia_Ligue1",
+  "ned.1": "PaísesBajos_Eredivisie",
+  "ned.2": "PaísesBajos_EersteDivisie",
+  "por.1": "Portugal_LigaPortugal",
+  "mex.1": "México_LigaMX",
+  "usa.1": "EstadosUnidos_MLS",
+  "bra.1": "Brasil_Brasileirao",
+  "gua.1": "Guatemala_LigaNacional",
+  "crc.1": "CostaRica_LigaPromerica",
+  "hon.1": "Honduras_LigaNacional",
+  "ksa.1": "Arabia_Saudi_ProLeague",
+  "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
+  "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
+  "fifa.worldq.uefa": "Eliminatorias_UEFA"
 };
 
 // ----------------------
-// NORMALIZACIÓN DE DATOS
+// CONFIGURACIÓN GENERAL
 // ----------------------
-function normalizeTeam(raw) {
-    if (!raw) return null;
-    const r = {};
-    r.name = raw.name || '';
-    if (!r.name) return null;
-    r.pos = parseNumberString(raw.rank || 0);
-    r.gf = parseNumberString(raw.goalsFor || 0);
-    r.ga = parseNumberString(raw.goalsAgainst || 0);
-    r.pj = parseNumberString(raw.gamesPlayed || 0);
-    r.g = parseNumberString(raw.wins || 0);
-    r.e = parseNumberString(raw.ties || 0);
-    r.p = parseNumberString(raw.losses || 0);
-    r.points = parseNumberString(raw.points || (r.g * 3 + r.e) || 0);
-    r.gfHome = parseNumberString(raw.goalsForHome || 0);
-    r.gfAway = parseNumberString(raw.goalsForAway || 0);
-    r.gaHome = parseNumberString(raw.goalsAgainstHome || 0);
-    r.gaAway = parseNumberString(raw.goalsAgainstAway || 0);
-    r.pjHome = parseNumberString(raw.gamesPlayedHome || 0);
-    r.pjAway = parseNumberString(raw.gamesPlayedAway || 0);
-    r.winsHome = parseNumberString(raw.winsHome || 0);
-    r.winsAway = parseNumberString(raw.winsAway || 0);
-    r.tiesHome = parseNumberString(raw.tiesHome || 0);
-    r.tiesAway = parseNumberString(raw.tiesAway || 0);
-    r.lossesHome = parseNumberString(raw.lossesHome || 0);
-    r.lossesAway = parseNumberString(raw.lossesAway || 0);
-    r.logoUrl = raw.logoUrl || '';
-    return r;
+const CALENDAR_SHEET_NAME = "Calendario_Futbol";
+const CACHE_EXPIRATION = 6 * 3600; // 6 horas para stats
+const CACHE_CALENDAR_EXP = 2 * 3600; // 2 horas para calendario
+const CACHE_PREDICTION_EXP = 24 * 3600; // 24 horas para pronósticos Gemini
+const CACHE_LIMIT_BYTES = 90000;
+const QUOTA_LIMIT = 1500;
+const QUOTA_THRESHOLD = 500;
+const PRIORITY_LEAGUES = ["eng.1", "esp.1", "ita.1", "ger.1", "fra.1"];
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const FRESHNESS_THRESHOLD = 6 * 3600 * 1000; // 6 horas en ms
+
+// ----------------------
+// SISTEMA DE CUOTAS
+// ----------------------
+function checkQuota() {
+  const props = PropertiesService.getScriptProperties();
+  let count = Number(props.getProperty("fetchCount")) || 0;
+  const remaining = QUOTA_LIMIT - count;
+  Logger.log(`📊 UrlFetch usados: ${count} | Restantes: ${remaining}`);
+  return remaining > QUOTA_THRESHOLD;
+}
+
+function increaseQuota(by = 1) {
+  const props = PropertiesService.getScriptProperties();
+  let count = Number(props.getProperty("fetchCount")) || 0;
+  props.setProperty("fetchCount", count + by);
+}
+
+function resetQuota() {
+  PropertiesService.getScriptProperties().deleteProperty("fetchCount");
+  Logger.log("🔄 Contador de cuota reiniciado");
+}
+
+function crearTriggerResetQuota() {
+  ScriptApp.getProjectTriggers().forEach(t => {
+    if (t.getHandlerFunction() === "resetQuota") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("resetQuota").timeBased().atHour(0).everyDays(1).create();
 }
 
 // ----------------------
-// FETCH DATOS COMPLETOS
+// LIMPIEZA DE NOMBRES
 // ----------------------
-async function fetchAllData() {
-    const leagueSelect = $('leagueSelect');
-    if (leagueSelect) leagueSelect.innerHTML = '<option value="">Cargando datos...</option>';
-
-    try {
-        const res = await fetch(`${WEBAPP_URL}?tipo=todo&update=false`);
-        if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(`Error HTTP ${res.status}: ${res.statusText}. Respuesta: ${errorText}`);
-        }
-        allData = await res.json();
-
-        // VALIDACIÓN MEJORADA
-        if (!allData || !allData.calendario || !allData.ligas) {
-            throw new Error('Estructura de datos inválida: la respuesta está vacía o faltan "calendario" o "ligas".');
-        }
-
-        const normalized = {};
-        for (const key in allData.ligas) {
-            normalized[key] = (allData.ligas[key] || []).map(normalizeTeam).filter(t => t && t.name);
-        }
-        teamsByLeague = normalized;
-
-        localStorage.setItem('allData', JSON.stringify(allData));
-        return allData;
-    } catch (err) {
-        console.error('Error en fetchAllData:', err);
-        const errorMsg = `<div class="error"><strong>Error:</strong> No se pudieron cargar los datos de la API. Verifica la conexión a la hoja de Google Sheets o el endpoint de la API. Detalle: ${err.message}</div>`;
-        $('details').innerHTML = errorMsg;
-        if (leagueSelect) leagueSelect.innerHTML = '<option value="">Error al cargar ligas</option>';
-        return {};
-    }
+function cleanTeamName(name) {
+  if (!name || typeof name !== "string") {
+    Logger.log(`⚠️ Nombre inválido: ${name}. Devolviendo 'Equipo Desconocido'`);
+    return "Equipo Desconocido";
+  }
+  const cleanName = name.replace(/\s*\([^)]*\)/g, "").trim();
+  const finalName = cleanName || "Equipo Desconocido";
+  Logger.log(`🧹 Nombre original: ${name} → Limpio: ${finalName}`);
+  return finalName;
 }
 
 // ----------------------
-// MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
+// HELPERS: Fecha/Hora
 // ----------------------
-function displaySelectedLeagueEvents(leagueCode) {
-    const selectedEventsList = $('selected-league-events');
-    if (!selectedEventsList) return;
+function formatearGT(isoDate) {
+  const d = new Date(isoDate);
+  return {
+    isoDate: d.toISOString(),
+    fecha: Utilities.formatDate(d, "America/Guatemala", "yyyy-MM-dd"),
+    hora: Utilities.formatDate(d, "America/Guatemala", "HH:mm")
+  };
+}
 
-    if (eventInterval) {
-        clearInterval(eventInterval);
-        eventInterval = null;
-    }
+function isHoraFutura(horaPartido, horaActual) {
+  if (!horaPartido || !horaActual) return false;
+  const [hP, mP] = horaPartido.split(':').map(Number);
+  const [hA, mA] = horaActual.split(':').map(Number);
+  if ([hP, mP, hA, mA].some(isNaN)) return false;
+  return (hP * 60 + mP) > (hA * 60 + mA);
+}
 
-    selectedEventsList.innerHTML = '';
-    
-    if (!leagueCode || !allData.calendario) {
-        selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
-        return;
-    }
-
-    const ligaName = leagueCodeToName[leagueCode];
-    const events = allData.calendario[ligaName] || [];
-
-    if (events.length === 0) {
-        selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
-        return;
-    }
-
-    const eventsPerPage = 3;
-    const totalPages = Math.ceil(events.length / eventsPerPage);
-    let currentPage = 0;
-
-    function showCurrentPage() {
-        const startIndex = currentPage * eventsPerPage;
-        const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
-
-        const currentItems = selectedEventsList.querySelectorAll('.event-item');
-        
-        if (currentItems.length > 0) {
-            currentItems.forEach(item => {
-                item.classList.remove('slide-in');
-                item.classList.add('slide-out');
-            });
-        }
-
-        setTimeout(() => {
-            selectedEventsList.innerHTML = ''; 
-            eventsToShow.forEach((event, index) => {
-                const div = document.createElement('div');
-                div.className = 'event-item slide-in';
-                div.style.animationDelay = `${index * 0.1}s`;
-                div.dataset.homeTeam = event.local;
-                div.dataset.awayTeam = event.visitante;
-
-                let eventDateTime;
-                try {
-                    const parsedDate = new Date(event.fecha);
-                    if (isNaN(parsedDate.getTime())) {
-                        throw new Error("Fecha inválida");
-                    }
-                    const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
-                    const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
-                    const formattedDate = parsedDate.toLocaleDateString('es-ES', dateOptions);
-                    const formattedTime = parsedDate.toLocaleTimeString('es-ES', timeOptions);
-                    eventDateTime = `${formattedDate} ${formattedTime} (GT)`;
-                } catch (err) {
-                    console.warn(`Error parseando fecha para el evento: ${event.local} vs. ${event.visitante}`, err);
-                    eventDateTime = `${event.fecha} (Hora no disponible)`;
-                }
-
-                div.innerHTML = `
-                    <strong>${event.local} vs. ${event.visitante}</strong>
-                    <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
-                    <span>${eventDateTime}</span>
-                `;
-                selectedEventsList.appendChild(div);
-
-                div.addEventListener('click', () => {
-                    selectEvent(event.local, event.visitante);
-                });
-            });
-
-            currentPage = (currentPage + 1) % totalPages;
-
-        }, 800);
-    }
-
-    showCurrentPage();
-
-    if (totalPages > 1) {
-        eventInterval = setInterval(showCurrentPage, 10000);
-    }
+function isDataFresh(lastUpdated) {
+  if (!lastUpdated) return false;
+  const lastTime = new Date(lastUpdated).getTime();
+  const now = new Date().getTime();
+  return now - lastTime < FRESHNESS_THRESHOLD;
 }
 
 // ----------------------
-// INICIALIZACIÓN
+// FETCH CON CACHÉ AGRESIVO
 // ----------------------
-async function init() {
-    clearAll();
-    
-    await fetchAllData();
-    
-    const leagueSelect = $('leagueSelect');
-    const teamHomeSelect = $('teamHome');
-    const teamAwaySelect = $('teamAway');
-
-    if (!leagueSelect || !teamHomeSelect || !teamAwaySelect) {
-        $('details').innerHTML = '<div class="error"><strong>Error:</strong> Problema con la interfaz HTML.</div>';
-        return;
-    }
-
-    leagueSelect.innerHTML = '<option value="">-- Selecciona liga --</option>';
-
-    // Crear un mapa para agrupar las ligas por región
-    const regionsMap = {};
-    Object.keys(leagueRegions).forEach(code => {
-        const region = leagueRegions[code];
-        if (!regionsMap[region]) {
-            regionsMap[region] = [];
-        }
-        regionsMap[region].push(code);
+function fetchWithCacheAggressive(url, cacheKey, exp = CACHE_EXPIRATION) {
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get(cacheKey);
+  if (cached && cached !== "null") {
+    Logger.log(`✅ Usando caché para ${cacheKey}`);
+    return JSON.parse(cached);
+  }
+  if (!checkQuota()) {
+    Logger.log(`⚠️ Cuota insuficiente para ${url}`);
+    return null;
+  }
+  try {
+    Logger.log(`📡 Fetching URL: ${url}`);
+    const resp = UrlFetchApp.fetch(url, {
+      muteHttpExceptions: true
     });
-
-    // Ordenar las regiones de forma específica y luego alfabéticamente
-    const customOrder = ["Europa", "Sudamérica", "Norteamérica", "Centroamérica", "Asia", "Copas Internacionales", "Eliminatorias Mundiales"];
-    const sortedRegions = Object.keys(regionsMap).sort((a, b) => {
-        const aIndex = customOrder.indexOf(a);
-        const bIndex = customOrder.indexOf(b);
-        if (aIndex === -1 && bIndex === -1) {
-            return a.localeCompare(b);
-        }
-        if (aIndex === -1) return 1;
-        if (bIndex === -1) return -1;
-        return aIndex - bIndex;
-    });
-
-    // Recorrer las regiones ordenadas para construir el select
-    sortedRegions.forEach(regionName => {
-        const optgroup = document.createElement('optgroup');
-        optgroup.label = regionName;
-
-        // Ordenar las ligas dentro de cada grupo
-        regionsMap[regionName].sort().forEach(code => {
-            // No se agregan las ligas comentadas en la hoja de cálculo
-            if (code === "conmebol.sudamericana" || code === "conmebol.libertadores") {
-                return;
-            }
-            const opt = document.createElement('option');
-            opt.value = code;
-            opt.textContent = leagueNames[code] || code;
-            optgroup.appendChild(opt);
-        });
-        
-        // Solo agregar el optgroup si tiene opciones dentro
-        if (optgroup.children.length > 0) {
-            leagueSelect.appendChild(optgroup);
-        }
-    });
-
-    leagueSelect.addEventListener('change', onLeagueChange);
-    
-    teamHomeSelect.addEventListener('change', () => {
-        if (restrictSameTeam()) {
-            fillTeamData($('teamHome').value, $('leagueSelect').value, 'Home');
-            calculateAll();
-        }
-    });
-    teamAwaySelect.addEventListener('change', () => {
-        if (restrictSameTeam()) {
-            fillTeamData($('teamAway').value, $('leagueSelect').value, 'Away');
-            calculateAll();
-        }
-    });
-
-    $('reset').addEventListener('click', clearAll);
-}
-document.addEventListener('DOMContentLoaded', init);
-
-// ----------------------
-// FUNCIONES AUXILIARES DE UI
-// ----------------------
-function onLeagueChange() {
-    const code = $('leagueSelect').value;
-    const teamHomeSelect = $('teamHome');
-    const teamAwaySelect = $('teamAway');
-    
-    teamHomeSelect.innerHTML = '<option value="">Cargando equipos...</option>';
-    teamAwaySelect.innerHTML = '<option value="">Cargando equipos...</option>';
-
-    if (!code || !teamsByLeague[code] || teamsByLeague[code].length === 0) {
-        clearTeamData('Home');
-        clearTeamData('Away');
-        $('details').innerHTML = '<div class="warning"><strong>Advertencia:</strong> No hay datos disponibles para esta liga.</div>';
-        return;
-    }
-
-    const teams = teamsByLeague[code].sort((a, b) => a.name.localeCompare(b.name));
-    
-    const fragmentHome = document.createDocumentFragment();
-    const defaultOptionHome = document.createElement('option');
-    defaultOptionHome.value = '';
-    defaultOptionHome.textContent = '-- Selecciona equipo --';
-    fragmentHome.appendChild(defaultOptionHome);
-    const fragmentAway = document.createDocumentFragment();
-    const defaultOptionAway = document.createElement('option');
-    defaultOptionAway.value = '';
-    defaultOptionAway.textContent = '-- Selecciona equipo --';
-    fragmentAway.appendChild(defaultOptionAway);
-
-    teams.forEach(t => {
-        const opt1 = document.createElement('option');
-        opt1.value = t.name;
-        opt1.textContent = t.name;
-        fragmentHome.appendChild(opt1);
-
-        const opt2 = document.createElement('option');
-        opt2.value = t.name;
-        opt2.textContent = t.name;
-        fragmentAway.appendChild(opt2);
-    });
-
-    teamHomeSelect.innerHTML = '';
-    teamAwaySelect.innerHTML = '';
-    teamHomeSelect.appendChild(fragmentHome);
-    teamAwaySelect.appendChild(fragmentAway);
-
-    clearTeamData('Home');
-    clearTeamData('Away');
-    
-    calculateAll();
-    
-    displaySelectedLeagueEvents(code);
-}
-
-function selectEvent(homeTeamName, awayTeamName) {
-    const teamHomeSelect = $('teamHome');
-    const teamAwaySelect = $('teamAway');
-    
-    const leagueCode = $('leagueSelect').value;
-    
-    const homeOption = Array.from(teamHomeSelect.options).find(opt => opt.text === homeTeamName);
-    if (homeOption) {
-        teamHomeSelect.value = homeOption.value;
-    }
-    
-    const awayOption = Array.from(teamAwaySelect.options).find(opt => opt.text === awayTeamName);
-    if (awayOption) {
-        teamAwaySelect.value = awayOption.value;
-    }
-    
-    if (homeOption && awayOption) {
-        fillTeamData(homeTeamName, leagueCode, 'Home');
-        fillTeamData(awayTeamName, leagueCode, 'Away');
-        calculateAll();
+    increaseQuota();
+    if (resp.getResponseCode() === 200) {
+      const dataText = resp.getContentText();
+      if (dataText.length <= CACHE_LIMIT_BYTES) {
+        cache.put(cacheKey, dataText, exp);
+        Logger.log(`✅ Datos almacenados en caché para ${cacheKey}`);
+      }
+      return JSON.parse(dataText);
     } else {
-        $('details').innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en la lista de la liga.</div>';
+      Logger.log(`❌ Respuesta no válida (${resp.getResponseCode()}) para ${url}`);
+      cache.put(cacheKey, JSON.stringify(null), 300); // Caché de error corto
+      return null;
     }
-}
-
-function restrictSameTeam() {
-    const teamHome = $('teamHome').value;
-    const teamAway = $('teamAway').value;
-    if (teamHome && teamAway && teamHome === teamAway) {
-        $('details').innerHTML = '<div class="error"><strong>Error:</strong> No puedes seleccionar el mismo equipo para local y visitante.</div>';
-        if (document.activeElement === $('teamHome')) {
-            $('teamHome').value = '';
-            clearTeamData('Home');
-        } else {
-            $('teamAway').value = '';
-            clearTeamData('Away');
-        }
-        return false;
-    }
-    return true;
-}
-
-function clearTeamData(type) {
-    const typeLower = type.toLowerCase();
-    
-    $(`pos${type}`).textContent = '--';
-    $(`gf${type}`).textContent = '--';
-    $(`ga${type}`).textContent = '--';
-    $(`winRate${type}`).textContent = '--';
-    
-    const box = $(`form${type}Box`);
-    box.innerHTML = `
-    <div class="team-details">
-        <div class="stat-section">
-            <span class="section-title">General</span>
-            <div class="stat-metrics">
-                <span>PJ: 0</span>
-                <span>Puntos: 0</span>
-                <span>DG: 0</span>
-            </div>
-        </div>
-        <div class="stat-section">
-            <span class="section-title">Local</span>
-            <div class="stat-metrics">
-                <span>PJ: 0</span>
-                <span>PG: 0</span>
-                <span>DG: 0</span>
-            </div>
-        </div>
-        <div class="stat-section">
-            <span class="section-title">Visitante</span>
-            <div class="stat-metrics">
-                <span>PJ: 0</span>
-                <span>PG: 0</span>
-                <span>DG: 0</span>
-            </div>
-        </div>
-    </div>
-    `;
-
-    const cardHeader = $(`card-${typeLower}`).querySelector('.card-header');
-    const h3 = cardHeader ? cardHeader.querySelector('h3') : null;
-    const logoImg = h3 ? cardHeader.querySelector('.team-logo') : null;
-    if (logoImg) {
-        logoImg.remove();
-    }
-}
-
-function clearAll() {
-    document.querySelectorAll('.stat-value').forEach(el => el.textContent = '--');
-    document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-    ['pHome', 'pDraw', 'pAway', 'pBTTS', 'pO25'].forEach(id => {
-        const el = $(id);
-        if (el) el.textContent = '--';
-    });
-    $('detailed-prediction').innerHTML = '<p>Esperando pronóstico detallado...</p>';
-    $('details').innerHTML = 'Detalles del Pronóstico';
-    $('suggestion').innerHTML = '<p>Esperando datos...</p>';
-    
-    // CAMBIO: Asegurarse de que el nuevo contenedor también se limpie
-    const combinedPredictionEl = $('combined-prediction');
-    if (combinedPredictionEl) {
-        combinedPredictionEl.innerHTML = '<p>Esperando pronóstico combinado...</p>';
-    }
-
-    clearTeamData('Home');
-    clearTeamData('Away');
-    displaySelectedLeagueEvents('');
+  } catch (e) {
+    Logger.log(`❌ Error al hacer fetch a ${url}: ${e}`);
+    cache.put(cacheKey, JSON.stringify(null), 300); // Caché de error corto
+    return null;
+  }
 }
 
 // ----------------------
-// BÚSQUEDA Y LLENADO DE EQUIPO
+// OBTENER DATOS DE LA API DE IA
 // ----------------------
-function findTeam(leagueCode, teamName) {
-    if (!teamsByLeague[leagueCode]) return null;
-    return teamsByLeague[leagueCode].find(t => t.name === teamName) || null;
+function setApiKeys() {
+  const primaryKey = 'TU_PRIMERA_API_KEY_AQUI'; // ⚠️ Reemplaza esto con tu clave principal
+  const secondaryKey = 'TU_SEGUNDA_API_KEY_AQUI'; // ⚠️ Reemplaza esto con tu clave de respaldo
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty('PRIMARY_GEMINI_API_KEY', primaryKey);
+  props.setProperty('SECONDARY_GEMINI_API_KEY', secondaryKey);
+  Logger.log('✅ Ambas claves API guardadas con éxito.');
 }
 
-function fillTeamData(teamName, leagueCode, type) {
-    const t = findTeam(leagueCode, teamName);
-    const typeLower = type.toLowerCase();
-    
-    if (!t) {
-        console.error(`Equipo no encontrado: ${teamName} en liga ${leagueCode}`);
-        $('details').innerHTML = `<div class="error"><strong>Error:</strong> Equipo ${teamName} no encontrado en la liga seleccionada.</div>`;
-        return;
+function getPredictionFromApi(matchData) {
+  const props = PropertiesService.getScriptProperties();
+  const primaryKey = props.getProperty('PRIMARY_GEMINI_API_KEY');
+  const secondaryKey = props.getProperty('SECONDARY_GEMINI_API_KEY');
+  const keysToUse = [primaryKey, secondaryKey].filter(Boolean);
+  if (keysToUse.length === 0) {
+    Logger.log('❌ Error: No se encontraron claves API configuradas.');
+    return "N/A";
+  }
+  const prompt = `Actúa como un analista de fútbol experto.
+  Genera un pronóstico detallado en formato JSON para el partido entre ${matchData.local} (local) y ${matchData.visitante} (visitante) en ${matchData.liga} el ${matchData.fecha}.
+  Antes de generar el JSON, investiga los siguientes datos:
+  1. Rendimiento reciente (últimos 5 partidos) de ${matchData.local} y ${matchData.visitante}.
+  2. Historial de enfrentamientos directos (head-to-head) entre ambos equipos.
+  3. Tendencias de goles por partido y goles concedidos para cada equipo.
+  4. Promedio de tiros de esquina por partido para cada equipo.
+  El JSON debe tener la siguiente estructura estricta.
+  {
+    "1X2": {
+      "victoria_local": {"probabilidad": "XX%", "justificacion": "Basado en [dato 1] y [dato 2]"},
+      "empate": {"probabilidad": "XX%", "justificacion": "Breve justificación"},
+      "victoria_visitante": {"probabilidad": "XX%", "justificacion": "Basado en [dato 1] y [dato 2]"}
+    },
+    "BTTS": {
+      "si": {"probabilidad": "XX%", "justificacion": "Breve justificación basada en tendencias de goles"},
+      "no": {"probabilidad": "XX%", "justificacion": "Breve justificación basada en tendencias de goles"}
+    },
+    "Goles": {
+      "mas_2_5": {"probabilidad": "XX%", "justificacion": "Breve justificación basada en promedios de goles"},
+      "menos_2_5": {"probabilidad": "XX%", "justificacion": "Breve justificación basada en promedios de goles"}
+    },
+    "Esquinas": {
+      "mas_8_5": {"probabilidad": "XX%", "justificacion": "Breve justificación basada en promedios de tiros de esquina"},
+      "menos_8_5": {"probabilidad": "XX%", "justificacion": "Breve justificación basada en promedios de tiros de esquina"}
     }
-
-    $(`pos${type}`).textContent = t.pos || '--';
-    $(`gf${type}`).textContent = formatDec(t.gf / (t.pj || 1));
-    $(`ga${type}`).textContent = formatDec(t.ga / (t.pj || 1));
-    $(`winRate${type}`).textContent = formatPct(t.pj ? t.g / t.pj : 0);
-
-    const dg = t.gf - t.ga;
-    const dgHome = t.gfHome - t.gaHome;
-    const dgAway = t.gfAway - t.gaAway;
-    
-    const box = $(`form${type}Box`);
-    box.innerHTML = `
-    <div class="team-details">
-        <div class="stat-section">
-            <span class="section-title">General</span>
-            <div class="stat-metrics">
-                <span>PJ: ${t.pj || 0}</span>
-                <span>Puntos: ${t.points || 0}</span>
-                <span>DG: ${dg >= 0 ? '+' + dg : dg || 0}</span>
-            </div>
-        </div>
-        <div class="stat-section">
-            <span class="section-title">Local</span>
-            <div class="stat-metrics">
-                <span>PJ: ${t.pjHome || 0}</span>
-                <span>PG: ${t.winsHome || 0}</span>
-                <span>DG: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
-            </div>
-        </div>
-        <div class="stat-section">
-            <span class="section-title">Visitante</span>
-            <div class="stat-metrics">
-                <span>PJ: ${t.pjAway || 0}</span>
-                <span>PG: ${t.winsAway || 0}</span>
-                <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
-            </div>
-        </div>
-    </div>
-    `;
-
-    const cardHeader = $(`card-${typeLower}`).querySelector('.card-header');
-    if (cardHeader) {
-        let logoImg = cardHeader.querySelector('.team-logo');
-        if (!logoImg) {
-            logoImg = document.createElement('img');
-            logoImg.className = 'team-logo';
-            logoImg.alt = `Logo de ${t.name}`;
-            const h3 = cardHeader.querySelector('h3');
-            if (h3) {
-                h3.insertAdjacentElement('beforebegin', logoImg);
-            }
-        }
-        logoImg.src = t.logoUrl || '';
-        logoImg.style.display = t.logoUrl ? 'inline-block' : 'none';
+  }
+  Asegúrate de que la suma de las probabilidades en cada sección sea 100%. No incluyas ningún texto fuera del objeto JSON.`;
+  const payload = JSON.stringify({
+    contents: [{
+      role: "user",
+      parts: [{
+        text: prompt
+      }]
+    }],
+    tools: [{
+      "google_search": {}
+    }],
+    systemInstruction: {
+      parts: [{
+        text: "Eres un analista de fútbol. Tu única tarea es devolver la predicción en el formato JSON solicitado. No des texto introductorio, ni explicaciones adicionales, ni formato markdown. Solo el JSON."
+      }]
+    },
+    generationConfig: {
+      temperature: 0.5,
+      topP: 0.8,
+      topK: 40
     }
-}
-
-// ----------------------
-// CÁLCULO DE PROBABILIDADES CON DIXON-COLES Y SHRINKAGE
-// ----------------------
-function dixonColesProbabilities(tH, tA, league) {
-    const rho = -0.11;
-    const shrinkageFactor = 1.0;
-
-    const teams = teamsByLeague[league];
-    let totalGames = 0, totalGf = 0, totalGa = 0, totalGfHome = 0, totalGaHome = 0, totalGfAway = 0, totalGaAway = 0;
-    teams.forEach(t => {
-        totalGames += t.pj || 0;
-        totalGf += t.gf || 0;
-        totalGa += t.ga || 0;
-        totalGfHome += t.gfHome || 0;
-        totalGaHome += t.gaHome || 0;
-        totalGfAway += t.gfAway || 0;
-        totalGaAway += t.gaAway || 0;
-    });
-
-    const leagueAvgGfHome = totalGfHome / (totalGames || 1);
-    const leagueAvgGaAway = totalGaAway / (totalGames || 1);
-    const leagueAvgGfAway = totalGfAway / (totalGames || 1);
-    const leagueAvgGaHome = totalGaHome / (totalGames || 1);
-
-    const homeAttackRaw = (tH.gfHome || 0) / (tH.pjHome || 1);
-    const homeDefenseRaw = (tH.gaHome || 0) / (tH.pjHome || 1);
-    const awayAttackRaw = (tA.gfAway || 0) / (tA.pjAway || 1);
-    const awayDefenseRaw = (tA.gaAway || 0) / (tA.pjAway || 1);
-
-    const homeAttackAdj = (homeAttackRaw + (leagueAvgGfHome * shrinkageFactor)) / (1 + shrinkageFactor);
-    const homeDefenseAdj = (homeDefenseRaw + (leagueAvgGaHome * shrinkageFactor)) / (1 + shrinkageFactor);
-    const awayAttackAdj = (awayAttackRaw + (leagueAvgGfAway * shrinkageFactor)) / (1 + shrinkageFactor);
-    const awayDefenseAdj = (awayDefenseRaw + (leagueAvgGaAway * shrinkageFactor)) / (1 + shrinkageFactor);
-
-    const homeAttackStrength = homeAttackAdj / (leagueAvgGfHome || 1);
-    const homeDefenseStrength = homeDefenseAdj / (leagueAvgGaHome || 1);
-    const awayAttackStrength = awayAttackAdj / (leagueAvgGfAway || 1);
-    const awayDefenseStrength = awayDefenseAdj / (leagueAvgGaAway || 1);
-
-    const lambdaHome = homeAttackStrength * awayDefenseStrength * (leagueAvgGfHome || 1);
-    const lambdaAway = awayAttackStrength * homeDefenseStrength * (leagueAvgGaAway || 1);
-
-    const maxGoals = 6;
-    let pHome = 0, pDraw = 0, pAway = 0, pBTTS = 0, pO25 = 0;
-
-    for (let h = 0; h <= maxGoals; h++) {
-        for (let a = 0; a <= maxGoals; a++) {
-            let prob;
-            if (h === a) {
-                prob = poissonProbability(lambdaHome, h) * poissonProbability(lambdaAway, a) * (1 + rho);
-            } else {
-                prob = poissonProbability(lambdaHome, h) * poissonProbability(lambdaAway, a);
-            }
-
-            if (h > a) pHome += prob;
-            else if (h === a) pDraw += prob;
-            else pAway += prob;
-            
-            if (h >= 1 && a >= 1) pBTTS += prob;
-            if (h + a > 2) pO25 += prob;
-        }
-    }
-    
-    const total = pHome + pDraw + pAway;
-    const finalHome = total > 0 ? pHome / total : 0.33;
-    const finalDraw = total > 0 ? pDraw / total : 0.33;
-    const finalAway = total > 0 ? pAway / total : 0.33;
-
-    const finalBTTS = pBTTS / total;
-    const finalO25 = pO25 / total;
-
-    return { finalHome, finalDraw, finalAway, pBTTSH: finalBTTS, pO25H: finalO25, rho };
-}
-
-// ----------------------
-// FUSIÓN DE PREDICCIONES
-// ----------------------
-function extractAndParseJson(text) {
-    if (!text || typeof text !== 'string') {
-        console.warn("Input no válido. Se esperaba una cadena de texto.");
-        return null;
-    }
-
+  });
+  const options = {
+    'method': 'post',
+    'contentType': 'application/json',
+    'payload': payload,
+    'muteHttpExceptions': true
+  };
+  for (const apiKey of keysToUse) {
+    const urlWithKey = `${GEMINI_API_URL}?key=${apiKey}`;
     try {
-        const cleanedText = text.replace(/\s+/g, ' ').trim();
-        const startIndex = cleanedText.indexOf('{');
-        const endIndex = cleanedText.lastIndexOf('}') + 1;
-
-        if (startIndex !== -1 && endIndex > 0) {
-            const jsonString = cleanedText.substring(startIndex, endIndex);
-            const sanitizedJsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
-            return JSON.parse(sanitizedJsonString);
+      Logger.log(`📡 Solicitando pronóstico a Gemini para ${matchData.local} vs ${matchData.visitante}`);
+      const response = UrlFetchApp.fetch(urlWithKey, options);
+      const responseCode = response.getResponseCode();
+      const responseText = response.getContentText();
+      if (responseCode !== 200) {
+        Logger.log(`❌ Error de la API (${responseCode}): ${responseText}`);
+        if (responseCode === 429) {
+          Logger.log(`❌ Cuota excedida para esta clave. Intentando con la siguiente...`);
+          continue;
         }
+        return `Error API: ${responseCode}`;
+      }
+      const predictionData = JSON.parse(responseText);
+      const jsonText = predictionData.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!jsonText) {
+        Logger.log('❌ La respuesta JSON no contiene el campo de texto esperado.');
+        Logger.log(`Respuesta completa: ${responseText}`);
+        return "Error de formato de respuesta";
+      }
+      const cleanedText = jsonText.substring(jsonText.indexOf('{'), jsonText.lastIndexOf('}') + 1);
+      try {
+        const json = JSON.parse(cleanedText);
+        // NUEVA LÓGICA DE SALIDA
+        return `Análisis del Partido: ${matchData.local} vs. ${matchData.visitante}\n\n${matchData.local}: ${json["1X2"].victoria_local.justificacion}\nEmpate: ${json["1X2"].empate.justificacion}\n${matchData.visitante}: ${json["1X2"].victoria_visitante.justificacion}\n\nProbabilidades:\n${json["1X2"].victoria_local.probabilidad} para ${matchData.local}\n${json["1X2"].empate.probabilidad} para el Empate\n${json["1X2"].victoria_visitante.probabilidad} para ${matchData.visitante}\n\nAmbos Anotan (BTTS):\nSí: ${json.BTTS.si.probabilidad}\nNo: ${json.BTTS.no.probabilidad}\n\nGoles Totales (Más/Menos 2.5):\nMás de 2.5: ${json.Goles.mas_2_5.probabilidad}\nMenos de 2.5: ${json.Goles.menos_2_5.probabilidad}`;
+      } catch (e) {
+        Logger.log(`❌ Error al analizar JSON: ${e.message}. Texto recibido: ${cleanedText}`);
+        return `Error al analizar JSON`;
+      }
     } catch (e) {
-        console.warn("Error al intentar parsear JSON de la IA:", e);
+      Logger.log('❌ Error de la solicitud: ' + e.message + " | URL: " + urlWithKey);
+      return "Error de solicitud";
     }
-    
-    // Si la extracción de JSON falla, intenta parsear el texto plano
-    return parsePlainText(text);
+  }
+  Logger.log('❌ Todas las claves de la API han fallado o agotado la cuota.');
+  return "Cuota Agotada";
 }
 
-function parsePlainText(text) {
-    const aiProbs = {};
-    const aiJustification = {
-        home: "Sin justificación detallada.",
-        draw: "Sin justificación detallada.",
-        away: "Sin justificación detallada."
-    };
-
-    // Extraer probabilidades 1X2
-    const probsMatch = text.match(/Probabilidades:\s*(.*?)(?:Ambos Anotan|$)/s);
-    if (probsMatch && probsMatch[1]) {
-        const probsText = probsMatch[1];
-        const localMatch = probsText.match(/(\d+)%\s+para\s+.*?/i);
-        const drawMatch = probsText.match(/(\d+)%\s+para\s+el\s+Empate/i);
-        const awayMatch = probsText.match(/(\d+)%\s+para\s+.*?/i);
-        
-        // Asignación de porcentajes
-        const percentages = probsText.match(/(\d+)%/g) || [];
-        if (percentages.length >= 3) {
-            aiProbs.home = parseFloat(percentages[0]) / 100;
-            aiProbs.draw = parseFloat(percentages[1]) / 100;
-            aiProbs.away = parseFloat(percentages[2]) / 100;
-        }
-
+function getPredictionWithCache(matchData) {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = `gemini_prediction_${matchData.local}_${matchData.visitante}_${matchData.fecha}`;
+  const cachedPrediction = cache.get(cacheKey);
+  if (cachedPrediction) {
+    Logger.log(`✅ Pronóstico en caché para ${matchData.local} vs ${matchData.visitante}`);
+    return cachedPrediction;
+  } else {
+    const newPrediction = getPredictionFromApi(matchData);
+    if (newPrediction && newPrediction !== "Error API" && newPrediction !== "Error de solicitud" && newPrediction !== "Cuota Agotada") {
+      cache.put(cacheKey, newPrediction, CACHE_PREDICTION_EXP);
+      Logger.log(`✅ Nuevo pronóstico almacenado en caché para ${cacheKey}`);
     }
-    
-    // Extraer justificación
-    const analysisMatch = text.match(/Análisis del Partido:(.*?)Probabilidades:/s);
-    if (analysisMatch && analysisMatch[1]) {
-        const analysisText = analysisMatch[1];
-        const localJustification = analysisText.match(/Municipal:(.*?)(?:Empate:|$)/s);
-        const drawJustification = analysisText.match(/Empate:(.*?)(?:Deportivo Mixco:|$)/s);
-        const awayJustification = analysisText.match(/Deportivo Mixco:(.*?)(?:Probabilidades:|$)/s);
-
-        if (localJustification) aiJustification.home = localJustification[1].trim();
-        if (drawJustification) aiJustification.draw = drawJustification[1].trim();
-        if (awayJustification) aiJustification.away = awayJustification[1].trim();
-    }
-    
-    return {
-        "1X2": {
-            victoria_local: {
-                probabilidad: (aiProbs.home * 100).toFixed(0),
-                justificacion: aiJustification.home
-            },
-            empate: {
-                probabilidad: (aiProbs.draw * 100).toFixed(0),
-                justificacion: aiJustification.draw
-            },
-            victoria_visitante: {
-                probabilidad: (aiProbs.away * 100).toFixed(0),
-                justificacion: aiJustification.away
-            }
-        }
-    };
-}
-
-
-function getCombinedPrediction(stats, aiPrediction, matchData) {
-    const combined = {};
-    const ai = extractAndParseJson(aiPrediction);
-
-    if (!ai || !ai["1X2"] || Object.values(ai["1X2"]).every(p => !p?.probabilidad)) {
-        combined.header = "Análisis Estadístico Principal";
-        combined.body = `<p>No se encontró un pronóstico de IA válido. El análisis se basa únicamente en datos estadísticos.</p>`;
-        return combined;
-    }
-
-    const statProbs = {
-        home: stats.finalHome,
-        draw: stats.finalDraw,
-        away: stats.finalAway
-    };
-
-    const aiProbs = {
-        home: parseFloat(ai["1X2"]?.victoria_local?.probabilidad) / 100 || 0,
-        draw: parseFloat(ai["1X2"]?.empate?.probabilidad) / 100 || 0,
-        away: parseFloat(ai["1X2"]?.victoria_visitante?.probabilidad) / 100 || 0,
-    };
-
-    const statMax = Math.max(statProbs.home, statProbs.draw, statProbs.away);
-    const aiMax = Math.max(aiProbs.home, aiProbs.draw, aiProbs.away);
-    const statBest = Object.keys(statProbs).find(k => statProbs[k] === statMax);
-    const aiBest = Object.keys(aiProbs).find(k => aiProbs[k] === aiMax);
-
-    let header = "Pronóstico Combinado (Estadística + IA)";
-    let body = `
-        <p><strong>Modelo Estadístico:</strong> Victoria Local: ${formatPct(statProbs.home)}, Empate: ${formatPct(statProbs.draw)}, Victoria Visitante: ${formatPct(statProbs.away)}.</p>
-        <p><strong>Modelo de IA:</strong> Victoria Local: ${formatPct(aiProbs.home)}, Empate: ${formatPct(aiProbs.draw)}, Victoria Visitante: ${formatPct(aiProbs.away)}.</p>
-    `;
-
-    // Lógica para el veredicto final
-    if (statBest === aiBest) {
-        const resultText = statBest === 'home' ? `Victoria ${matchData.local}` : statBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
-        const reason = ai["1X2"][aiBest === 'home' ? 'victoria_local' : aiBest === 'draw' ? 'empate' : 'victoria_visitante']?.justificacion || "Sin justificación detallada.";
-        header = `¡Consenso! Apuesta Fuerte en la ${resultText} ⭐`;
-        body += `<p>Ambos modelos coinciden en que la **${resultText}** es el resultado más probable.</p>`;
-        body += `<p><strong>Justificación de la IA:</strong> ${reason}</p>`;
-    } else {
-        const statResult = statBest === 'home' ? `Victoria ${matchData.local}` : statBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
-        const aiResult = aiBest === 'home' ? `Victoria ${matchData.local}` : aiBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
-
-        header = "Discrepancia en Pronósticos ⚠️";
-        body += `<p>El modelo estadístico (${formatPct(statMax)}) favorece la **${statResult}**, mientras que la IA (${formatPct(aiMax)}) se inclina por la **${aiResult}**.</p>`;
-        body += `<p><strong>Análisis de la IA:</strong> ${ai["1X2"][aiBest === 'home' ? 'victoria_local' : aiBest === 'draw' ? 'empate' : 'victoria_visitante']?.justificacion || "Sin justificación detallada."}</p>`;
-        body += `<p>Se recomienda cautela. Analiza la justificación de la IA para entender los factores externos que no considera el modelo estadístico.</p>`;
-    }
-
-    combined.header = header;
-    combined.body = body;
-
-    return combined;
+    return newPrediction;
+  }
 }
 
 // ----------------------
-// CÁLCULO PRINCIPAL
+// OBTENER DATOS DE HOJA
 // ----------------------
-async function calculateAll() {
-    const teamHomeName = $('teamHome').value;
-    const teamAwayName = $('teamAway').value;
-    const leagueCode = $('leagueSelect').value;
+function getSheetData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const data = {
+    calendario: {},
+    ligas: {}
+  };
 
-    if (!teamHomeName || !teamAwayName || !leagueCode) {
-        clearProbabilities();
-        return;
+  // Calendario
+  const calSheet = ss.getSheetByName(CALENDAR_SHEET_NAME);
+  if (calSheet) {
+    const values = calSheet.getDataRange().getValues();
+    const calData = {};
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      if (!row[0]) continue;
+      const liga = row[0];
+      if (!calData[liga]) calData[liga] = [];
+      calData[liga].push({
+        liga,
+        fecha: row[1],
+        local: cleanTeamName(row[2]),
+        visitante: cleanTeamName(row[3]),
+        estadio: row[4] || "Por confirmar",
+        pronostico: row[5] || "",
+        lastUpdated: row[6] || ""
+      });
     }
+    data.calendario = calData;
+  }
 
-    const tH = findTeam(leagueCode, teamHomeName);
-    const tA = findTeam(leagueCode, teamAwayName);
-
-    if (!tH || !tA) {
-        clearProbabilities();
-        return;
+  // Ligas
+  for (const ligaId in ligas) {
+    const sheet = ss.getSheetByName(ligas[ligaId]);
+    if (!sheet) continue;
+    const values = sheet.getDataRange().getValues();
+    const leagueData = [];
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      if (!row[0]) continue;
+      leagueData.push({
+        name: cleanTeamName(row[0]),
+        rank: row[1],
+        gamesPlayed: row[2],
+        wins: row[3],
+        ties: row[4],
+        losses: row[5],
+        points: row[6],
+        goalsFor: row[7],
+        goalsAgainst: row[8],
+        goalsDiff: row[9],
+        form: row[10] || "",
+        gamesPlayedHome: row[11],
+        winsHome: row[12],
+        tiesHome: row[13],
+        lossesHome: row[14],
+        goalsForHome: row[15],
+        goalsAgainstHome: row[16],
+        gamesPlayedAway: row[17],
+        winsAway: row[18],
+        tiesAway: row[19],
+        lossesAway: row[20],
+        goalsForAway: row[21],
+        goalsAgainstAway: row[22],
+        logoUrl: row[23] || "",
+        lastUpdated: row[24] || ""
+      });
     }
+    data.ligas[ligaId] = leagueData;
+  }
 
-    try {
-        setLoading(true);
-
-        const stats = dixonColesProbabilities(tH, tA, leagueCode);
-        
-        // 1. Mostrar las probabilidades del modelo estadístico (Dixon-Coles)
-        $('pHome').textContent = formatPct(stats.finalHome);
-        $('pDraw').textContent = formatPct(stats.finalDraw);
-        $('pAway').textContent = formatPct(stats.finalAway);
-        $('pBTTS').textContent = formatPct(stats.pBTTSH);
-        $('pO25').textContent = formatPct(stats.pO25H);
-
-        // 2. Generar el pronóstico de la IA
-        const detailedPrediction = await getDetailedAIPrediction(tH, tA, leagueCode);
-
-        // 3. Obtener el pronóstico combinado y mostrarlo
-        const combinedPrediction = getCombinedPrediction(stats, detailedPrediction, { local: tH.name, visitante: tA.name });
-        
-        $('suggestion').innerHTML = combinedPrediction.body;
-        const suggestionHeader = $('suggestion-card').querySelector('h3');
-        if (suggestionHeader) suggestionHeader.textContent = combinedPrediction.header;
-        
-        $('detailed-prediction').innerHTML = detailedPrediction.replace(/```json\s*|```/g, '').replace(/\n/g, '<br>');
-        
-    } catch (err) {
-        console.error('Error al calcular o generar pronóstico:', err);
-        $('details').innerHTML = `<div class="error"><strong>Error de cálculo:</strong> Ocurrió un problema al procesar los datos. Por favor, inténtalo de nuevo. Detalle: ${err.message}</div>`;
-        $('detailed-prediction').innerHTML = '<p>No se pudo generar el análisis de la IA.</p>';
-        $('suggestion').innerHTML = '<p>No se pudo generar la sugerencia.</p>';
-        
-    } finally {
-        setLoading(false);
-    }
+  return data;
 }
 
-function clearProbabilities() {
-    $('pHome').textContent = '--';
-    $('pDraw').textContent = '--';
-    $('pAway').textContent = '--';
-    $('pBTTS').textContent = '--';
-    $('pO25').textContent = '--';
-    $('detailed-prediction').innerHTML = '<p>Esperando pronóstico detallado...</p>';
-    $('suggestion').innerHTML = '<p>Esperando datos...</p>';
-}
+// ----------------------
+// CALENDARIO (partidos futuros de hoy y mañana)
+// ----------------------
+function actualizarCalendario() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(CALENDAR_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(CALENDAR_SHEET_NAME);
+    ss.moveActiveSheet(1);
+  }
+  const headers = ["Liga", "Fecha", "Equipo Local", "Equipo Visitante", "Estadio", "Pronóstico IA", "Last Updated"];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f0f0f0");
 
-function setLoading(isLoading) {
-    const mainGrid = $('main-grid');
-    if (isLoading) {
-        mainGrid.classList.add('loading');
-        $('details').innerHTML = 'Calculando...';
-    } else {
-        mainGrid.classList.remove('loading');
-        $('details').innerHTML = 'Detalles del Pronóstico';
-    }
-}
+  const now = new Date();
+  const horaActual = Utilities.formatDate(now, "America/Guatemala", "HH:mm");
+  const todayFecha = Utilities.formatDate(now, "America/Guatemala", "yyyy-MM-dd");
 
-async function getDetailedAIPrediction(tH, tA, leagueCode) {
-    const prompt = `Analiza un partido de fútbol. Equipo local: ${tH.name}. Equipo visitante: ${tA.name}.
-    Estadísticas del equipo local (general): PJ: ${tH.pj}, Goles a favor: ${tH.gf}, Goles en contra: ${tH.ga}, Puntos: ${tH.points}, Posición: ${tH.pos}.
-    Estadísticas del equipo local (local): PJ: ${tH.pjHome}, Goles a favor: ${tH.gfHome}, Goles en contra: ${tH.gaHome}, Goles en contra (visitante): ${tA.gaAway}, Victorias: ${tH.winsHome}.
-    Estadísticas del equipo visitante (general): PJ: ${tA.pj}, Goles a favor: ${tA.gf}, Goles en contra: ${tA.ga}, Puntos: ${tA.points}, Posición: ${tA.pos}.
-    Estadísticas del equipo visitante (visitante): PJ: ${tA.pjAway}, Goles a favor: ${tA.gfAway}, Goles en contra: ${tA.gaAway}, Victorias: ${tA.winsAway}.
-    Análisis del Partido:
-    [Aquí, proporciona un análisis detallado, argumentando los puntos fuertes y débiles de cada equipo, el contexto de la liga, su forma reciente, y cómo estos factores influyen en el resultado probable. Justifica cada pronóstico (victoria local, empate, victoria visitante) con razones específicas.]
-    Probabilidades:
-    [Da una predicción clara en porcentaje para la victoria local, el empate y la victoria visitante. Por ejemplo: "Probabilidades: 45% para la Victoria Local, 30% para el Empate, 25% para la Victoria Visitante".]
-    Ambos Anotan:
-    [Indica la probabilidad de que ambos equipos anoten.]
-    Más de 2.5 Goles:
-    [Indica la probabilidad de que haya más de 2.5 goles en el partido.]
-    El resultado debe ser un texto plano con formato estructurado, no JSON.`;
-
-    const requestBody = {
-        prompt: prompt,
-        maxTokens: 500
+  // Leer datos existentes y crear mapa por clave única
+  const existingValues = sheet.getDataRange().getValues();
+  const matchMap = {};
+  const rowsToDelete = [];
+  for (let i = 1; i < existingValues.length; i++) {
+    const row = existingValues[i];
+    if (!row[0]) continue;
+    const key = `${row[0]}_${row[1]}_${cleanTeamName(row[2])}_${cleanTeamName(row[3])}`.toLowerCase();
+    matchMap[key] = {
+      rowIndex: i + 1,
+      estadio: row[4],
+      pronostico: row[5],
+      lastUpdated: row[6]
     };
+    if (row[1] < todayFecha) {
+      rowsToDelete.push(i + 1);
+    }
+  }
+  rowsToDelete.sort((a, b) => b - a);
+  rowsToDelete.forEach(row => sheet.deleteRow(row));
 
-    const transitionMessage = $('transition-message');
-    const loadingText = transitionMessage.querySelector('.loading-text');
-    let dotCount = 0;
-    const loadingInterval = setInterval(() => {
-        dotCount = (dotCount + 1) % 4;
-        loadingText.textContent = `Analizando con IA${'.'.repeat(dotCount)}`;
-    }, 500);
+  const partidosSemana = [];
+  let needsWrite = false;
 
-    transitionMessage.style.display = 'flex';
+  for (let i = 0; i < 1; i++) {
+    const tempDate = new Date(now);
+    tempDate.setDate(now.getDate() + i);
+    const fecha = Utilities.formatDate(tempDate, "America/Guatemala", "yyyy-MM-dd");
+    const fechaUrl = Utilities.formatDate(tempDate, "America/Guatemala", "yyyyMMdd");
 
-    try {
-        const response = await fetch(`${WEBAPP_URL}?tipo=ia`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
+    for (const ligaId in ligas) {
+      const ligaName = ligas[ligaId];
+      const url = `https://site.web.api.espn.com/apis/site/v2/sports/soccer/${ligaId}/scoreboard?dates=${fechaUrl}`;
+      const cacheKey = `scoreboard_${ligaId}_${fechaUrl}`;
+      
+      let data = fetchWithCacheAggressive(url, cacheKey, CACHE_CALENDAR_EXP);
+      if (!data?.events?.length) {
+        Logger.log(`⚠️ No hay eventos para ${ligaName} en ${fecha}`);
+        continue;
+      }
+
+      data.events.forEach(ev => {
+        const comp = ev.competitions?.[0];
+        if (!comp) return;
+        const { isoDate, fecha: matchFecha, hora } = formatearGT(ev.date);
+
+        if (i === 0 && !isHoraFutura(hora, horaActual)) return;
+
+        const home = comp.competitors?.find(c => c.homeAway === "home")?.team?.displayName || "";
+        const away = comp.competitors?.find(c => c.homeAway === "away")?.team?.displayName || "";
+        const venue = comp.venue?.fullName || "Por confirmar";
+
+        const homeName = cleanTeamName(home);
+        const awayName = cleanTeamName(away);
+
+        const matchKey = `${ligaName}_${matchFecha}_${homeName}_${awayName}`.toLowerCase();
+        const existing = matchMap[matchKey];
+
+        let pronostico = existing?.pronostico || "";
+        let estadio = venue;
+
+        const isFresh = isDataFresh(existing?.lastUpdated);
+        if (!pronostico || !isFresh) {
+          const matchData = {
+            local: homeName,
+            visitante: awayName,
+            liga: ligaId,
+            fecha: matchFecha
+          };
+          pronostico = getPredictionWithCache(matchData);
+          needsWrite = true;
+        }
+
+        if (existing && existing.estadio !== venue) {
+          estadio = venue;
+          needsWrite = true;
+        }
+
+        partidosSemana.push({
+          liga: ligaName,
+          isoDate,
+          home: homeName,
+          away: awayName,
+          venue: estadio,
+          pronostico,
+          hora,
+          fecha: matchFecha
         });
-        
-        if (!response.ok) {
-            throw new Error(`Error HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error);
-        }
-        
-        return data.prediction;
-    } catch (error) {
-        console.error("Error al obtener el pronóstico de la IA:", error);
-        return 'No se pudo generar un pronóstico de la IA. Por favor, inténtalo de nuevo más tarde.';
-    } finally {
-        clearInterval(loadingInterval);
-        transitionMessage.style.display = 'none';
+      });
     }
+  }
+
+  if (partidosSemana.length === 0 && Object.keys(matchMap).length === 0) {
+    sheet.getRange(2, 1).setValue("⚠️ No se encontraron partidos futuros");
+    Logger.log("⚠️ No se encontraron partidos futuros para ninguna liga");
+    return;
+  }
+
+  if (needsWrite || partidosSemana.length > 0) {
+    partidosSemana.sort((a, b) => new Date(`${a.fecha}T${a.hora}:00`).getTime() - new Date(`${b.fecha}T${b.hora}:00`).getTime());
+    const nowStr = new Date().toISOString();
+    partidosSemana.forEach(p => {
+      const matchKey = `${p.liga}_${p.fecha}_${p.home}_${p.away}`.toLowerCase();
+      const rowData = [p.liga, p.isoDate, p.home, p.away, p.venue, p.pronostico, nowStr];
+      const existing = matchMap[matchKey];
+      if (existing) {
+        sheet.getRange(existing.rowIndex, 1, 1, headers.length).setValues([rowData]);
+      } else {
+        sheet.appendRow(rowData);
+      }
+    });
+    const dataRange = sheet.getDataRange();
+    dataRange.sort({column: 2, ascending: true});
+    Logger.log("✅ Calendario actualizado con nuevos datos");
+  } else {
+    Logger.log("✅ No se requiere actualizar el calendario (datos frescos)");
+  }
+
+  sheet.autoResizeColumns(1, headers.length);
+  sheet.getRange(1, 1, sheet.getLastRow(), headers.length).setBorder(true, true, true, true, true, true);
+}
+
+// ----------------------
+// STANDINGS: todas las ligas
+// ----------------------
+function actualizarLigasCompleto(ligasSubset = Object.keys(ligas), useCacheOnly = false, force = false) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  for (const ligaId of ligasSubset) {
+    const sheetName = ligas[ligaId];
+    let sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
+    const headers = [
+      "Equipo", "Rank", "PJ", "Victorias", "Empates", "Derrotas", "Puntos", "GF", "GC", "GD", "Forma",
+      "PJ Local", "Victorias Local", "Empates Local", "Derrotas Local", "GF Local", "GC Local",
+      "PJ Visitante", "Victorias Visitante", "Empates Visitante", "Derrotas Visitante", "GF Visitante", "GC Visitante", "Logo URL",
+      "Last Updated"
+    ];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f0f0f0");
+
+    // Leer datos existentes y crear mapa por equipo
+    const existingValues = sheet.getDataRange().getValues();
+    const teamMap = {};
+    let allFresh = true;
+    let hasData = false;
+    for (let i = 1; i < existingValues.length; i++) {
+      const row = existingValues[i];
+      if (!row[0]) continue;
+      hasData = true;
+      const teamName = cleanTeamName(row[0]);
+      teamMap[teamName.toLowerCase()] = {
+        rowIndex: i + 1,
+        data: row.slice(0, 24),
+        lastUpdated: row[24]
+      };
+      if (!force && isDataFresh(row[24])) {
+        // Solo considera fresco si la fila tiene datos válidos
+      } else {
+        allFresh = false;
+      }
+    }
+
+    // Si no hay datos o force=true, no saltar fetch
+    if (force || !hasData || !allFresh) {
+      Logger.log(`🔄 Actualizando ${sheetName} (force=${force}, hasData=${hasData}, allFresh=${allFresh})`);
+    } else {
+      Logger.log(`✅ Datos frescos en hoja para ${sheetName}. Saltando fetch.`);
+      continue;
+    }
+
+    const output = [];
+    let hasChanges = false;
+
+    const teamsUrl = `https://site.web.api.espn.com/apis/site/v2/sports/soccer/${ligaId}/teams`;
+    const teamsCacheKey = `teams_${ligaId}`;
+    let teamsData = fetchWithCacheAggressive(teamsUrl, teamsCacheKey);
+    
+    if (!teamsData?.sports?.[0]?.leagues?.[0]?.teams?.length) {
+      Logger.log(`❌ No se encontraron datos válidos para ${sheetName} en API o caché. Manteniendo datos existentes.`);
+      if (!hasData) {
+        sheet.getRange(2, 1).setValue(`⚠️ No se encontraron datos para ${sheetName}`);
+      }
+      continue;
+    }
+
+    const teams = teamsData.sports[0].leagues[0].teams;
+    const teamUrls = teams.map(t => `https://site.web.api.espn.com/apis/site/v2/sports/soccer/${ligaId}/teams/${t.team.id}`);
+    const teamCacheKeys = teams.map(t => `team_${ligaId}_${t.team.id}`);
+
+    if (!useCacheOnly && checkQuota()) {
+      const responses = UrlFetchApp.fetchAll(teamUrls.map(url => ({ url, muteHttpExceptions: true })));
+      increaseQuota(responses.length);
+      responses.forEach((resp, index) => {
+        const cacheKey = teamCacheKeys[index];
+        if (resp.getResponseCode() === 200) {
+          const dataText = resp.getContentText();
+          if (dataText.length <= CACHE_LIMIT_BYTES) {
+            CacheService.getScriptCache().put(cacheKey, dataText, CACHE_EXPIRATION);
+            Logger.log(`✅ Datos de equipo almacenados en caché para ${cacheKey}`);
+          }
+        } else {
+          Logger.log(`❌ Error fetching team data for ${teamUrls[index]}: ${resp.getResponseCode()}`);
+        }
+      });
+    }
+
+    teams.forEach((t, index) => {
+      const cacheKey = teamCacheKeys[index];
+      const cached = CacheService.getScriptCache().get(cacheKey);
+      let teamData = cached ? JSON.parse(cached) : null;
+      if (!teamData?.team?.record?.items?.[0]?.stats) {
+        Logger.log(`❌ No stats available for team ${t.team.displayName} in ${sheetName}`);
+        return;
+      }
+
+      const stats = teamData.team.record.items[0].stats;
+      const getStat = name => stats.find(st => st.name === name)?.value || 0;
+      const cleanName = cleanTeamName(teamData.team.displayName);
+      if (cleanName === "Equipo Desconocido") {
+        Logger.log(`⚠️ Nombre inválido para equipo en ${sheetName}. Original: ${teamData.team.displayName}`);
+        return;
+      }
+
+      const newData = [
+        cleanName,
+        getStat("rank"),
+        getStat("gamesPlayed"),
+        getStat("wins"),
+        getStat("ties"),
+        getStat("losses"),
+        getStat("points"),
+        getStat("pointsFor"),
+        getStat("pointsAgainst"),
+        getStat("pointsFor") - getStat("pointsAgainst"),
+        "",
+        getStat("homeGamesPlayed"), getStat("homeWins"), getStat("homeTies"), getStat("homeLosses"), getStat("homePointsFor"), getStat("homePointsAgainst"),
+        getStat("awayGamesPlayed"), getStat("awayWins"), getStat("awayTies"), getStat("awayLosses"), getStat("awayPointsFor"), getStat("awayPointsAgainst"),
+        teamData.team.logos?.[0]?.href || ""
+      ];
+
+      const teamNameKey = cleanName.toLowerCase();
+      const existing = teamMap[teamNameKey];
+
+      let isSame = true;
+      if (existing) {
+        for (let j = 0; j < newData.length; j++) {
+          if (newData[j] !== existing.data[j]) {
+            isSame = false;
+            break;
+          }
+        }
+      } else {
+        isSame = false;
+      }
+
+      if (!isSame) hasChanges = true;
+      output.push({ data: newData, isNewOrChanged: !isSame });
+    });
+
+    if (output.length === 0) {
+      Logger.log(`❌ No se generaron datos válidos para ${sheetName}. Manteniendo datos existentes.`);
+      if (!hasData) {
+        sheet.getRange(2, 1).setValue(`⚠️ No se encontraron datos para ${sheetName}`);
+      }
+      continue;
+    }
+
+    // Solo limpiar la hoja si hay datos válidos para escribir
+    if (hasChanges || force || !hasData) {
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        sheet.getRange(2, 1, lastRow - 1, headers.length).clearContent();
+        Logger.log(`🧹 Datos existentes limpiados en ${sheetName} (filas 2 a ${lastRow})`);
+      } else {
+        Logger.log(`ℹ️ No hay datos para limpiar en ${sheetName} (solo encabezados)`);
+      }
+
+      output.sort((a, b) => (a.data[1] || 9999) - (b.data[1] || 9999));
+      const nowStr = new Date().toISOString();
+
+      const dataStartRow = 2;
+      output.forEach((item, idx) => {
+        Logger.log(`✍️ Escribiendo equipo: ${item.data[0]} en ${sheetName}`);
+        sheet.getRange(dataStartRow + idx, 1, 1, headers.length).setValues([[...item.data, nowStr]]);
+      });
+      Logger.log(`✅ Actualizados datos para ${sheetName} (cambios detectados o forzado).`);
+    } else {
+      Logger.log(`✅ No cambios en ${sheetName}. Saltando update.`);
+    }
+
+    sheet.autoResizeColumns(1, headers.length);
+    sheet.getRange(1, 1, sheet.getLastRow(), headers.length).setBorder(true, true, true, true, true, true);
+  }
+}
+
+// ----------------------
+// DO GET (para web app)
+// ----------------------
+function doGet(e) {
+  const tipo = e.parameter.tipo || "todo";
+  const ligaParam = e.parameter.liga || null;
+  const update = e.parameter.update === "true";
+  const force = e.parameter.force === "true";
+  
+  // Si se pide una actualización, ejecutarla antes de leer los datos.
+  if (update) {
+    if (tipo === "calendario") {
+      actualizarCalendario();
+    } else if (tipo === "liga" && ligaParam && ligas[ligaParam]) {
+      actualizarLigasCompleto([ligaParam], false, force);
+    } else {
+      actualizarTodo(force);
+    }
+  }
+  
+  // Después de la posible actualización, leer los datos y enviarlos.
+  const data = getSheetData();
+  
+  // La línea siguiente asegura que la respuesta tenga el formato correcto y se entregue al cliente.
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function actualizarTodo(force = false) {
+  // Limpiar caché al inicio para evitar datos corruptos
+  clearCache();
+  if (!checkQuota()) {
+    Logger.log("⚠️ Cuota baja. Solo calendario y standings de ligas prioritarias con caché.");
+    actualizarCalendario();
+    actualizarLigasCompleto(PRIORITY_LEAGUES, true, force);
+    return;
+  }
+  actualizarCalendario();
+  actualizarLigasCompleto(Object.keys(ligas), false, force);
+}
+
+// ----------------------
+// UTILIDADES PARA DEPURACIÓN
+// ----------------------
+function clearCache() {
+  const cache = CacheService.getScriptCache();
+  const keys = [];
+  for (const ligaId in ligas) {
+    keys.push(`teams_${ligaId}`);
+    keys.push(`standings_${ligaId}`);
+    const teamsUrl = `https://site.web.api.espn.com/apis/site/v2/sports/soccer/${ligaId}/teams`;
+    const teamsData = fetchWithCacheAggressive(teamsUrl, `teams_${ligaId}`);
+    if (teamsData?.sports?.[0]?.leagues?.[0]?.teams) {
+      teamsData.sports[0].leagues[0].teams.forEach(t => {
+        keys.push(`team_${ligaId}_${t.team.id}`);
+      });
+    }
+    const now = new Date();
+    for (let i = 0; i < 3; i++) {
+      const tempDate = new Date(now);
+      tempDate.setDate(now.getDate() + i);
+      const fechaUrl = Utilities.formatDate(tempDate, "America/Guatemala", "yyyyMMdd");
+      keys.push(`scoreboard_${ligaId}_${fechaUrl}`);
+    }
+  }
+  cache.removeAll(keys);
+  Logger.log("✅ Caché limpiado para todas las ligas");
+}
+
+// ----------------------
+// LIMPIAR HOJAS (PARA PRUEBA)
+// ----------------------
+function clearTestSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  for (const ligaId in ligas) {
+    const sheetName = ligas[ligaId];
+    const sheet = ss.getSheetByName(sheetName);
+    if (sheet) {
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        sheet.getRange(2, 1, lastRow - 1, 25).clearContent();
+        Logger.log(`🧹 Hoja ${sheetName} limpiada`);
+      } else {
+        Logger.log(`ℹ️ Hoja ${sheetName} ya está vacía (solo encabezados)`);
+      }
+    }
+  }
 }
