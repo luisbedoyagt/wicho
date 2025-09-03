@@ -166,7 +166,7 @@ function displaySelectedLeagueEvents(leagueCode) {
         eventInterval = null;
     }
 
-    selectedEventsList.innerHTML = '';
+    // Ocultar la transición al inicio
     transitionMessage.style.display = 'none';
 
     if (!leagueCode || !allData.calendario) {
@@ -182,65 +182,71 @@ function displaySelectedLeagueEvents(leagueCode) {
         return;
     }
 
-    const eventsPerPage = 3; // Mostrar 3 eventos por página
+    const eventsPerPage = 3;
     const totalPages = Math.ceil(events.length / eventsPerPage);
+    let currentPage = 0;
 
     function showCurrentPage() {
-        const startIndex = currentEventPage * eventsPerPage;
-        const endIndex = Math.min(startIndex + eventsPerPage, events.length);
-        const eventsToShow = events.slice(startIndex, endIndex);
-
-        selectedEventsList.innerHTML = '';
-        eventsToShow.forEach(event => {
-            const div = document.createElement('div');
-            div.className = 'event-item';
-            div.dataset.homeTeam = event.local;
-            div.dataset.awayTeam = event.visitante;
-
-            let eventDateTime;
-            try {
-                const parsedDate = new Date(event.fecha);
-                if (isNaN(parsedDate.getTime())) {
-                    throw new Error("Fecha inválida");
-                }
-                const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
-                const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
-                const formattedDate = parsedDate.toLocaleDateString('es-ES', dateOptions);
-                const formattedTime = parsedDate.toLocaleTimeString('es-ES', timeOptions);
-                eventDateTime = `${formattedDate} ${formattedTime} (GT)`;
-            } catch (err) {
-                console.warn(`Error parseando fecha para el evento: ${event.local} vs. ${event.visitante}`, err);
-                eventDateTime = `${event.fecha} (Hora no disponible)`;
-            }
-
-            div.innerHTML = `
-                <strong>${event.local} vs. ${event.visitante}</strong>
-                <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
-                <span>${eventDateTime}</span>
-            `;
-            selectedEventsList.appendChild(div);
-
-            div.addEventListener('click', () => {
-                selectEvent(event.local, event.visitante);
-            });
+        // Remover todos los elementos de la lista con una animación
+        const items = selectedEventsList.querySelectorAll('.event-item');
+        items.forEach((item, index) => {
+            item.style.animation = `fade-out-down 0.5s ease-in forwards ${index * 0.1}s`;
         });
+        
+        transitionMessage.style.display = 'block';
 
-        currentEventPage = (currentEventPage + 1) % totalPages;
+        setTimeout(() => {
+            selectedEventsList.innerHTML = '';
+            transitionMessage.style.display = 'none';
+
+            const startIndex = currentPage * eventsPerPage;
+            const endIndex = Math.min(startIndex + eventsPerPage, events.length);
+            const eventsToShow = events.slice(startIndex, endIndex);
+
+            eventsToShow.forEach((event, index) => {
+                const div = document.createElement('div');
+                div.className = 'event-item';
+                div.dataset.homeTeam = event.local;
+                div.dataset.awayTeam = event.visitante;
+                div.style.animation = `fade-in-up 0.5s ease-out forwards ${index * 0.1}s`;
+
+                let eventDateTime;
+                try {
+                    const parsedDate = new Date(event.fecha);
+                    if (isNaN(parsedDate.getTime())) {
+                        throw new Error("Fecha inválida");
+                    }
+                    const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
+                    const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
+                    const formattedDate = parsedDate.toLocaleDateString('es-ES', dateOptions);
+                    const formattedTime = parsedDate.toLocaleTimeString('es-ES', timeOptions);
+                    eventDateTime = `${formattedDate} ${formattedTime} (GT)`;
+                } catch (err) {
+                    console.warn(`Error parseando fecha para el evento: ${event.local} vs. ${event.visitante}`, err);
+                    eventDateTime = `${event.fecha} (Hora no disponible)`;
+                }
+
+                div.innerHTML = `
+                    <strong>${event.local} vs. ${event.visitante}</strong>
+                    <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
+                    <span>${eventDateTime}</span>
+                `;
+                selectedEventsList.appendChild(div);
+
+                div.addEventListener('click', () => {
+                    selectEvent(event.local, event.visitante);
+                });
+            });
+
+            currentPage = (currentPage + 1) % totalPages;
+
+        }, 600); // Esperar que la animación de salida termine
     }
 
     showCurrentPage();
 
     if (totalPages > 1) {
-        eventInterval = setInterval(() => {
-            const currentItems = selectedEventsList.querySelectorAll('.event-item');
-            currentItems.forEach(item => item.classList.add('is-transitioning'));
-            transitionMessage.style.display = 'block';
-
-            setTimeout(() => {
-                showCurrentPage();
-                transitionMessage.style.display = 'none';
-            }, 500); // Duración de la animación
-        }, 5000); // Cambia cada 5 segundos
+        eventInterval = setInterval(showCurrentPage, 5000); // Cambiar cada 5 segundos
     }
 }
 
