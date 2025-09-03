@@ -35,6 +35,8 @@ function factorial(n) {
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyaLnP1wS9C2XKZH2oM2ptyfYzGYz50JzicpYiRTCnaP4ybm-73D8PV-Wr40OYZmK04Og/exec";
 let teamsByLeague = {};
 let allData = {};
+let currentEventPage = 0;
+let eventInterval;
 
 const leagueNames = {
     "esp.1": "LaLiga España",
@@ -156,9 +158,15 @@ async function fetchAllData() {
 // ----------------------
 function displaySelectedLeagueEvents(leagueCode) {
     const selectedEventsList = $('selected-league-events');
-    if (!selectedEventsList) return;
+    const transitionMessage = $('transition-message');
+    if (!selectedEventsList || !transitionMessage) return;
+
+    // Limpiar cualquier intervalo anterior
+    clearInterval(eventInterval);
 
     selectedEventsList.innerHTML = '';
+    transitionMessage.textContent = '';
+    currentEventPage = 0;
 
     if (!leagueCode || !allData.calendario) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
@@ -166,45 +174,66 @@ function displaySelectedLeagueEvents(leagueCode) {
     }
 
     const ligaName = leagueCodeToName[leagueCode];
-    const events = (allData.calendario[ligaName] || []).slice(0, 3);
+    const events = allData.calendario[ligaName] || [];
 
     if (events.length === 0) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
         return;
     }
 
-    events.forEach(event => {
-        let eventDateTime;
-        try {
-            const parsedDate = new Date(event.fecha);
-            if (isNaN(parsedDate.getTime())) {
-                throw new Error("Fecha inválida");
+    const totalPages = Math.ceil(events.length / 3);
+
+    const showEvents = () => {
+        selectedEventsList.innerHTML = '';
+        const startIndex = currentEventPage * 3;
+        const eventsToShow = events.slice(startIndex, startIndex + 3);
+
+        eventsToShow.forEach(event => {
+            let eventDateTime;
+            try {
+                const parsedDate = new Date(event.fecha);
+                if (isNaN(parsedDate.getTime())) {
+                    throw new Error("Fecha inválida");
+                }
+                const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
+                const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
+                const formattedDate = parsedDate.toLocaleDateString('es-ES', dateOptions);
+                const formattedTime = parsedDate.toLocaleTimeString('es-ES', timeOptions);
+                eventDateTime = `${formattedDate} ${formattedTime} (GT)`;
+            } catch (err) {
+                console.warn(`Error parseando fecha para el evento: ${event.local} vs. ${event.visitante}`, err);
+                eventDateTime = `${event.fecha} (Hora no disponible)`;
             }
-            const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
-            const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
-            const formattedDate = parsedDate.toLocaleDateString('es-ES', dateOptions);
-            const formattedTime = parsedDate.toLocaleTimeString('es-ES', timeOptions);
-            eventDateTime = `${formattedDate} ${formattedTime} (GT)`;
-        } catch (err) {
-            console.warn(`Error parseando fecha para el evento: ${event.local} vs. ${event.visitante}`, err);
-            eventDateTime = `${event.fecha} (Hora no disponible)`;
-        }
 
-        const div = document.createElement('div');
-        div.className = 'event-item';
-        div.dataset.homeTeam = event.local;
-        div.dataset.awayTeam = event.visitante;
-        div.innerHTML = `
-            <strong>${event.local} vs. ${event.visitante}</strong>
-            <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
-            <span>${eventDateTime}</span>
-        `;
-        selectedEventsList.appendChild(div);
+            const div = document.createElement('div');
+            div.className = 'event-item';
+            div.dataset.homeTeam = event.local;
+            div.dataset.awayTeam = event.visitante;
+            div.innerHTML = `
+                <strong>${event.local} vs. ${event.visitante}</strong>
+                <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
+                <span>${eventDateTime}</span>
+            `;
+            selectedEventsList.appendChild(div);
 
-        div.addEventListener('click', () => {
-            selectEvent(event.local, event.visitante);
+            div.addEventListener('click', () => {
+                selectEvent(event.local, event.visitante);
+            });
         });
-    });
+
+        if (totalPages > 1) {
+            transitionMessage.textContent = `Mostrando ${currentEventPage + 1} de ${totalPages}. Más eventos en 10 segundos...`;
+        } else {
+            transitionMessage.textContent = '';
+        }
+        
+        currentEventPage = (currentEventPage + 1) % totalPages;
+    };
+
+    showEvents();
+    if (totalPages > 1) {
+        eventInterval = setInterval(showEvents, 10000);
+    }
 }
 
 // ----------------------
