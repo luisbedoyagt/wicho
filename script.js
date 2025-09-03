@@ -50,12 +50,20 @@ const leagueNames = {
     "ned.2": "Eerste Divisie Países Bajos",
     "por.1": "Liga Portugal",
     "mex.1": "Liga MX México",
+    "mex.2": "Liga de Expansión MX",
     "usa.1": "MLS Estados Unidos",
     "bra.1": "Brasileirão Brasil",
     "gua.1": "Liga Nacional Guatemala",
     "crc.1": "Liga Promerica Costa Rica",
-    "hon.1": "Honduras LigaNacional",
+    "hon.1": "Honduras_LigaNacional",
+    "slv.1": "El Salvador_Liga Primera División",
     "ksa.1": "Pro League Arabia Saudita",
+    "tur.1": "Super Lig de Turquía",
+    "ger.2": "Bundesliga 2 de Alemania",
+    "arg.1": "Liga Profesional de Fútbol de Argentina",
+    "conmebol.sudamericana": "CONMEBOL Sudamericana",
+    "conmebol.libertadores": "CONMEBOL Libertadores",
+    "chn.1": "Superliga China",
     "fifa.worldq.conmebol": "Eliminatorias CONMEBOL",
     "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
     "fifa.worldq.uefa": "Eliminatorias UEFA"
@@ -73,12 +81,20 @@ const leagueCodeToName = {
     "ned.2": "PaísesBajos_EersteDivisie",
     "por.1": "Portugal_LigaPortugal",
     "mex.1": "México_LigaMX",
+    "mex.2": "México_ExpansionMX",
     "usa.1": "EstadosUnidos_MLS",
     "bra.1": "Brasil_Brasileirao",
     "gua.1": "Guatemala_LigaNacional",
     "crc.1": "CostaRica_LigaPromerica",
     "hon.1": "Honduras_LigaNacional",
+    "slv.1": "ElSalvador_LigaPrimeraDivision",
     "ksa.1": "Arabia_Saudi_ProLeague",
+    "tur.1": "Turquia_SuperLig",
+    "ger.2": "Alemania_Bundesliga2",
+    "arg.1": "Argentina_LigaProfesional",
+    "conmebol.sudamericana": "CONMEBOL_Sudamericana",
+    "conmebol.libertadores": "CONMEBOL_Libertadores",
+    "chn.1": "China_Superliga",
     "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
     "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
     "fifa.worldq.uefa": "Eliminatorias_UEFA"
@@ -96,13 +112,21 @@ const leagueRegions = {
     "ned.1": "Europa",
     "ned.2": "Europa",
     "por.1": "Europa",
-    "mex.1": "Norteamérica",
-    "usa.1": "Norteamérica",
-    "gua.1": "Norteamérica",
-    "crc.1": "Norteamérica",
-    "hon.1": "Norteamérica",
+    "tur.1": "Europa",
+    "ger.2": "Europa",
+    "arg.1": "Sudamérica",
     "bra.1": "Sudamérica",
+    "mex.1": "Norteamérica",
+    "mex.2": "Norteamérica",
+    "usa.1": "Norteamérica",
+    "gua.1": "Centroamérica",
+    "crc.1": "Centroamérica",
+    "hon.1": "Centroamérica",
+    "slv.1": "Centroamérica",
     "ksa.1": "Asia",
+    "chn.1": "Asia",
+    "conmebol.sudamericana": "Copas Internacionales",
+    "conmebol.libertadores": "Copas Internacionales",
     "fifa.worldq.conmebol": "Eliminatorias Mundiales",
     "fifa.worldq.concacaf": "Eliminatorias Mundiales",
     "fifa.worldq.uefa": "Eliminatorias Mundiales"
@@ -300,7 +324,7 @@ async function init() {
     });
 
     // Ordenar las regiones de forma específica y luego alfabéticamente
-    const customOrder = ["Europa", "Sudamérica", "Norteamérica", "Asia", "Eliminatorias Mundiales"];
+    const customOrder = ["Europa", "Sudamérica", "Norteamérica", "Centroamérica", "Asia", "Copas Internacionales", "Eliminatorias Mundiales"];
     const sortedRegions = Object.keys(regionsMap).sort((a, b) => {
         const aIndex = customOrder.indexOf(a);
         const bIndex = customOrder.indexOf(b);
@@ -319,13 +343,20 @@ async function init() {
 
         // Ordenar las ligas dentro de cada grupo
         regionsMap[regionName].sort().forEach(code => {
+            // No se agregan las ligas comentadas en la hoja de cálculo
+            if (code === "conmebol.sudamericana" || code === "conmebol.libertadores") {
+                return;
+            }
             const opt = document.createElement('option');
             opt.value = code;
             opt.textContent = leagueNames[code] || code;
             optgroup.appendChild(opt);
         });
-
-        leagueSelect.appendChild(optgroup);
+        
+        // Solo agregar el optgroup si tiene opciones dentro
+        if (optgroup.children.length > 0) {
+            leagueSelect.appendChild(optgroup);
+        }
     });
 
     leagueSelect.addEventListener('change', onLeagueChange);
