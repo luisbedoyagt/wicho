@@ -693,16 +693,30 @@ function dixonColesProbabilities(tH, tA, league) {
 function extractAndParseJson(text) {
     if (!text || typeof text !== 'string') return null;
     try {
-        const startIndex = text.indexOf('{');
-        const endIndex = text.lastIndexOf('}') + 1;
-        if (startIndex === -1 || endIndex === 0) return null;
-        const jsonString = text.substring(startIndex, endIndex);
-        return JSON.parse(jsonString);
+        // Eliminar saltos de línea, tabulaciones y espacios extra
+        const cleanedText = text.replace(/\s+/g, ' ');
+        
+        // Buscar el inicio y fin del objeto JSON
+        const startIndex = cleanedText.indexOf('{');
+        const endIndex = cleanedText.lastIndexOf('}') + 1;
+        
+        if (startIndex === -1 || endIndex === 0) {
+            console.warn("No se encontró un objeto JSON válido en el texto.");
+            return null;
+        }
+        
+        const jsonString = cleanedText.substring(startIndex, endIndex);
+        
+        // Reemplazar comas incorrectas y eliminar comas finales
+        const sanitizedJsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
+        
+        return JSON.parse(sanitizedJsonString);
     } catch (e) {
         console.error("Error al extraer o parsear JSON de la IA:", e);
         return null;
     }
 }
+
 
 function getCombinedPrediction(stats, aiPrediction, matchData) {
     const combined = {};
