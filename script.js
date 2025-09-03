@@ -158,17 +158,16 @@ async function fetchAllData() {
 // ----------------------
 function displaySelectedLeagueEvents(leagueCode) {
     const selectedEventsList = $('selected-league-events');
-    const transitionMessage = $('transition-message');
-    if (!selectedEventsList || !transitionMessage) return;
+    if (!selectedEventsList) return;
 
     if (eventInterval) {
         clearInterval(eventInterval);
         eventInterval = null;
     }
 
-    // Ocultar la transición al inicio
-    transitionMessage.style.display = 'none';
-
+    // Limpiar la lista al principio para evitar duplicados
+    selectedEventsList.innerHTML = '';
+    
     if (!leagueCode || !allData.calendario) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
         return;
@@ -187,28 +186,21 @@ function displaySelectedLeagueEvents(leagueCode) {
     let currentPage = 0;
 
     function showCurrentPage() {
-        // Remover todos los elementos de la lista con una animación
-        const items = selectedEventsList.querySelectorAll('.event-item');
-        items.forEach((item, index) => {
-            item.style.animation = `fade-out-down 0.5s ease-in forwards ${index * 0.1}s`;
-        });
-        
-        transitionMessage.style.display = 'block';
+        const startIndex = currentPage * eventsPerPage;
+        const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
 
+        // Añadir la clase de salida a los elementos actuales
+        const currentItems = selectedEventsList.querySelectorAll('.event-item');
+        currentItems.forEach(item => item.classList.add('fade-out'));
+
+        // Esperar a que la transición de salida termine antes de actualizar el contenido
         setTimeout(() => {
-            selectedEventsList.innerHTML = '';
-            transitionMessage.style.display = 'none';
-
-            const startIndex = currentPage * eventsPerPage;
-            const endIndex = Math.min(startIndex + eventsPerPage, events.length);
-            const eventsToShow = events.slice(startIndex, endIndex);
-
-            eventsToShow.forEach((event, index) => {
+            selectedEventsList.innerHTML = ''; // Limpiar el contenedor
+            eventsToShow.forEach(event => {
                 const div = document.createElement('div');
-                div.className = 'event-item';
+                div.className = 'event-item fade-in'; // Añadir clase de entrada
                 div.dataset.homeTeam = event.local;
                 div.dataset.awayTeam = event.visitante;
-                div.style.animation = `fade-in-up 0.5s ease-out forwards ${index * 0.1}s`;
 
                 let eventDateTime;
                 try {
@@ -240,13 +232,15 @@ function displaySelectedLeagueEvents(leagueCode) {
 
             currentPage = (currentPage + 1) % totalPages;
 
-        }, 600); // Esperar que la animación de salida termine
+        }, 500); // El tiempo de espera debe coincidir con la duración de la animación CSS (0.5s)
     }
 
+    // Mostrar la primera página inmediatamente
     showCurrentPage();
 
     if (totalPages > 1) {
-        eventInterval = setInterval(showCurrentPage, 5000); // Cambiar cada 5 segundos
+        // Iniciar el carrusel de eventos
+        eventInterval = setInterval(showCurrentPage, 5000); // Intervalo de 5 segundos
     }
 }
 
