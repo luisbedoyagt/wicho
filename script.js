@@ -96,16 +96,16 @@ const leagueRegions = {
     "ned.1": "Europa",
     "ned.2": "Europa",
     "por.1": "Europa",
-    "fifa.worldq.uefa": "Europa",
     "mex.1": "Norteamérica",
     "usa.1": "Norteamérica",
     "gua.1": "Norteamérica",
     "crc.1": "Norteamérica",
     "hon.1": "Norteamérica",
-    "fifa.worldq.concacaf": "Norteamérica",
     "bra.1": "Sudamérica",
-    "fifa.worldq.conmebol": "Sudamérica",
-    "ksa.1": "Asia"
+    "ksa.1": "Asia",
+    "fifa.worldq.conmebol": "Eliminatorias Mundiales",
+    "fifa.worldq.concacaf": "Eliminatorias Mundiales",
+    "fifa.worldq.uefa": "Eliminatorias Mundiales"
 };
 
 // ----------------------
@@ -299,8 +299,18 @@ async function init() {
         regionsMap[region].push(code);
     });
 
-    // Ordenar las regiones alfabéticamente
-    const sortedRegions = Object.keys(regionsMap).sort();
+    // Ordenar las regiones de forma específica y luego alfabéticamente
+    const customOrder = ["Europa", "Sudamérica", "Norteamérica", "Asia", "Eliminatorias Mundiales"];
+    const sortedRegions = Object.keys(regionsMap).sort((a, b) => {
+        const aIndex = customOrder.indexOf(a);
+        const bIndex = customOrder.indexOf(b);
+        if (aIndex === -1 && bIndex === -1) {
+            return a.localeCompare(b);
+        }
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+    });
 
     // Recorrer las regiones ordenadas para construir el select
     sortedRegions.forEach(regionName => {
@@ -718,5 +728,3 @@ function calculateAll() {
         $('suggestion').innerHTML = '<p>No se encontraron recomendaciones con una probabilidad superior al 30%. Analiza otros mercados.</p>';
     }
 }
-
-
