@@ -688,6 +688,28 @@ select:focus {
 }
 
 
+/* --- AJUSTES PARA PANTALLAS MÓVILES --- */
+.probabilities-grid {
+    gap: 0.5rem;
+}
+
+.probability-tile {
+    flex: 1 1 30%;
+    max-width: 32%;
+}
+
+.probability-tile:nth-child(n+4) {
+    flex: 1 1 45%;
+    max-width: 48%;
+}
+
+.probability-tile .label {
+    font-size: 0.7rem;
+}
+.probability-tile .value {
+    font-size: 1.3rem;
+}
+
 /* --- Media Queries (ajustes para escritorio) --- */
 @media (min-width: 768px) {
     .main-grid {
@@ -787,4 +809,23 @@ select:focus {
 
 .event-item.slide-in {
     animation: slide-in-right 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* --- Nuevos estilos para los grupos de ligas --- */
+select optgroup {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--highlight-blue);
+    margin-top: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+select optgroup:not(:first-child) {
+    margin-top: 20px;
+}
+
+select option {
+    font-size: 1em;
+    padding-left: 15px;
 }
