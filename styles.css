@@ -35,7 +35,7 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM0NDQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4xMiI+PHBhdGggZD0yTTAgNDBoNEwxNiAyOHg0TDM2IDQwSDQwVjMzTDIwIDEyIDAgMzNWNDB6TTEwIDQwSDRsMTYtMjBMNC4yIDBoLTQuMkwyMCAyMiAzNS44IDBoLTQuMkwyMCAyMiAxMCA0MHoiLz48L2c+PC9nPjwvc3ZnPg==');
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM0NDQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4xMiI+PHBhdGggZD0iTTAgNDBoNEwxNiAyOHg0TDM2IDQwSDQwVjMzTDIwIDEyIDAgMzNWNDB6TTEwIDQwSDRsMTYtMjBMNC4yIDBoLTQuMkwyMCAyMiAzNS44IDBoLTQuMkwyMCAyMiAxMCA0MHoiLz48L2c+PC9nPjwvc3ZnPg==');
     background-size: 20px 20px;
     background-blend-mode: overlay;
     padding: 2rem;
@@ -845,41 +845,40 @@ select option {
 /* --- Media Queries (ajustes para escritorio) --- */
 @media (min-width: 768px) {
     .main-grid {
-        grid-template-columns: 1.2fr 1fr 1fr;
-        gap: 2.5rem;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-areas:
+            "event-card event-card event-card"
+            "result-card team-home team-away"
+            "ia-grid ia-grid ia-grid"
+            ". reset-btn .";
+        gap: 2rem;
     }
 
     .event-card {
-        grid-column: 1 / span 3;
-        grid-row: 1;
-    }
-
-    .team-card#card-home {
-        grid-column: 2;
-        grid-row: 2;
-    }
-
-    .team-card#card-away {
-        grid-column: 3;
-        grid-row: 2;
+        grid-area: event-card;
     }
 
     .result-card {
-        grid-column: 1;
-        grid-row: 2 / span 2;
+        grid-area: result-card;
+    }
+
+    .team-card#card-home {
+        grid-area: team-home;
+    }
+
+    .team-card#card-away {
+        grid-area: team-away;
     }
     
     .recommendation-ia-grid {
-        grid-column: 2 / span 2;
-        grid-row: 3;
+        grid-area: ia-grid;
         grid-template-columns: 1fr 1fr;
         gap: 2.5rem;
         margin-top: 0;
     }
     
     .reset-container {
-        grid-column: 1 / span 3;
-        grid-row: 4;
+        grid-area: reset-btn;
     }
 
     .team-card { margin-bottom: 0; }
