@@ -16,6 +16,9 @@
     --screw-color: #888;
     --screw-highlight: #ccc;
     --screw-shadow: #222;
+    --accent-green: #37cc8e;
+    --accent-yellow: #e5c07b;
+    --accent-red: #e06c75;
 }
 
 /* Reset y tipografía */
@@ -847,7 +850,8 @@ select option {
     }
 
     .event-card {
-        grid-area: initial;
+        grid-column: 1 / span 3;
+        grid-row: 1;
         order: initial;
     }
 
@@ -871,19 +875,12 @@ select option {
         grid-column: 1 / span 3;
         grid-row: 3;
         grid-template-columns: 1fr 1fr; /* Una al lado de la otra en escritorio */
-        order: initial;
         gap: 2.5rem;
     }
-
-    .ia-card {
-        grid-column: 1 / span 3;
-        grid-row: 4;
-        order: initial;
-    }
-
+    
     .reset-container {
         grid-column: 1 / span 3;
-        grid-row: 5;
+        grid-row: 4;
         order: initial;
     }
 
