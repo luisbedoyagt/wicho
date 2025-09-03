@@ -159,17 +159,15 @@ async function fetchAllData() {
 function displaySelectedLeagueEvents(leagueCode) {
     const selectedEventsList = $('selected-league-events');
     const transitionMessage = $('transition-message');
-    if (!selectedEventsList || !transitionMessage) {
-      console.error("Elementos del DOM no encontrados: 'selected-league-events' o 'transition-message'");
-      return;
+    if (!selectedEventsList || !transitionMessage) return;
+
+    if (eventInterval) {
+        clearInterval(eventInterval);
+        eventInterval = null;
     }
 
-    // Limpiar cualquier intervalo anterior
-    clearInterval(eventInterval);
-
     selectedEventsList.innerHTML = '';
-    transitionMessage.textContent = '';
-    currentEventPage = 0;
+    transitionMessage.style.display = 'none';
 
     if (!leagueCode || !allData.calendario) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
@@ -184,14 +182,21 @@ function displaySelectedLeagueEvents(leagueCode) {
         return;
     }
 
-    const totalPages = Math.ceil(events.length / 3);
+    const eventsPerPage = 3;
+    const totalPages = Math.ceil(events.length / eventsPerPage);
 
-    const showEvents = () => {
+    function showCurrentPage() {
+        const startIndex = currentEventPage * eventsPerPage;
+        const endIndex = Math.min(startIndex + eventsPerPage, events.length);
+        const eventsToShow = events.slice(startIndex, endIndex);
+
         selectedEventsList.innerHTML = '';
-        const startIndex = currentEventPage * 3;
-        const eventsToShow = events.slice(startIndex, startIndex + 3);
-
         eventsToShow.forEach(event => {
+            const div = document.createElement('div');
+            div.className = 'event-item';
+            div.dataset.homeTeam = event.local;
+            div.dataset.awayTeam = event.visitante;
+
             let eventDateTime;
             try {
                 const parsedDate = new Date(event.fecha);
@@ -208,10 +213,6 @@ function displaySelectedLeagueEvents(leagueCode) {
                 eventDateTime = `${event.fecha} (Hora no disponible)`;
             }
 
-            const div = document.createElement('div');
-            div.className = 'event-item';
-            div.dataset.homeTeam = event.local;
-            div.dataset.awayTeam = event.visitante;
             div.innerHTML = `
                 <strong>${event.local} vs. ${event.visitante}</strong>
                 <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
@@ -224,18 +225,22 @@ function displaySelectedLeagueEvents(leagueCode) {
             });
         });
 
-        if (totalPages > 1) {
-            transitionMessage.textContent = `Mostrando ${Math.min(eventsToShow.length, events.length - startIndex)} de ${events.length} partidos. Más eventos en 10 segundos...`;
-        } else {
-            transitionMessage.textContent = '';
-        }
-        
         currentEventPage = (currentEventPage + 1) % totalPages;
-    };
+    }
 
-    showEvents();
+    showCurrentPage();
+
     if (totalPages > 1) {
-        eventInterval = setInterval(showEvents, 10000);
+        eventInterval = setInterval(() => {
+            const currentItems = selectedEventsList.querySelectorAll('.event-item');
+            currentItems.forEach(item => item.classList.add('is-transitioning'));
+            transitionMessage.style.display = 'block';
+
+            setTimeout(() => {
+                showCurrentPage();
+                transitionMessage.style.display = 'none';
+            }, 500); // Duración de la animación
+        }, 5000); // Cambia cada 5 segundos
     }
 }
 
