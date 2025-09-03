@@ -236,13 +236,13 @@ function displaySelectedLeagueEvents(leagueCode) {
 
             currentPage = (currentPage + 1) % totalPages;
 
-        }, 400);
+        }, 800);
     }
 
     showCurrentPage();
 
     if (totalPages > 1) {
-        eventInterval = setInterval(showCurrentPage, 5000);
+        eventInterval = setInterval(showCurrentPage, 10000);
     }
 }
 
