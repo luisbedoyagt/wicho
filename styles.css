@@ -782,9 +782,9 @@ select:focus {
 }
 
 .event-item.slide-out {
-    animation: slide-out-left 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+    animation: slide-out-left 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
 }
 
 .event-item.slide-in {
-    animation: slide-in-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: slide-in-right 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
