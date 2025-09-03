@@ -54,7 +54,7 @@ const leagueNames = {
     "bra.1": "Brasileirão Brasil",
     "gua.1": "Liga Nacional Guatemala",
     "crc.1": "Liga Promerica Costa Rica",
-    "hon.1": "Honduras_LigaNacional",
+    "hon.1": "Honduras LigaNacional",
     "ksa.1": "Pro League Arabia Saudita",
     "fifa.worldq.conmebol": "Eliminatorias CONMEBOL",
     "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
@@ -718,4 +718,5 @@ function calculateAll() {
         $('suggestion').innerHTML = '<p>No se encontraron recomendaciones con una probabilidad superior al 30%. Analiza otros mercados.</p>';
     }
 }
+
 
