@@ -831,81 +831,61 @@ function getCombinedPrediction(stats, aiPrediction, matchData) {
 // ----------------------
 // CÁLCULO PRINCIPAL
 // ----------------------
-function calculateAll() {
-    const teamHome = $('teamHome').value;
-    const teamAway = $('teamAway').value;
-    const league = $('leagueSelect').value;
+async function calculateAll() {
+    const teamHomeName = $('teamHome').value;
+    const teamAwayName = $('teamAway').value;
+    const leagueCode = $('leagueSelect').value;
 
-    if (!teamHome || !teamAway || !league) {
-        $('details').innerHTML = '<div class="warning"><strong>Advertencia:</strong> Selecciona una liga y ambos equipos.</div>';
-        $('suggestion').innerHTML = '<p>Esperando datos...</p>';
-        $('detailed-prediction').innerHTML = '<p>Esperando pronóstico detallado...</p>';
-        $('combined-prediction').innerHTML = '<p>Esperando pronóstico combinado...</p>';
+    if (!teamHomeName || !teamAwayName || !leagueCode) {
+        clearResults();
         return;
     }
 
-    const tH = findTeam(league, teamHome);
-    const tA = findTeam(league, teamAway);
-
+    const tH = findTeam(leagueCode, teamHomeName);
+    const tA = findTeam(leagueCode, teamAwayName);
+    
     if (!tH || !tA) {
-        $('details').innerHTML = '<div class="error"><strong>Error:</strong> No se encontraron datos para uno o ambos equipos.</div>';
-        $('suggestion').innerHTML = '<p>Esperando datos...</p>';
-        $('detailed-prediction').innerHTML = '<p>Esperando pronóstico detallado...</p>';
-        $('combined-prediction').innerHTML = '<p>Esperando pronóstico combinado...</p>';
+        clearResults();
+        $('details').innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en los datos de la liga.</div>';
         return;
     }
+
+    // Calcular y mostrar las probabilidades del modelo Dixon-Coles
+    const stats = dixonColesProbabilities(tH, tA, leagueCode);
     
-    const ligaName = leagueCodeToName[league];
-    const event = (allData.calendario[ligaName] || []).find(e => e.local === teamHome && e.visitante === teamAway);
-
-    const detailedPredictionBox = $('detailed-prediction');
-    if (event && event['pronostico']) {
-        const formattedPrediction = event['pronostico'].replace(/\n/g, '<br>').replace(/###\s*(.*)/g, '<h4>$1</h4>');
-        detailedPredictionBox.innerHTML = `<h3>Análisis de la IA</h3><div class="ia-prediction">${formattedPrediction}</div>`;
-    } else {
-        detailedPredictionBox.innerHTML = `<p>No hay un pronóstico de la IA disponible para este partido en la hoja de cálculo.</p>`;
-    }
-
-    const stats = dixonColesProbabilities(tH, tA, league);
-
-    // Muestra los resultados del modelo estadístico
-    const probabilities = [
-        { label: 'Local', value: stats.finalHome, id: 'pHome', type: 'Resultado' },
-        { label: 'Empate', value: stats.finalDraw, id: 'pDraw', type: 'Resultado' },
-        { label: 'Visitante', value: stats.finalAway, id: 'pAway', type: 'Resultado' },
-        { label: 'Ambos Anotan', value: stats.pBTTSH, id: 'pBTTS', type: 'Mercado' },
-        { label: 'Más de 2.5 goles', value: stats.pO25H, id: 'pO25', type: 'Mercado' }
-    ];
-
-    probabilities.forEach(p => {
-        const el = $(p.id);
-        if (el) el.textContent = formatPct(p.value);
-    });
-
-    const recommendations = probabilities.filter(p => p.value >= 0.3)
-                                         .sort((a, b) => b.value - a.value)
-                                         .slice(0, 3);
+    $('pHome').textContent = formatPct(stats.finalHome);
+    $('pDraw').textContent = formatPct(stats.finalDraw);
+    $('pAway').textContent = formatPct(stats.finalAway);
+    $('pBTTS').textContent = formatPct(stats.pBTTSH);
+    $('pO25').textContent = formatPct(stats.pO25H);
     
-    $('details').innerHTML = `<p><strong>Detalles del Pronóstico Estadístico:</strong></p>`;
+    // Generar y mostrar la recomendación principal
+    showSuggestions(stats);
 
-    if (recommendations.length > 0) {
-        let suggestionHTML = '<ul>';
-        recommendations.forEach((rec, index) => {
-            const rank = index + 1;
-            suggestionHTML += `<li class="rec-item">
-                                    <span class="rec-rank">${rank}.</span>
-                                    <span class="rec-bet">${rec.label}</span>
-                                    <span class="rec-prob">${formatPct(rec.value)}</span>
-                                  </li>`;
-        });
-        suggestionHTML += '</ul>';
-        $('suggestion').innerHTML = suggestionHTML;
-    } else {
-        $('suggestion').innerHTML = '<p>No se encontraron recomendaciones con una probabilidad superior al 30%.</p>';
+    // Obtener pronóstico de la IA
+    try {
+        const aiResponse = await getAiPrediction(tH, tA, leagueCode);
+        const combined = getCombinedPrediction(stats, aiResponse, { local: tH.name, visitante: tA.name });
+        $('combined-prediction').innerHTML = `
+            <div class="rec-title">${combined.header}</div>
+            <p>${combined.body}</p>
+        `;
+        $('detailed-prediction').innerHTML = `
+            <p><strong>Probabilidades:</strong></p>
+            <ul>
+                <li><strong>Victoria Local (${tH.name}):</strong> ${extractAndParseJson(aiResponse)?.['1X2']?.victoria_local?.probabilidad || '--'}%</li>
+                <li><strong>Empate:</strong> ${extractAndParseJson(aiResponse)?.['1X2']?.empate?.probabilidad || '--'}%</li>
+                <li><strong>Victoria Visitante (${tA.name}):</strong> ${extractAndParseJson(aiResponse)?.['1X2']?.victoria_visitante?.probabilidad || '--'}%</li>
+            </ul>
+            <p><strong>Análisis del Partido:</strong></p>
+            <p>${extractAndParseJson(aiResponse)?.['1X2']?.victoria_local?.justificacion || 'Sin justificación de IA.'}</p>
+            <p>${extractAndParseJson(aiResponse)?.['1X2']?.empate?.justificacion || ''}</p>
+            <p>${extractAndParseJson(aiResponse)?.['1X2']?.victoria_visitante?.justificacion || ''}</p>
+        `;
+    } catch (error) {
+        console.error("Error al obtener o procesar la predicción de IA:", error);
+        $('details').innerHTML = `<div class="error"><strong>Error:</strong> No se pudo obtener el pronóstico de la IA. Detalle: ${error.message}</div>`;
+        $('combined-prediction').innerHTML = '<p>No se pudo generar un pronóstico combinado. La IA no respondió.</p>';
+        $('detailed-prediction').innerHTML = '<p>Error al cargar el análisis de la IA.</p>';
     }
-
-    // Lógica para la nueva predicción combinada
-    const matchData = { local: teamHome, visitante: teamAway, liga: league };
-    const combinedPrediction = getCombinedPrediction(stats, event?.pronostico, matchData);
-    $('combined-prediction').innerHTML = `<div class="combined-box"><h3>${combinedPrediction.header}</h3><div class="combined-body">${combinedPrediction.body}</div></div>`;
 }
