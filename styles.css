@@ -35,7 +35,7 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM0NDQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4xMiI+PHBhdGggZD0iTTAgNDBoNEwxNiAyOHg0TDM2IDQwSDQwVjMzTDIwIDEyIDAgMzNWNDB6TTEwIDQwSDRsMTYtMjBMNC4yIDBoLTQuMkwyMCAyMiAzNS44IDBoLTQuMkwyMCAyMiAxMCA0MHoiLz48L2c+PC9nPjwvc3ZnPg==');
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM0NDQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4xMiI+PHBhdGggZD0yTTAgNDBoNEwxNiAyOHg0TDM2IDQwSDQwVjMzTDIwIDEyIDAgMzNWNDB6TTEwIDQwSDRsMTYtMjBMNC4yIDBoLTQuMkwyMCAyMiAzNS44IDBoLTQuMkwyMCAyMiAxMCA0MHoiLz48L2c+PC9nPjwvc3ZnPg==');
     background-size: 20px 20px;
     background-blend-mode: overlay;
     padding: 2rem;
@@ -211,7 +211,7 @@ body {
 /* **IMPORTANTE: Las reglas para móviles van aquí por defecto** */
 .main-grid {
     display: grid;
-    grid-template-columns: 1fr; /* Una sola columna para móviles */
+    grid-template-columns: 1fr;
     gap: 2rem;
 }
 
@@ -328,7 +328,7 @@ select:focus {
 /* Estadísticas de equipos */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móviles para los stats */
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.2rem;
     margin-top: 1.5rem;
 }
@@ -503,28 +503,28 @@ select:focus {
     min-width: 110px;
     max-width: 19%;
     background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
-    border: 2px solid transparent; /* Borde inicial transparente para la animación */
+    border: 2px solid transparent;
     border-radius: 6px;
     padding: 0.9rem 0.6rem;
     text-align: center;
     position: relative;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.7), 0 3px 8px rgba(0,0,0,0.4);
-    animation: border-flow 6s infinite linear; /* Nueva animación de recorrido de contorno */
+    animation: border-flow 6s infinite linear;
 }
 
 @keyframes border-flow {
     0% {
-        border-color: rgba(255, 99, 71, 0.7); /* Rojo suave */
+        border-color: rgba(255, 99, 71, 0.7);
     }
     33% {
-        border-color: rgba(255, 223, 0, 0.7); /* Amarillo suave */
+        border-color: rgba(255, 223, 0, 0.7);
     }
     66% {
-        border-color: rgba(0, 224, 255, 0.7); /* Azul suave */
+        border-color: rgba(0, 224, 255, 0.7);
     }
     100% {
-        border-color: rgba(255, 99, 71, 0.7); /* Vuelve al rojo suave */
+        border-color: rgba(255, 99, 71, 0.7);
     }
 }
 
@@ -852,36 +852,34 @@ select option {
     .event-card {
         grid-column: 1 / span 3;
         grid-row: 1;
-        order: initial;
     }
 
-    #card-home {
-        grid-area: initial;
-        order: initial;
+    .team-card#card-home {
+        grid-column: 2;
+        grid-row: 2;
     }
 
-    #card-away {
-        grid-area: initial;
-        order: initial;
+    .team-card#card-away {
+        grid-column: 3;
+        grid-row: 2;
     }
 
     .result-card {
-        grid-column: 1 / span 3;
-        grid-row: 2;
-        order: initial;
+        grid-column: 1;
+        grid-row: 2 / span 2;
     }
     
     .recommendation-ia-grid {
-        grid-column: 1 / span 3;
+        grid-column: 2 / span 2;
         grid-row: 3;
-        grid-template-columns: 1fr 1fr; /* Una al lado de la otra en escritorio */
+        grid-template-columns: 1fr 1fr;
         gap: 2.5rem;
+        margin-top: 0;
     }
     
     .reset-container {
         grid-column: 1 / span 3;
         grid-row: 4;
-        order: initial;
     }
 
     .team-card { margin-bottom: 0; }
@@ -896,7 +894,6 @@ select option {
         margin-right: 20px;
     }
 
-    /* Reglas para la cuadrícula de probabilidades en escritorio */
     .probabilities-grid {
         flex-direction: row;
         justify-content: center;
