@@ -32,7 +32,7 @@ function factorial(n) {
 // ----------------------
 // CONFIGURACIÓN DE LIGAS
 // ----------------------
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyaLnP1wS9C2XKZH2oM2ptyfYzGYz50JzicpYiRTCnaP4ybm-73D8PV-Wr40OYZmK04Og/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyaLnP1wS9C2XKZH2oM2ptyfYgGYz50JzicpYiRTCnaP4ybm-73D8PV-Wr40OYZmK04Og/exec";
 let teamsByLeague = {};
 let allData = {};
 let currentEventPage = 0;
@@ -54,7 +54,7 @@ const leagueNames = {
     "bra.1": "Brasileirão Brasil",
     "gua.1": "Liga Nacional Guatemala",
     "crc.1": "Liga Promerica Costa Rica",
-    "hon.1": "Liga Nacional Honduras",
+    "hon.1": "Honduras_LigaNacional",
     "ksa.1": "Pro League Arabia Saudita",
     "fifa.worldq.conmebol": "Eliminatorias CONMEBOL",
     "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
@@ -165,7 +165,6 @@ function displaySelectedLeagueEvents(leagueCode) {
         eventInterval = null;
     }
 
-    // Limpiar la lista al principio para evitar duplicados
     selectedEventsList.innerHTML = '';
     
     if (!leagueCode || !allData.calendario) {
@@ -189,16 +188,15 @@ function displaySelectedLeagueEvents(leagueCode) {
         const startIndex = currentPage * eventsPerPage;
         const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
 
-        // Añadir la clase de salida a los elementos actuales
         const currentItems = selectedEventsList.querySelectorAll('.event-item');
         currentItems.forEach(item => item.classList.add('fade-out'));
 
-        // Esperar a que la transición de salida termine antes de actualizar el contenido
         setTimeout(() => {
-            selectedEventsList.innerHTML = ''; // Limpiar el contenedor
-            eventsToShow.forEach(event => {
+            selectedEventsList.innerHTML = ''; 
+            eventsToShow.forEach((event, index) => {
                 const div = document.createElement('div');
-                div.className = 'event-item fade-in'; // Añadir clase de entrada
+                div.className = 'event-item fade-in';
+                div.style.animationDelay = `${index * 0.1}s`; // Pequeño retraso para efecto en cascada
                 div.dataset.homeTeam = event.local;
                 div.dataset.awayTeam = event.visitante;
 
@@ -235,12 +233,10 @@ function displaySelectedLeagueEvents(leagueCode) {
         }, 500); // El tiempo de espera debe coincidir con la duración de la animación CSS (0.5s)
     }
 
-    // Mostrar la primera página inmediatamente
     showCurrentPage();
 
     if (totalPages > 1) {
-        // Iniciar el carrusel de eventos
-        eventInterval = setInterval(showCurrentPage, 5000); // Intervalo de 5 segundos
+        eventInterval = setInterval(showCurrentPage, 5000);
     }
 }
 
@@ -339,7 +335,6 @@ function onLeagueChange() {
     clearTeamData('Home');
     clearTeamData('Away');
     
-    // Llamar a calculateAll() para actualizar todo el panel
     calculateAll();
     
     displaySelectedLeagueEvents(code);
@@ -351,19 +346,16 @@ function selectEvent(homeTeamName, awayTeamName) {
     
     const leagueCode = $('leagueSelect').value;
     
-    // Seleccionar el equipo local en el dropdown
     const homeOption = Array.from(teamHomeSelect.options).find(opt => opt.text === homeTeamName);
     if (homeOption) {
         teamHomeSelect.value = homeOption.value;
     }
     
-    // Seleccionar el equipo visitante en el dropdown
     const awayOption = Array.from(teamAwaySelect.options).find(opt => opt.text === awayTeamName);
     if (awayOption) {
         teamAwaySelect.value = awayOption.value;
     }
     
-    // Llenar los datos y calcular, que ahora maneja el pronóstico de la IA
     if (homeOption && awayOption) {
         fillTeamData(homeTeamName, leagueCode, 'Home');
         fillTeamData(awayTeamName, leagueCode, 'Away');
