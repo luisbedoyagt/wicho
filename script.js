@@ -55,8 +55,8 @@ const leagueNames = {
     "bra.1": "Brasileirão Brasil",
     "gua.1": "Liga Nacional Guatemala",
     "crc.1": "Liga Promerica Costa Rica",
-    "hon.1": "Honduras_LigaNacional",
-    "slv.1": "El Salvador_Liga Primera División",
+    "hon.1": "Honduras LigaNacional",
+    "slv.1": "El Salvador Liga Primera División",
     "ksa.1": "Pro League Arabia Saudita",
     "tur.1": "Super Lig de Turquía",
     "ger.2": "Bundesliga 2 de Alemania",
@@ -759,4 +759,5 @@ function calculateAll() {
         $('suggestion').innerHTML = '<p>No se encontraron recomendaciones con una probabilidad superior al 30%. Analiza otros mercados.</p>';
     }
 }
+
 
