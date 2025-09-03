@@ -16,9 +16,6 @@
     --screw-color: #888;
     --screw-highlight: #ccc;
     --screw-shadow: #222;
-    --accent-green: #37cc8e;
-    --accent-yellow: #e5c07b;
-    --accent-red: #e06c75;
 }
 
 /* Reset y tipografía */
@@ -211,7 +208,7 @@ body {
 /* **IMPORTANTE: Las reglas para móviles van aquí por defecto** */
 .main-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Una sola columna para móviles */
     gap: 2rem;
 }
 
@@ -328,7 +325,7 @@ select:focus {
 /* Estadísticas de equipos */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móviles para los stats */
     gap: 1.2rem;
     margin-top: 1.5rem;
 }
@@ -503,28 +500,28 @@ select:focus {
     min-width: 110px;
     max-width: 19%;
     background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
-    border: 2px solid transparent;
+    border: 2px solid transparent; /* Borde inicial transparente para la animación */
     border-radius: 6px;
     padding: 0.9rem 0.6rem;
     text-align: center;
     position: relative;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.7), 0 3px 8px rgba(0,0,0,0.4);
-    animation: border-flow 6s infinite linear;
+    animation: border-flow 6s infinite linear; /* Nueva animación de recorrido de contorno */
 }
 
 @keyframes border-flow {
     0% {
-        border-color: rgba(255, 99, 71, 0.7);
+        border-color: rgba(255, 99, 71, 0.7); /* Rojo suave */
     }
     33% {
-        border-color: rgba(255, 223, 0, 0.7);
+        border-color: rgba(255, 223, 0, 0.7); /* Amarillo suave */
     }
     66% {
-        border-color: rgba(0, 224, 255, 0.7);
+        border-color: rgba(0, 224, 255, 0.7); /* Azul suave */
     }
     100% {
-        border-color: rgba(255, 99, 71, 0.7);
+        border-color: rgba(255, 99, 71, 0.7); /* Vuelve al rojo suave */
     }
 }
 
@@ -845,40 +842,49 @@ select option {
 /* --- Media Queries (ajustes para escritorio) --- */
 @media (min-width: 768px) {
     .main-grid {
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-template-areas:
-            "event-card event-card event-card"
-            "result-card team-home team-away"
-            "ia-grid ia-grid ia-grid"
-            ". reset-btn .";
-        gap: 2rem;
+        grid-template-columns: 1.2fr 1fr 1fr;
+        gap: 2.5rem;
     }
 
     .event-card {
-        grid-area: event-card;
+        grid-area: initial;
+        order: initial;
+    }
+
+    #card-home {
+        grid-area: initial;
+        order: initial;
+    }
+
+    #card-away {
+        grid-area: initial;
+        order: initial;
     }
 
     .result-card {
-        grid-area: result-card;
-    }
-
-    .team-card#card-home {
-        grid-area: team-home;
-    }
-
-    .team-card#card-away {
-        grid-area: team-away;
+        grid-column: 1 / span 3;
+        grid-row: 2;
+        order: initial;
     }
     
     .recommendation-ia-grid {
-        grid-area: ia-grid;
-        grid-template-columns: 1fr 1fr;
+        grid-column: 1 / span 3;
+        grid-row: 3;
+        grid-template-columns: 1fr 1fr; /* Una al lado de la otra en escritorio */
+        order: initial;
         gap: 2.5rem;
-        margin-top: 0;
     }
-    
+
+    .ia-card {
+        grid-column: 1 / span 3;
+        grid-row: 4;
+        order: initial;
+    }
+
     .reset-container {
-        grid-area: reset-btn;
+        grid-column: 1 / span 3;
+        grid-row: 5;
+        order: initial;
     }
 
     .team-card { margin-bottom: 0; }
@@ -893,6 +899,7 @@ select option {
         margin-right: 20px;
     }
 
+    /* Reglas para la cuadrícula de probabilidades en escritorio */
     .probabilities-grid {
         flex-direction: row;
         justify-content: center;
