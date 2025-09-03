@@ -752,38 +752,39 @@ select:focus {
         min-width: unset;
         max-width: unset;
     }
+
 }
 
 /* * ----------------------------------------
- * CÓDIGO AGREGADO PARA ANIMACIONES DE CARRUSEL
+ * CÓDIGO AGREGADO PARA ANIMACIONES DE CARRUSEL MEJORADAS
  * ----------------------------------------
  */
-@keyframes fade-out-down {
+@keyframes slide-out-left {
     from {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
     }
     to {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateX(-20px);
     }
 }
 
-@keyframes fade-in-up {
+@keyframes slide-in-right {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateX(20px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
     }
 }
 
-.event-item.fade-out {
-    animation: fade-out-down 0.5s ease-in forwards;
+.event-item.slide-out {
+    animation: slide-out-left 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
 }
 
-.event-item.fade-in {
-    animation: fade-in-up 0.5s ease-out forwards;
+.event-item.slide-in {
+    animation: slide-in-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
