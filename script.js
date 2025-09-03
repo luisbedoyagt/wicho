@@ -182,7 +182,7 @@ function displaySelectedLeagueEvents(leagueCode) {
         return;
     }
 
-    const eventsPerPage = 3;
+    const eventsPerPage = 3; // Mostrar 3 eventos por página
     const totalPages = Math.ceil(events.length / eventsPerPage);
 
     function showCurrentPage() {
