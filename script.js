@@ -32,7 +32,7 @@ function factorial(n) {
 // ----------------------
 // CONFIGURACIÓN DE LIGAS
 // ----------------------
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyaLnP1wS9C2XKZH2oM2ptyfYzGYz50JzicpYiRTCnaP4ybm-73D8PV-Wr40OYZmK04Og/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyaLnP1wS9C2XKZH2oM2ptyfYgGYz50JzicpYiRTCnaP4ybm-73D8PV-Wr40OYZmK04Og/exec";
 let teamsByLeague = {};
 let allData = {};
 let currentEventPage = 0;
@@ -82,6 +82,30 @@ const leagueCodeToName = {
     "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
     "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
     "fifa.worldq.uefa": "Eliminatorias_UEFA"
+};
+
+// Nuevo objeto para agrupar ligas por región
+const leagueRegions = {
+    "esp.1": "Europa",
+    "esp.2": "Europa",
+    "eng.1": "Europa",
+    "eng.2": "Europa",
+    "ita.1": "Europa",
+    "ger.1": "Europa",
+    "fra.1": "Europa",
+    "ned.1": "Europa",
+    "ned.2": "Europa",
+    "por.1": "Europa",
+    "fifa.worldq.uefa": "Europa",
+    "mex.1": "Norteamérica",
+    "usa.1": "Norteamérica",
+    "gua.1": "Norteamérica",
+    "crc.1": "Norteamérica",
+    "hon.1": "Norteamérica",
+    "fifa.worldq.concacaf": "Norteamérica",
+    "bra.1": "Sudamérica",
+    "fifa.worldq.conmebol": "Sudamérica",
+    "ksa.1": "Asia"
 };
 
 // ----------------------
@@ -264,11 +288,34 @@ async function init() {
     }
 
     leagueSelect.innerHTML = '<option value="">-- Selecciona liga --</option>';
-    Object.keys(teamsByLeague).sort().forEach(code => {
-        const opt = document.createElement('option');
-        opt.value = code;
-        opt.textContent = leagueNames[code] || code;
-        leagueSelect.appendChild(opt);
+
+    // Crear un mapa para agrupar las ligas por región
+    const regionsMap = {};
+    Object.keys(leagueRegions).forEach(code => {
+        const region = leagueRegions[code];
+        if (!regionsMap[region]) {
+            regionsMap[region] = [];
+        }
+        regionsMap[region].push(code);
+    });
+
+    // Ordenar las regiones alfabéticamente
+    const sortedRegions = Object.keys(regionsMap).sort();
+
+    // Recorrer las regiones ordenadas para construir el select
+    sortedRegions.forEach(regionName => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = regionName;
+
+        // Ordenar las ligas dentro de cada grupo
+        regionsMap[regionName].sort().forEach(code => {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = leagueNames[code] || code;
+            optgroup.appendChild(opt);
+        });
+
+        leagueSelect.appendChild(optgroup);
     });
 
     leagueSelect.addEventListener('change', onLeagueChange);
