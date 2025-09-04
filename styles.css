@@ -829,7 +829,7 @@ select option {
 @media (max-width: 767px) {
     .main-grid {
         grid-template-columns: 1fr;
-        grid-template-areas: none; /* Se elimina el uso de áreas en móviles */
+        grid-template-areas: none;
         gap: 2rem;
     }
     .event-card, #card-home, #card-away, .result-card, .recommendation-ia-grid, .reset-container {
@@ -840,7 +840,7 @@ select option {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
-    
+
     .team-card {
         margin-bottom: 2rem;
     }
@@ -860,24 +860,63 @@ select option {
         flex-wrap: wrap;
         justify-content: center;
         gap: 0.5rem;
+        margin-top: 1rem; /* Más cerca del título */
     }
 
     .probability-tile {
         flex: 1 1 30%;
         max-width: 32%;
         min-width: unset;
+        padding: 0.7rem 0.5rem; /* Menor padding */
     }
 
     .probability-tile .label {
-        font-size: 0.7rem;
+        font-size: 0.65rem; /* Fuente más pequeña */
+        margin-bottom: 0.2rem;
     }
-    
+
     .probability-tile .value {
-        font-size: 1.3rem;
+        font-size: 1.2rem; /* Fuente más pequeña */
     }
-    
-    .probability-tile:nth-child(n+4) {
-        flex: 1 1 45%;
-        max-width: 48%;
+
+    /* Ajustes para la sección de sugerencias */
+    .recommendation-box {
+        margin-top: 1.5rem; /* Menos espacio superior */
+    }
+
+    .rec-item {
+        padding: 10px 15px; /* Menor padding */
+        font-size: 1em; /* Fuente más pequeña */
+        gap: 15px;
+    }
+
+    .rec-rank {
+        width: 25px; /* Menor tamaño del círculo */
+        height: 25px;
+        font-size: 0.8em;
+    }
+
+    .rec-bet {
+        margin-left: 15px;
+        font-size: 0.9em;
+    }
+
+    .rec-prob {
+        font-size: 1.2em;
+    }
+
+    /* Ajustes para los títulos */
+    .card-header h3 {
+        font-size: 1.4rem; /* Títulos más pequeños en general */
+    }
+
+    /* Ajuste para los cuadros de estadísticas */
+    .stat-box {
+        padding: 0.7rem; /* Menor padding en las estadísticas */
+    }
+
+    .stat-value {
+        font-size: 1.2rem; /* Menor tamaño de la fuente */
+        margin-top: 0.2rem;
     }
 }
