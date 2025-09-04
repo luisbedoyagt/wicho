@@ -340,7 +340,7 @@ select:focus {
     justify-content: space-between;
     align-items: center;
     gap: 0.8rem;
-    margin-top: 0.8rem;
+    margin-top: 0.5rem; /* AJUSTADO: Se reduce el margen superior para acercarse al select */
     flex-wrap: nowrap;
 }
 
@@ -377,7 +377,7 @@ select:focus {
 
 /* Ficha de Rendimiento Unificada */
 .team-details {
-    margin-top: 0.8rem;
+    margin-top: 0.5rem; /* AJUSTADO: Se reduce el margen superior para acercarse a los cuadros */
     background: var(--metal-gradient-light);
     border-radius: 8px;
     border: 1px solid #555;
@@ -907,31 +907,31 @@ select option {
     .stats-grid {
         display: flex;
         flex-wrap: nowrap;
-        justify-content: space-around; /* CENTRADO Y DISTRIBUCIÓN MEJORADA */
-        gap: 0.3rem; /* REDUCIDO el espacio entre cuadros */
-        margin-top: 1rem;
+        justify-content: space-around;
+        gap: 0.3rem;
+        margin-top: 0.5rem; /* AJUSTADO: Se reduce el margen superior para acercarse al select */
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 0.5rem;
     }
     
     .stat-box {
-        flex-basis: 22%; /* REDUCIDO el tamaño de cada cuadro (aprox. 12% menos que 25%) */
+        flex-basis: 22%;
         flex-shrink: 0;
-        min-width: 55px; /* Ajuste del ancho mínimo */
-        padding: 0.3rem; /* REDUCIDO el padding interno */
+        min-width: 55px;
+        padding: 0.3rem;
     }
 
     .stat-label {
-        font-size: 0.55rem; /* REDUCIDO el tamaño de la fuente para mejor visibilidad */
+        font-size: 0.55rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
     
     .stat-value {
-        font-size: 0.9rem; /* REDUCIDO el tamaño de la fuente para mejor visibilidad */
-        margin-top: 0.15rem; /* Ajustado el margen */
+        font-size: 0.9rem;
+        margin-top: 0.15rem;
     }
     
     .recommendation-ia-grid {
@@ -949,7 +949,7 @@ select option {
     }
 
     .team-details {
-        margin-top: 0.7rem;
+        margin-top: 0.5rem; /* AJUSTADO: Se reduce el margen superior para acercarse a los cuadros */
     }
 
     .stat-section {
