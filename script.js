@@ -983,4 +983,10 @@ function calculateAll() {
         combinedPrediction.innerHTML = `<h3>${combined.header}</h3>${combined.body}`;
     }
 }
-
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        e.preventDefault();
+        alert('Las herramientas de desarrollo están deshabilitadas.');
+    }
+});
