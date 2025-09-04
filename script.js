@@ -293,7 +293,7 @@ function displaySelectedLeagueEvents(leagueCode) {
         console.log(`[displaySelectedLeagueEvents] No hay eventos para ${ligaName}`);
         return;
     }
-    const eventsPerPage = 3;
+    const eventsPerPage = 1;
     const totalPages = Math.ceil(events.length / eventsPerPage);
     let currentPage = 0;
     function showCurrentPage() {
@@ -983,3 +983,4 @@ function calculateAll() {
         combinedPrediction.innerHTML = `<h3>${combined.header}</h3>${combined.body}`;
     }
 }
+
