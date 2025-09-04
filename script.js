@@ -23,7 +23,7 @@ function factorial(n) {
     return res;
 }
 // CONFIGURACIÓN DE LIGAS
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzzb6-nMQDNkWfepqoCNNTT1bL92tz7rQkvUoSkD3P7zZHoWebxB2gOB01oDNqtwFfV/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOJtjsqYuqxn6sMxFKQ7vb5TxoGxj7NoxcfUp5omYIw3C5s3qyAvOfLvRyGeE2xpc4/exec";
 let teamsByLeague = {};
 let allData = {};
 let currentEventPage = 0;
@@ -990,4 +990,5 @@ document.addEventListener('keydown', e => {
         alert('Las herramientas de desarrollo están deshabilitadas.');
     }
 });
+
 
