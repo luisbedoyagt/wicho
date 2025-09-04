@@ -2,6 +2,7 @@
  * @fileoverview Script mejorado para interfaz web que muestra estadísticas de fútbol y calcula probabilidades de partidos
  * usando datos de una API de Google Apps Script. Ahora usa un modelo basado en la distribución de Poisson
  * con el ajuste de Dixon y Coles y "shrinkage" para una mejor predicción de empates y resultados realistas.
+ * Incluye mejora para bloquear la selección de eventos en curso.
  */
 
 // ----------------------
@@ -277,17 +278,24 @@ function displaySelectedLeagueEvents(leagueCode) {
                 }
 
                 let statusText = isInProgress ? ' - Evento en Juego' : '';
-
                 div.innerHTML = `
                     <strong>${event.local} vs. ${event.visitante}</strong>
                     <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
                     <span>${eventDateTime}${statusText}</span>
                 `;
-                selectedEventsList.appendChild(div);
 
-                div.addEventListener('click', () => {
-                    selectEvent(event.local, event.visitante);
-                });
+                // Agregar clase para eventos en curso y deshabilitar interacción
+                if (isInProgress) {
+                    div.classList.add('in-progress');
+                    div.style.cursor = 'not-allowed';
+                    div.title = 'Evento en curso, no seleccionable';
+                } else {
+                    div.addEventListener('click', () => {
+                        selectEvent(event.local, event.visitante);
+                    });
+                }
+
+                selectedEventsList.appendChild(div);
             });
 
             currentPage = (currentPage + 1) % totalPages;
@@ -745,7 +753,6 @@ function parsePlainText(text) {
             aiProbs.draw = parseFloat(percentages[1]) / 100;
             aiProbs.away = parseFloat(percentages[2]) / 100;
         }
-
     }
     
     // Extraer justificación
@@ -778,7 +785,6 @@ function parsePlainText(text) {
         }
     };
 }
-
 
 function getCombinedPrediction(stats, aiPrediction, matchData) {
     const combined = {};
