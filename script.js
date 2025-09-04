@@ -349,15 +349,11 @@ function displaySelectedLeagueEvents(leagueCode) {
                     <div class="event-content">
                         <div class="team-logo-container">
                             <img src="${homeLogo}" class="team-logo ${!homeLogo ? 'hidden' : ''}" alt="Logo de ${event.local.trim()}">
-                            <span class="team-name">${event.local.trim()}</span>
-                        </div>
-                        <span class="vs">vs</span>
-                        <div class="team-logo-container">
+                            <span class="vs">vs.</span>
                             <img src="${awayLogo}" class="team-logo ${!awayLogo ? 'hidden' : ''}" alt="Logo de ${event.visitante.trim()}">
-                            <span class="team-name">${event.visitante.trim()}</span>
                         </div>
-                        <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
                         <span class="event-details">${eventDateTime}${statusText}</span>
+                        <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
                     </div>
                 `;
                 if (isInProgress) {
