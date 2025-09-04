@@ -16,6 +16,9 @@
     --screw-color: #888;
     --screw-highlight: #ccc;
     --screw-shadow: #222;
+    --accent-green: #37cc8e;
+    --accent-yellow: #e5c07b;
+    --accent-red: #e06c75;
 }
 
 /* Reset y tipografía */
@@ -196,7 +199,6 @@ body {
     font-size: 2rem;
 }
 
-/* Tornillos en la parte inferior si se desea */
 .card-body {
     padding: 1.5rem;
     display: flex;
@@ -204,13 +206,24 @@ body {
     gap: 1.5rem;
 }
 
-/* Contenedor principal de la grilla */
-/* **IMPORTANTE: Las reglas para móviles van aquí por defecto** */
+/* Contenedor principal de la grilla - Diseño de ESCRITORIO por defecto */
 .main-grid {
     display: grid;
-    grid-template-columns: 1fr; /* Una sola columna para móviles */
-    gap: 2rem;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas:
+        "event-card team-home team-away"
+        "result-card result-card result-card"
+        "predictions predictions predictions"
+        "reset reset reset";
+    gap: 2.5rem;
 }
+
+.event-card { grid-area: event-card; }
+#card-home { grid-area: team-home; }
+#card-away { grid-area: team-away; }
+.result-card { grid-area: result-card; }
+.recommendation-ia-grid { grid-area: predictions; }
+.reset-container { grid-area: reset; }
 
 /* Eventos y controles */
 .control-group {
@@ -325,7 +338,7 @@ select:focus {
 /* Estadísticas de equipos */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móviles para los stats */
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.2rem;
     margin-top: 1.5rem;
 }
@@ -356,7 +369,7 @@ select:focus {
     text-shadow: 0 0 8px rgba(0, 224, 255, 0.6);
 }
 
-/* --- Ficha de Rendimiento Unificada --- */
+/* Ficha de Rendimiento Unificada */
 .team-details {
     margin-top: 1.5rem;
     background: var(--metal-gradient-light);
@@ -412,9 +425,9 @@ select:focus {
 
 /* Estilos de los logos */
 .team-logo {
-    width: 50px;
-    height: 50px;
-    margin-right: 15px;
+    width: 60px;
+    height: 60px;
+    margin-right: 20px;
     vertical-align: middle;
     object-fit: contain;
     filter: drop-shadow(0 0 5px rgba(0, 224, 255, 0.3));
@@ -478,7 +491,7 @@ select:focus {
     box-shadow: 0 6px 15px rgba(0,0,0,0.6);
 }
 
-/* Probabilidades y recomendaciones */
+/* Probabilidades y recomendaciones - Diseño de ESCRITORIO por defecto */
 #details {
     font-weight: bold;
     font-size: 1.1em;
@@ -487,21 +500,20 @@ select:focus {
     margin-bottom: 1rem;
 }
 
-/* --- ESTILOS PARA MÓVILES --- */
 .probabilities-grid {
     display: flex;
-    flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea */
+    flex-wrap: nowrap;
     justify-content: center;
-    gap: 0.5rem; /* Ajuste para un espaciado más reducido */
+    gap: 1rem;
     margin-top: 2rem;
 }
 
 .probability-tile {
-    /* Por defecto, todos los cuadros tienen el mismo tamaño en móvil */
-    flex: 1 1 30%; 
-    max-width: 32%;
+    flex: 1 1 0;
+    min-width: unset;
+    max-width: unset;
     background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
-    border: 2px solid transparent; 
+    border: 2px solid transparent;
     border-radius: 6px;
     padding: 0.9rem 0.6rem;
     text-align: center;
@@ -510,23 +522,6 @@ select:focus {
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.7), 0 3px 8px rgba(0,0,0,0.4);
     animation: border-flow 6s infinite linear;
 }
-
-/* ** IMPORTANTE: CÓDIGO CORREGIDO ** */
-/* Aseguramos que los primeros tres elementos siempre se comporten igual */
-.probabilities-grid .probability-tile:nth-child(1),
-.probabilities-grid .probability-tile:nth-child(2),
-.probabilities-grid .probability-tile:nth-child(3) {
-    flex: 1 1 30%;
-    max-width: 32%;
-}
-
-/* Aseguramos que los elementos 4 y 5 se comporten igual */
-.probabilities-grid .probability-tile:nth-child(4),
-.probabilities-grid .probability-tile:nth-child(5) {
-    flex: 1 1 45%;
-    max-width: 48%;
-}
-
 
 @keyframes border-flow {
     0% {
@@ -544,7 +539,7 @@ select:focus {
 }
 
 .probability-tile .label {
-    font-size: 0.7rem; /* Reducido para mejor ajuste en móviles */
+    font-size: 0.85rem;
     color: var(--label-color);
     text-transform: uppercase;
     font-weight: 500;
@@ -554,7 +549,7 @@ select:focus {
 
 .probability-tile .value {
     display: block;
-    font-size: 1.3rem; /* Reducido para mejor ajuste en móviles */
+    font-size: 1.7rem;
     font-weight: 700;
     color: var(--highlight-blue);
     text-shadow: 0 0 10px rgba(0, 224, 255, 0.7);
@@ -685,7 +680,6 @@ select:focus {
 
 /* Estilos para la nueva ficha de la IA */
 .ia-card {
-    /* Por defecto, se apilará con los demás elementos en móviles */
     grid-column: 1 / span 1;
 }
 .ia-card .card-header {
@@ -761,7 +755,7 @@ select:focus {
     pointer-events: none;
 }
 
-/* --- Nuevos estilos para los grupos de ligas --- */
+/* Nuevos estilos para los grupos de ligas */
 select optgroup {
     font-size: 1.1em;
     font-weight: bold;
@@ -782,8 +776,8 @@ select option {
 
 .recommendation-ia-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
     margin-top: 2rem;
 }
 
@@ -800,11 +794,7 @@ select option {
     text-shadow: 0 0 5px var(--highlight-blue);
 }
 
-
-/* * ----------------------------------------
- * CÓDIGO AGREGADO PARA ANIMACIONES DE CARRUSEL MEJORADAS
- * ----------------------------------------
- */
+/* CÓDIGO AGREGADO PARA ANIMACIONES DE CARRUSEL MEJORADAS */
 @keyframes slide-out-left {
     from {
         opacity: 1;
@@ -835,65 +825,59 @@ select option {
     animation: slide-in-right 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-/* --- Media Queries (ajustes para escritorio) --- */
-@media (min-width: 768px) {
+/* --- Media Queries (ajustes para MÓVIL) --- */
+@media (max-width: 767px) {
     .main-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr; /* 3 columnas en escritorio */
-        grid-template-areas:
-            "event-card team-home team-away"
-            "result-card result-card result-card"
-            "predictions predictions predictions"
-            "reset reset reset";
-        gap: 2.5rem;
+        grid-template-columns: 1fr;
+        grid-template-areas: none; /* Se elimina el uso de áreas en móviles */
+        gap: 2rem;
+    }
+    .event-card, #card-home, #card-away, .result-card, .recommendation-ia-grid, .reset-container {
+        grid-area: unset;
     }
 
-    .event-card { grid-area: event-card; }
-    #card-home { grid-area: team-home; }
-    #card-away { grid-area: team-away; }
-    .result-card { grid-area: result-card; }
-    .recommendation-ia-grid { grid-area: predictions; }
-    .reset-container { grid-area: reset; }
-
-    /* Estilos para el nuevo contenedor de pronósticos en escritorio */
     .recommendation-ia-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Esto las pone una al lado de la otra */
-        gap: 2.5rem;
+        grid-template-columns: 1fr;
+        gap: 2rem;
     }
-
-    .team-card { margin-bottom: 0; }
-
-    .stat-metrics {
-        gap: 1.5rem;
+    
+    .team-card {
+        margin-bottom: 2rem;
     }
 
     .team-logo {
-        width: 60px;
-        height: 60px;
-        margin-right: 20px;
+        width: 50px;
+        height: 50px;
+        margin-right: 15px;
     }
 
-    /* Reglas para la cuadrícula de probabilidades en escritorio */
+    .stat-metrics {
+        gap: 0.75rem;
+    }
+
+    /* Reglas para la cuadrícula de probabilidades en móvil */
     .probabilities-grid {
-        flex-direction: row;
+        flex-wrap: wrap;
         justify-content: center;
-        gap: 1rem;
-        flex-wrap: nowrap;
+        gap: 0.5rem;
     }
 
     .probability-tile {
-        flex: 1 1 0;
+        flex: 1 1 30%;
+        max-width: 32%;
         min-width: unset;
-        max-width: unset;
     }
 
-    /* ** IMPORTANTE: CÓDIGO CORREGIDO ** */
-    /* Anulamos las reglas específicas de móvil cuando es escritorio */
-    .probabilities-grid .probability-tile:nth-child(4),
-    .probabilities-grid .probability-tile:nth-child(5) {
-        flex: 1 1 0;
-        min-width: unset;
-        max-width: unset;
+    .probability-tile .label {
+        font-size: 0.7rem;
+    }
+    
+    .probability-tile .value {
+        font-size: 1.3rem;
+    }
+    
+    .probability-tile:nth-child(n+4) {
+        flex: 1 1 45%;
+        max-width: 48%;
     }
 }
