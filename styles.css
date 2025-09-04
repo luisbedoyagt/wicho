@@ -836,51 +836,69 @@ select option {
     }
 
     .main-grid {
-        gap: 0.8rem;
+        grid-template-columns: 1fr;
+        grid-template-areas: none;
+        gap: 0.8rem; /* Menor separación entre fichas principales */
     }
-    .card:not(.recommendation-ia-grid .card) {
-        margin-bottom: 0;
+    .event-card, #card-home, #card-away, .result-card, .recommendation-ia-grid, .reset-container {
+        grid-area: unset;
+    }
+    
+    .card {
+        margin-bottom: 0; /* Eliminar margin-bottom de las cards individuales, ya que el gap del grid lo maneja */
     }
 
     .card-header {
-        padding: 0.7rem;
+        padding: 0.8rem; /* Reducir padding del header de la card */
     }
 
     .card-header h3 {
-        font-size: 1.15rem;
+        font-size: 1.2rem; /* Títulos de card un poco más pequeños */
     }
 
     .card-body {
-        padding: 0.7rem;
-        gap: 0.7rem;
+        padding: 0.8rem; /* Reducir padding del body de la card */
+        gap: 0.8rem; /* Reducir el gap dentro del body de la card */
     }
 
-    /* RESTAURACIÓN DE LAS FICHAS DE "PRÓXIMOS EVENTOS", "LOCAL" Y "VISITANTE" */
-    .main-grid .event-card, .main-grid #card-home, .main-grid #card-away {
-        margin-bottom: 1.5rem; /* Separación considerable entre estas tres fichas */
-        gap: 1.2rem;
+    /* Ajustes específicos para las 3 fichas principales para que se vean mejor */
+    .event-card, #card-home, #card-away {
+        margin-bottom: 0.8rem;
     }
 
-    .card-header h3 {
-        font-size: 1.3rem; /* Títulos de estas 3 fichas más grandes */
+    .event-card .card-body {
+        padding: 1rem;
+        gap: 1rem;
     }
 
-    .card-body {
-        padding: 1rem; /* Padding más grande para estas 3 fichas */
+    .team-card .card-header {
+        padding: 1rem;
+    }
+
+    .team-card .card-header h3 {
+        font-size: 1.4rem;
+    }
+    
+    .team-card .card-header .fas {
+        font-size: 1.5rem;
+    }
+
+    .team-card .card-body {
+        padding: 1rem;
         gap: 1rem;
     }
 
     .team-logo {
-        width: 45px;
-        height: 45px;
-        margin-right: 10px;
+        width: 50px;
+        height: 50px;
+        margin-right: 15px;
     }
-    
+
     .stats-grid {
         gap: 0.8rem;
         margin-top: 1rem;
     }
-
+    
     .stat-box {
         padding: 0.6rem;
     }
@@ -888,38 +906,25 @@ select option {
     .stat-label {
         font-size: 0.7rem;
     }
-
+    
     .stat-value {
         font-size: 1.1rem;
         margin-top: 0.2rem;
     }
-
-    .event-list {
-        gap: 1rem;
-    }
-    .event-item {
-        padding: 1rem;
-        font-size: 0.95rem;
-    }
-    .event-item strong {
-        font-size: 1rem;
-        margin-bottom: 0.25rem;
-    }
-    .event-item span {
-        font-size: 0.85rem;
-    }
-    .event-item.placeholder {
-        padding: 1rem;
-    }
-    /* FIN DE LA RESTAURACIÓN */
-
-
-    .recommendation-ia-grid .card-header h3 {
-        font-size: 1.15rem;
-    }
-
+    /* Fin de los ajustes específicos para las 3 fichas principales */
+    
     .recommendation-ia-grid {
-        gap: 0.8rem;
+        grid-template-columns: 1fr;
+        gap: 0.8rem; /* Menor separación entre las tarjetas de IA */
+    }
+
+    .recommendation-ia-grid .card {
+        margin-bottom: 0;
+    }
+
+    /* Títulos de Análisis de IA y Pronóstico Combinado */
+    .recommendation-ia-grid .card-header h3 {
+        font-size: 1.15rem; /* Un poco más pequeños */
     }
 
     .team-details {
