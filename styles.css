@@ -52,12 +52,12 @@ body {
     gap: 2rem;
 }
 
-/* Encabezado de la app */
+/* Encabezado de la app - AHORA MÁS COMPACTO */
 .app-header {
     text-align: center;
-    padding: 2.5rem 0 2rem;
+    padding: 1.5rem 0 1.2rem; /* Reducción de padding */
     border-bottom: 2px solid var(--border-color);
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem; /* Reducción del margen inferior */
     position: relative;
     overflow: hidden;
     border-radius: 8px 8px 0 0;
@@ -80,7 +80,7 @@ body {
 .app-header h1 {
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
-    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-size: clamp(1.8rem, 4vw, 3rem); /* Tamaño de fuente más pequeño */
     color: var(--highlight-blue);
     letter-spacing: 2px;
     text-shadow: 0 0 15px var(--highlight-blue), 0 0 25px rgba(0, 224, 255, 0.5);
@@ -97,9 +97,9 @@ body {
 }
 
 .app-header p {
-    font-size: 1.1rem;
+    font-size: 1rem; /* Tamaño de fuente más pequeño */
     color: var(--label-color);
-    margin-top: 0.8rem;
+    margin-top: 0.6rem; /* Margen superior más pequeño */
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
@@ -838,30 +838,33 @@ select option {
     .main-grid {
         grid-template-columns: 1fr;
         grid-template-areas: none;
-        gap: 0.8rem; /* Menor separación entre fichas principales */
+        gap: 0.8rem;
     }
     .event-card, #card-home, #card-away, .result-card, .recommendation-ia-grid, .reset-container {
         grid-area: unset;
     }
     
     .card {
-        margin-bottom: 0; /* Eliminar margin-bottom de las cards individuales, ya que el gap del grid lo maneja */
+        margin-bottom: 0;
     }
 
-    .card-header {
-        padding: 0.8rem; /* Reducir padding del header de la card */
+    /* ENCABEZADO MÁS COMPACTO EN MÓVIL */
+    .app-header {
+        padding: 1rem 0 0.8rem; /* Aún más compacto en móvil */
+        margin-bottom: 1rem;
     }
 
-    .card-header h3 {
-        font-size: 1.2rem; /* Títulos de card un poco más pequeños */
+    .app-header h1 {
+        font-size: 1.5rem; /* Ajuste del tamaño para móvil */
     }
-
-    .card-body {
-        padding: 0.8rem; /* Reducir padding del body de la card */
-        gap: 0.8rem; /* Reducir el gap dentro del body de la card */
+    
+    .app-header p {
+        font-size: 0.9rem; /* Ajuste del subtítulo */
     }
+    /* FIN DE AJUSTES ENCABEZADO MÓVIL */
+    
 
-    /* Ajustes específicos para las 3 fichas principales para que se vean mejor */
+    /* Ajustes para las 3 fichas principales para que se vean mejor */
     .event-card, #card-home, #card-away {
         margin-bottom: 0.8rem;
     }
@@ -915,16 +918,15 @@ select option {
     
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
-        gap: 0.8rem; /* Menor separación entre las tarjetas de IA */
+        gap: 0.8rem;
     }
 
     .recommendation-ia-grid .card {
         margin-bottom: 0;
     }
 
-    /* Títulos de Análisis de IA y Pronóstico Combinado */
     .recommendation-ia-grid .card-header h3 {
-        font-size: 1.15rem; /* Un poco más pequeños */
+        font-size: 1.15rem;
     }
 
     .team-details {
