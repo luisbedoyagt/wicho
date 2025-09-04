@@ -205,8 +205,13 @@ async function fetchAllData() {
 // MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
 // ----------------------
 function displaySelectedLeagueEvents(leagueCode) {
+    const eventsContainer = $('events-container');
     const selectedEventsList = $('selected-league-events');
-    if (!selectedEventsList) return;
+
+    if (!eventsContainer || !selectedEventsList) return;
+
+    // Aseguramos que el contenedor de eventos esté visible en móviles
+    eventsContainer.style.display = 'block';
 
     if (eventInterval) {
         clearInterval(eventInterval);
