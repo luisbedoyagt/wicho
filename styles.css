@@ -811,26 +811,36 @@ select option {
         padding: 0.8rem;
     }
     .container {
-        /* Espacio principal entre las fichas */
-        gap: 1rem;
+        /* Se usa un gap menor, ya que los márgenes de las tarjetas crearán el espacio principal */
+        gap: 0.8rem;
     }
     .main-grid {
         grid-template-columns: 1fr;
         grid-template-areas: none;
-        gap: 1rem;
+        /* Se usa un gap menor, ya que los márgenes de las tarjetas crearán el espacio principal */
+        gap: 0.8rem;
     }
-    .event-card, #card-home, #card-away, .result-card, .recommendation-ia-grid, .reset-container {
+
+    /* AÑADIDO: Espacio entre las fichas */
+    .event-card, 
+    #card-home, 
+    #card-away, 
+    .result-card, 
+    .recommendation-ia-grid, 
+    .reset-container {
+        margin-bottom: 1.2rem;
         grid-area: unset;
-        /* Se eliminó el margin-bottom: 0 para usar el 'gap' del contenedor */
     }
+
     .card {
-        /* Se eliminó el margin-bottom: 0 para usar el 'gap' del contenedor */
-        margin-bottom: 0;
+        margin-bottom: 1.2rem;
     }
+    
     .app-header {
         padding: 1rem 0 0.8rem;
-        margin-bottom: 0;
+        margin-bottom: 1.2rem;
     }
+    
     .app-header h1 {
         font-size: 1.5rem;
     }
@@ -912,7 +922,7 @@ select option {
     }
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
-        gap: 1rem; /* Aumentado a 1rem para que coincida con el contenedor principal */
+        gap: 0.8rem;
         margin-top: 0;
     }
     .recommendation-ia-grid .card-header h3 {
@@ -973,6 +983,7 @@ select option {
     }
     .reset-container {
         padding: 1.5rem 0;
+        margin-bottom: 1.2rem;
     }
     .control-group {
         margin-bottom: 0;
