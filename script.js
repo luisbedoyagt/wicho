@@ -33,7 +33,7 @@ function factorial(n) {
 // ----------------------
 // CONFIGURACIÓN DE LIGAS
 // ----------------------
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwK7IPxt8WeSLw8bOJoTxWyovbUMLwAI9AXicV89xSbD2IvL6EF6deHEy-Vi2ADfWGs/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzZkB4OZcZb9p_51ZLvLB8sBChg91sEyHCXEpvPpm7udep9Op0N4vJQhg9tA0P_UqGk/exec";
 let teamsByLeague = {};
 let allData = {};
 let currentEventPage = 0;
@@ -954,3 +954,4 @@ function getBestSuggestion(stats, aiPrediction) {
 
     return { finalResult, btts, goles };
 }
+
