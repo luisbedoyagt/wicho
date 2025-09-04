@@ -205,13 +205,8 @@ async function fetchAllData() {
 // MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
 // ----------------------
 function displaySelectedLeagueEvents(leagueCode) {
-    const eventsContainer = $('events-container');
     const selectedEventsList = $('selected-league-events');
-
-    if (!eventsContainer || !selectedEventsList) return;
-
-    // Aseguramos que el contenedor de eventos esté visible en móviles
-    eventsContainer.style.display = 'block';
+    if (!selectedEventsList) return;
 
     if (eventInterval) {
         clearInterval(eventInterval);
@@ -229,6 +224,7 @@ function displaySelectedLeagueEvents(leagueCode) {
     const allEvents = allData.calendario[ligaName] || [];
     const now = new Date();
     
+    // Modificamos el filtro para mostrar todos los eventos pero con un estado diferente
     const events = allEvents.map(event => {
         try {
             const eventDate = new Date(event.fecha);
@@ -422,7 +418,6 @@ function onLeagueChange() {
         clearTeamData('Home');
         clearTeamData('Away');
         $('details').innerHTML = '<div class="warning"><strong>Advertencia:</strong> No hay datos disponibles para esta liga.</div>';
-        displaySelectedLeagueEvents('');
         return;
     }
 
@@ -461,7 +456,6 @@ function onLeagueChange() {
     
     calculateAll();
     
-    // Aquí se activa la función para mostrar los eventos de la liga seleccionada
     displaySelectedLeagueEvents(code);
 }
 
@@ -914,7 +908,6 @@ function clearProbabilities() {
         if (el) el.textContent = '--';
     });
     $('detailed-prediction').innerHTML = '<p>Esperando pronóstico detallado...</p>';
-    $('details').innerHTML = 'Detalles del Pronóstico';
     $('suggestion').innerHTML = '<p>Esperando datos...</p>';
     $('combined-prediction').innerHTML = '<p>Esperando pronóstico combinado...</p>';
 }
