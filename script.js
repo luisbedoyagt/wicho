@@ -255,17 +255,22 @@ function displaySelectedLeagueEvents(leagueCode) {
                 div.dataset.awayTeam = event.visitante;
 
                 let eventDateTime;
-                let isInProgress = false;
+                let inPlayBadge = ''; // <<< NUEVO
+
                 try {
                     const parsedDate = new Date(event.fecha);
                     if (isNaN(parsedDate.getTime())) {
                         throw new Error("Fecha inválida");
                     }
+
+                    // <<< NUEVO: determinar si está en juego
                     const now = new Date();
-                    const matchDuration = 120 * 60 * 1000; // 2 horas en milisegundos (duración aproximada de un partido)
-                    if (now >= parsedDate && now < new Date(parsedDate.getTime() + matchDuration)) {
-                        isInProgress = true;
+                    const END_WINDOW_MIN = 150; // 90 + descanso + agregado; margen seguro
+                    const endWindow = new Date(parsedDate.getTime() + END_WINDOW_MIN * 60000);
+                    if (now >= parsedDate && now <= endWindow) {
+                        inPlayBadge = '<span class="status in-play">En Juego</span>';
                     }
+
                     const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
                     const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
                     const formattedDate = parsedDate.toLocaleDateString('es-ES', dateOptions);
@@ -276,12 +281,11 @@ function displaySelectedLeagueEvents(leagueCode) {
                     eventDateTime = `${event.fecha} (Hora no disponible)`;
                 }
 
-                let statusText = isInProgress ? ' - Evento en Juego' : '';
-
                 div.innerHTML = `
                     <strong>${event.local} vs. ${event.visitante}</strong>
                     <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
-                    <span>${eventDateTime}${statusText}</span>
+                    <span>${eventDateTime}</span>
+                    ${inPlayBadge}
                 `;
                 selectedEventsList.appendChild(div);
 
