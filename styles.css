@@ -811,17 +811,16 @@ select option {
         padding: 0.8rem;
     }
     .container {
-        /* Se usa un gap menor, ya que los márgenes de las tarjetas crearán el espacio principal */
         gap: 0.6rem;
     }
     .main-grid {
         grid-template-columns: 1fr;
         grid-template-areas: none;
-        /* Se usa un gap menor, ya que los márgenes de las tarjetas crearán el espacio principal */
         gap: 0.6rem;
     }
 
-    /* AÑADIDO: Espacio entre las fichas (reducido al 50%) */
+    /* Espacio entre todas las fichas */
+    .app-header,
     .event-card, 
     #card-home, 
     #card-away, 
@@ -829,18 +828,14 @@ select option {
     .recommendation-ia-grid, 
     .reset-container {
         margin-bottom: 0.6rem;
-        grid-area: unset;
     }
-
     .card {
         margin-bottom: 0.6rem;
     }
-    
+
     .app-header {
         padding: 1rem 0 0.8rem;
-        margin-bottom: 0.6rem;
     }
-    
     .app-header h1 {
         font-size: 1.5rem;
     }
@@ -872,24 +867,29 @@ select option {
     .team-card .card-header h3 {
         font-size: 1.4rem;
     }
+
+    /* COMPACTACIÓN DE LA FICHA DE EQUIPO */
     .card-body {
-        padding: 0.8rem;
-        gap: 0.8rem;
+        padding: 0.6rem;
+        gap: 0.6rem;
     }
     .team-logo {
         width: 50px;
         height: 50px;
         margin-right: 15px;
     }
+    .team-details {
+        margin-top: 0.6rem;
+    }
     .stats-grid {
         display: flex;
         flex-wrap: nowrap;
         justify-content: space-around;
         gap: 0.3rem;
-        margin-top: 0.5rem;
+        margin-top: 0.6rem;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 0.5rem;
+        padding-bottom: 0.3rem;
     }
     .stat-box {
         flex-basis: 22%;
@@ -904,22 +904,22 @@ select option {
         font-size: 0.9rem;
         margin-top: 0.15rem;
     }
-    .team-details {
-        margin-top: 0.5rem;
-    }
     .stat-section {
-        padding: 0.5rem 0.8rem;
+        padding: 0.4rem 0.6rem;
+        margin-top: 0.6rem;
     }
     .stat-section .section-title {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
     }
     .stat-metrics {
         gap: 0.2rem;
     }
     .stat-metrics span {
-        padding: 0.15rem 0.4rem;
-        font-size: 0.65rem;
+        padding: 0.1rem 0.3rem;
+        font-size: 0.6rem;
     }
+
+    /* Resto de las secciones */
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
         gap: 0.6rem;
@@ -983,7 +983,6 @@ select option {
     }
     .reset-container {
         padding: 1.5rem 0;
-        margin-bottom: 0.6rem;
     }
     .control-group {
         margin-bottom: 0;
