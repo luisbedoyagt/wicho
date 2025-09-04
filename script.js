@@ -253,7 +253,7 @@ async function fetchAllData() {
         const normalized = {};
         for (const key in allData.ligas) {
             normalized[key] = (allData.ligas[key] || []).map(normalizeTeam).filter(t => t && t.name);
-            console.log(`[fetchAllData] Liga ${key} normalizada con ${normalized[key].length} equipos`);
+            console.log(`[fetchAllData] Liga ${key} normalizada con ${normalized[key].length} equipos`, normalized[key]);
         }
         teamsByLeague = normalized;
         localStorage.setItem('allData', JSON.stringify(allData));
@@ -383,6 +383,10 @@ async function init() {
     }
     leagueSelect.style.display = 'block'; // Asegurar visibilidad
     leagueSelect.innerHTML = '<option value="">Cargando ligas...</option>';
+    const details = $('details');
+    if (details) {
+        details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
+    }
     await fetchAllData();
     console.log('[init] Ligas recibidas en allData.ligas:', Object.keys(allData.ligas));
     if (!allData.ligas || !Object.keys(allData.ligas).length) {
@@ -450,13 +454,13 @@ async function init() {
     }
     leagueSelect.addEventListener('change', onLeagueChange);
     teamHomeSelect.addEventListener('change', () => {
-        if (restrictSameTeam()) {
+        if (restrictSameTeam() && $('leagueSelect').value && $('teamHome').value && $('teamAway').value) {
             fillTeamData($('teamHome').value, $('leagueSelect').value, 'Home');
             calculateAll();
         }
     });
     teamAwaySelect.addEventListener('change', () => {
-        if (restrictSameTeam()) {
+        if (restrictSameTeam() && $('leagueSelect').value && $('teamHome').value && $('teamAway').value) {
             fillTeamData($('teamAway').value, $('leagueSelect').value, 'Away');
             calculateAll();
         }
@@ -476,6 +480,8 @@ function onLeagueChange() {
     console.log('[onLeagueChange] Liga seleccionada:', code);
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
+    teamHomeSelect.disabled = !code;
+    teamAwaySelect.disabled = !code;
 
     if (!teamHomeSelect || !teamAwaySelect) {
         console.error('[onLeagueChange] Elementos teamHome o teamAway no encontrados');
@@ -538,6 +544,7 @@ function selectEvent(homeTeamName, awayTeamName) {
     if (awayOption) {
         teamAwaySelect.value = awayOption.value;
     }
+    console.log('[selectEvent] Buscando:', homeTeamName, awayTeamName, 'Opciones disponibles:', Array.from(teamHomeSelect.options).map(opt => opt.text));
     if (homeOption && awayOption) {
         fillTeamData(homeTeamName, leagueCode, 'Home');
         fillTeamData(awayTeamName, leagueCode, 'Away');
@@ -557,6 +564,9 @@ function restrictSameTeam() {
         const details = $('details');
         if (details) {
             details.innerHTML = '<div class="error"><strong>Error:</strong> No puedes seleccionar el mismo equipo para local y visitante.</div>';
+            setTimeout(() => {
+                details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
+            }, 5000);
         }
         if (document.activeElement === $('teamHome')) {
             $('teamHome').value = '';
@@ -627,7 +637,7 @@ function clearAll() {
     }
     const details = $('details');
     if (details) {
-        details.innerHTML = 'Detalles del Pronóstico';
+        details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
     }
     const suggestion = $('suggestion');
     if (suggestion) {
@@ -849,7 +859,11 @@ function calculateAll() {
         if (details) {
             details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> Selecciona una liga y ambos equipos para calcular el pronóstico.</div>';
         }
-        console.log('[calculateAll] Faltan datos: leagueCode=', leagueCode, 'teamHome=', teamHome, 'teamAway=', teamAway);
+        console.log('[calculateAll] Faltan datos: leagueCode=', leagueCode, 'teamHome=', teamHome, 'teamAway=', teamAway, 'DOM values=', {
+            leagueSelect: $('leagueSelect')?.value,
+            teamHome: $('teamHome')?.value,
+            teamAway: $('teamAway')?.value
+        });
         return;
     }
     const tH = findTeam(leagueCode, teamHome);
