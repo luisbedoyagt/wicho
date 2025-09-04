@@ -32,8 +32,7 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAv
-c3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM0NDQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4xMiI+PHBhdGggZD0iTTAgNDBoNEwxNiAyOHg0TDM2IDQwSDQwVjMzTDIwIDEyIDAgMzNWNDB6TTEwIDQwSDRsMTYtMjBMNC4yIDBoLTQuMkwyMCAyMiAzNS44IDBoLTQuMkwyMCAyMiAxMCA0MHoiLz48L2c+PC9nPjwvc3ZnPg==');
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM0NDQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4xMiI+PHBhdGggZD0iTTAgNDBoNEwxNiAyOHg0TDM2IDQwSDQwVjMzTDIwIDEyIDAgMzNWNDB6TTEwIDQwSDRsMTYtMjBMNC4yIDBoLTQuMkwyMCAyMiAzNS44IDBoLTQuMkwyMCAyMiAxMCA0MHoiLz48L2c+PC9nPjwvc3ZnPg==');
     background-size: 20px 20px;
     background-blend-mode: overlay;
     padding: 2rem;
@@ -488,7 +487,7 @@ select:focus {
     margin-bottom: 1rem;
 }
 
-/* --- Ajuste para móviles --- */
+/* --- ESTILOS PARA MÓVILES --- */
 .probabilities-grid {
     display: flex;
     flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea */
@@ -498,9 +497,9 @@ select:focus {
 }
 
 .probability-tile {
-    /* Ajuste para que los 3 primeros quepan en una línea */
+    /* Por defecto, todos los cuadros tienen el mismo tamaño en móvil */
     flex: 1 1 30%; 
-    max-width: 32%; /* Para asegurar que no excedan el 100% con los gaps */
+    max-width: 32%;
     background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
     border: 2px solid transparent; 
     border-radius: 6px;
@@ -512,11 +511,22 @@ select:focus {
     animation: border-flow 6s infinite linear;
 }
 
-.probability-tile:nth-child(n+4) {
-    /* Ajuste para que los 2 de abajo se vean uno al lado del otro */
-    flex: 1 1 45%; 
-    max-width: 48%; /* Para asegurar que no excedan el 100% con los gaps */
+/* ** IMPORTANTE: CÓDIGO CORREGIDO ** */
+/* Aseguramos que los primeros tres elementos siempre se comporten igual */
+.probabilities-grid .probability-tile:nth-child(1),
+.probabilities-grid .probability-tile:nth-child(2),
+.probabilities-grid .probability-tile:nth-child(3) {
+    flex: 1 1 30%;
+    max-width: 32%;
 }
+
+/* Aseguramos que los elementos 4 y 5 se comporten igual */
+.probabilities-grid .probability-tile:nth-child(4),
+.probabilities-grid .probability-tile:nth-child(5) {
+    flex: 1 1 45%;
+    max-width: 48%;
+}
+
 
 @keyframes border-flow {
     0% {
@@ -871,7 +881,17 @@ select option {
         gap: 1rem;
         flex-wrap: nowrap;
     }
+
     .probability-tile {
+        flex: 1 1 0;
+        min-width: unset;
+        max-width: unset;
+    }
+
+    /* ** IMPORTANTE: CÓDIGO CORREGIDO ** */
+    /* Anulamos las reglas específicas de móvil cuando es escritorio */
+    .probabilities-grid .probability-tile:nth-child(4),
+    .probabilities-grid .probability-tile:nth-child(5) {
         flex: 1 1 0;
         min-width: unset;
         max-width: unset;
