@@ -341,7 +341,7 @@ select:focus {
     align-items: center;
     gap: 0.8rem;
     margin-top: 0.8rem;
-    flex-wrap: nowrap; /* AÑADIDO: Impide que los elementos se envuelvan a la siguiente línea */
+    flex-wrap: nowrap;
 }
 
 .stat-box {
@@ -352,7 +352,7 @@ select:focus {
     border: 1px solid var(--border-color);
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 2px 5px rgba(0,0,0,0.4);
     flex-grow: 1;
-    min-width: 0; /* Asegura que el contenido no desborde el contenedor */
+    min-width: 0;
 }
 
 .stat-label {
@@ -361,7 +361,7 @@ select:focus {
     text-transform: uppercase;
     font-weight: 500;
     margin-bottom: 0.1rem;
-    white-space: nowrap; /* Asegura que la etiqueta no se rompa */
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -906,31 +906,32 @@ select option {
 
     .stats-grid {
         display: flex;
-        flex-wrap: nowrap; /* CORRECCIÓN: Evita el salto de línea en móvil */
-        gap: 0.5rem; /* Ajustado el espacio para evitar desbordamiento */
+        flex-wrap: nowrap;
+        justify-content: space-around; /* CENTRADO Y DISTRIBUCIÓN MEJORADA */
+        gap: 0.3rem; /* REDUCIDO el espacio entre cuadros */
         margin-top: 1rem;
-        overflow-x: auto; /* Permite desplazamiento horizontal si no hay espacio */
+        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 0.5rem;
     }
     
     .stat-box {
-        flex-basis: 25%; /* Ajustado para que quepan 4 en la línea */
-        flex-shrink: 0; /* Evita que los cuadros se encojan en exceso */
-        min-width: 60px; /* Tamaño mínimo para que el texto sea legible */
-        padding: 0.4rem;
+        flex-basis: 22%; /* REDUCIDO el tamaño de cada cuadro (aprox. 12% menos que 25%) */
+        flex-shrink: 0;
+        min-width: 55px; /* Ajuste del ancho mínimo */
+        padding: 0.3rem; /* REDUCIDO el padding interno */
     }
 
     .stat-label {
-        font-size: 0.6rem; /* Reducción de la fuente para que quepa */
+        font-size: 0.55rem; /* REDUCIDO el tamaño de la fuente para mejor visibilidad */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
     
     .stat-value {
-        font-size: 1rem;
-        margin-top: 0.2rem;
+        font-size: 0.9rem; /* REDUCIDO el tamaño de la fuente para mejor visibilidad */
+        margin-top: 0.15rem; /* Ajustado el margen */
     }
     
     .recommendation-ia-grid {
