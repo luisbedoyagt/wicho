@@ -49,15 +49,15 @@ body {
     max-width: 1200px;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem; /* Espacio uniforme entre todas las fichas principales */
 }
 
-/* Encabezado de la app - AHORA MÁS COMPACTO */
+/* Encabezado de la app - Ahora con espacio unificado */
 .app-header {
     text-align: center;
-    padding: 1.5rem 0 1.2rem; /* Reducción de padding */
+    padding: 1.5rem 0 1.2rem;
     border-bottom: 2px solid var(--border-color);
-    margin-bottom: 1.5rem; /* Reducción del margen inferior */
+    margin-bottom: 0; /* Eliminado el margen para usar el gap del container */
     position: relative;
     overflow: hidden;
     border-radius: 8px 8px 0 0;
@@ -80,7 +80,7 @@ body {
 .app-header h1 {
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
-    font-size: clamp(1.8rem, 4vw, 3rem); /* Tamaño de fuente más pequeño */
+    font-size: clamp(1.8rem, 4vw, 3rem);
     color: var(--highlight-blue);
     letter-spacing: 2px;
     text-shadow: 0 0 15px var(--highlight-blue), 0 0 25px rgba(0, 224, 255, 0.5);
@@ -97,9 +97,9 @@ body {
 }
 
 .app-header p {
-    font-size: 1rem; /* Tamaño de fuente más pequeño */
+    font-size: 1rem;
     color: var(--label-color);
-    margin-top: 0.6rem; /* Margen superior más pequeño */
+    margin-top: 0.6rem;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
@@ -109,7 +109,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 6px 15px var(--shadow-color), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-    margin-bottom: 2rem;
+    margin-bottom: 0; /* Eliminado el margen para usar el gap del grid */
     position: relative;
     overflow: hidden;
     background: var(--metal-gradient-dark);
@@ -215,7 +215,7 @@ body {
         "result-card result-card result-card"
         "predictions predictions predictions"
         "reset reset reset";
-    gap: 2.5rem;
+    gap: 1.5rem; /* Espacio uniforme entre las fichas de la grilla */
 }
 
 .event-card { grid-area: event-card; }
@@ -227,7 +227,7 @@ body {
 
 /* Eventos y controles */
 .control-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0; /* Eliminado el margen para usar el gap del card-body */
 }
 
 .control-group label {
@@ -777,8 +777,8 @@ select option {
 .recommendation-ia-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2.5rem;
-    margin-top: 2rem;
+    gap: 1.5rem; /* Espacio uniforme entre las fichas de la grilla de IA */
+    margin-top: 0; /* Eliminado el margen para usar el gap del container */
 }
 
 .recommendation-ia-grid .card {
@@ -832,46 +832,47 @@ select option {
     }
 
     .container {
-        gap: 0.8rem;
+        gap: 0.8rem; /* Espacio uniforme entre fichas principales en móvil */
     }
 
     .main-grid {
         grid-template-columns: 1fr;
         grid-template-areas: none;
-        gap: 0.8rem;
+        gap: 0.8rem; /* Espacio uniforme entre fichas en la grilla móvil */
     }
     .event-card, #card-home, #card-away, .result-card, .recommendation-ia-grid, .reset-container {
         grid-area: unset;
+        margin-bottom: 0; /* Eliminado el margen */
     }
     
     .card {
         margin-bottom: 0;
     }
 
-    /* ENCABEZADO MÁS COMPACTO EN MÓVIL */
     .app-header {
-        padding: 1rem 0 0.8rem; /* Aún más compacto en móvil */
-        margin-bottom: 1rem;
+        padding: 1rem 0 0.8rem;
+        margin-bottom: 0; /* Eliminado el margen */
     }
 
     .app-header h1 {
-        font-size: 1.5rem; /* Ajuste del tamaño para móvil */
+        font-size: 1.5rem;
     }
     
     .app-header p {
-        font-size: 0.9rem; /* Ajuste del subtítulo */
+        font-size: 0.9rem;
     }
-    /* FIN DE AJUSTES ENCABEZADO MÓVIL */
     
-
-    /* Ajustes para las 3 fichas principales para que se vean mejor */
-    .event-card, #card-home, #card-away {
-        margin-bottom: 0.8rem;
+    .card-header {
+        padding: 0.8rem;
     }
 
-    .event-card .card-body {
-        padding: 1rem;
-        gap: 1rem;
+    .card-header h3 {
+        font-size: 1.2rem;
+    }
+
+    .card-body {
+        padding: 0.8rem;
+        gap: 0.8rem;
     }
 
     .team-card .card-header {
@@ -914,11 +915,11 @@ select option {
         font-size: 1.1rem;
         margin-top: 0.2rem;
     }
-    /* Fin de los ajustes específicos para las 3 fichas principales */
     
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
         gap: 0.8rem;
+        margin-top: 0; /* Eliminado el margen */
     }
 
     .recommendation-ia-grid .card {
