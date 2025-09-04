@@ -340,7 +340,7 @@ select:focus {
     justify-content: space-between;
     align-items: center;
     gap: 0.8rem;
-    margin-top: 0.5rem; /* AJUSTADO: Se reduce el margen superior para acercarse al select */
+    margin-top: 0.8rem;
     flex-wrap: nowrap;
 }
 
@@ -377,7 +377,7 @@ select:focus {
 
 /* Ficha de Rendimiento Unificada */
 .team-details {
-    margin-top: 0.5rem; /* AJUSTADO: Se reduce el margen superior para acercarse a los cuadros */
+    margin-top: 0.8rem;
     background: var(--metal-gradient-light);
     border-radius: 8px;
     border: 1px solid #555;
@@ -909,7 +909,7 @@ select option {
         flex-wrap: nowrap;
         justify-content: space-around;
         gap: 0.3rem;
-        margin-top: 0.5rem; /* AJUSTADO: Se reduce el margen superior para acercarse al select */
+        margin-top: 0.5rem; /* Ajustado para que se acerque al select */
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 0.5rem;
@@ -949,7 +949,7 @@ select option {
     }
 
     .team-details {
-        margin-top: 0.5rem; /* AJUSTADO: Se reduce el margen superior para acercarse a los cuadros */
+        margin-top: 0.5rem; /* Ajustado para que se acerque a los cuadros */
     }
 
     .stat-section {
