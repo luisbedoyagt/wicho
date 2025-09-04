@@ -1,4 +1,24 @@
 // ----------------------
+// GOOGLE APP SCRIPT FETCH
+// ----------------------
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzcrFrU34kJS0cjAq0YfUTU1XTfGUuEnBfohYJaljkcxRqlfa879ALvWsYHy7E8UVp0/exec';
+
+export async function fetchAllDataFromWebApp(update = false) {
+  try {
+    const res = await fetch(`${WEBAPP_URL}?tipo=todo&update=${update}`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${res.statusText} ${text}`);
+    }
+    const allData = await res.json();
+    return allData || {};
+  } catch (err) {
+    console.error('[fetchAllDataFromWebApp] error', err);
+    return {};
+  }
+}
+
+// ----------------------
 // CONFIGURACIÓN DE LIGAS
 // ----------------------
 export const leagueNames = {
