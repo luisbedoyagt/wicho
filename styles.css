@@ -892,25 +892,22 @@ select option {
         font-size: 0.9rem;
         margin-top: 0.15rem;
     }
-
-    /* REDUCCIÓN DE ESPACIO EN LA FICHA DE EQUIPO */
     .team-details {
-        margin-top: 0.5rem; /* Ajustado para reducir espacio superior */
+        margin-top: 0.5rem;
     }
     .stat-section {
-        padding: 0.5rem 0.8rem; /* Reducido para comprimir el espacio interno */
+        padding: 0.6rem 0.8rem;
     }
     .stat-section .section-title {
-        font-size: 0.85rem; /* Fuente más pequeña para ahorrar espacio */
+        font-size: 0.9rem;
     }
     .stat-metrics {
-        gap: 0.2rem; /* Espacio reducido entre los valores */
+        gap: 0.3rem;
     }
     .stat-metrics span {
-        padding: 0.15rem 0.4rem; /* Padding reducido en los recuadros de métricas */
-        font-size: 0.65rem; /* Fuente más pequeña */
+        padding: 0.2rem 0.5rem;
+        font-size: 0.7rem;
     }
-
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
         gap: 0.8rem;
