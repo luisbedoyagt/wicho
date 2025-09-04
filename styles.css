@@ -83,7 +83,7 @@ body {
 }
 
 .app-header h1 {
-    font-family: 'Oswald', sans-serif;
+    font-family: var(--font-heading);
     font-weight: 700;
     font-size: clamp(2rem, 5vw, 3.5rem);
     color: var(--highlight-blue);
@@ -254,12 +254,13 @@ select:focus {
 .event-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.8rem;
+    align-items: stretch;
 }
 
 .event-item {
     background-color: var(--secondary-bg);
-    padding: 1rem;
+    padding: 0.8rem;
     border-radius: 6px;
     border: 1px solid var(--border-color);
     font-size: 0.95rem;
@@ -268,6 +269,8 @@ select:focus {
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
     position: relative;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .event-item::before {
@@ -287,6 +290,7 @@ select:focus {
     transform: translateY(-3px);
     box-shadow: 0 5px 12px rgba(0,0,0,0.6), inset 0 1px 3px rgba(0,0,0,0.4);
 }
+
 .event-item:hover::before {
     opacity: 1;
 }
@@ -295,23 +299,24 @@ select:focus {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.3rem;
 }
 
 .team-logo-container {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    width: 100%;
     justify-content: center;
+    gap: 0.3rem;
+    flex-wrap: nowrap;
+    width: 100%;
 }
 
 .team-logo {
-    width: 40px;
-    height: 40px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
-    filter: drop-shadow(0 0 5px rgba(0, 224, 255, 0.3));
-    border-radius: 4px;
+    filter: drop-shadow(0 0 3px rgba(0, 224, 255, 0.3));
+    border-radius: 3px;
 }
 
 .team-logo.hidden {
@@ -319,24 +324,33 @@ select:focus {
 }
 
 .team-name {
-    font-weight: 700;
-    color: var(--highlight-blue);
-    text-shadow: 0 0 5px rgba(0, 224, 255, 0.4);
-    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    max-width: 120px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.team-name:last-child {
+    text-align: left;
 }
 
 .vs {
     font-weight: 700;
     color: var(--accent-yellow);
-    font-size: 1.2rem;
-    text-shadow: 0 0 5px rgba(229, 192, 123, 0.5);
+    font-size: 0.95rem;
+    text-shadow: 0 0 4px rgba(229, 192, 123, 0.5);
+    margin: 0 0.3rem;
 }
 
 .event-details {
     font-size: 0.85rem;
     color: var(--label-color);
-    display: block;
     text-align: center;
+    width: 100%;
 }
 
 .event-item.placeholder {
@@ -345,7 +359,7 @@ select:focus {
     text-align: center;
     background-color: #2a2a2a;
     border: 1px dashed var(--border-color);
-    padding: 1rem;
+    padding: 0.8rem;
     transition: none;
 }
 
@@ -452,16 +466,6 @@ select:focus {
     color: #e0e0e0;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
     font-weight: 500;
-}
-
-/* Estilos de los logos */
-.team-logo {
-    width: 60px;
-    height: 60px;
-    margin-right: 20px;
-    vertical-align: middle;
-    object-fit: contain;
-    filter: drop-shadow(0 0 5px rgba(0, 224, 255, 0.3));
 }
 
 /* Botones */
@@ -942,11 +946,6 @@ select option {
         flex-direction: column;
         gap: 0.6rem;
     }
-    .team-logo {
-        width: 50px;
-        height: 50px;
-        margin-right: 15px;
-    }
     .team-details {
         margin-top: 0;
     }
@@ -1067,29 +1066,32 @@ select option {
         background-size: 0.8rem auto;
     }
     .event-list {
-        gap: 0.8rem;
+        gap: 0.6rem;
     }
     .event-item {
-        padding: 0.8rem;
+        padding: 0.6rem;
         font-size: 0.85rem;
     }
     .team-logo {
-        width: 30px;
-        height: 30px;
+        width: 15px;
+        height: 15px;
+        border-radius: 2px;
     }
     .team-name {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        max-width: 90px;
     }
     .vs {
-        font-size: 1rem;
+        font-size: 0.85rem;
+        margin: 0 0.2rem;
     }
     .event-details {
         font-size: 0.75rem;
     }
     .event-content {
-        gap: 0.3rem;
+        gap: 0.2rem;
     }
     .team-logo-container {
-        gap: 0.3rem;
+        gap: 0.2rem;
     }
 }
