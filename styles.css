@@ -1,5 +1,5 @@
 /* ========================================================================== */
-/* ESTILOS GLOBALES Y VARIABLES (APLICAN A AMBOS)           */
+/* ESTILOS GLOBALES Y VARIABLES (APLICAN A AMBOS)        */
 /* ========================================================================== */
 
 /* Variables de color y tipografía */
@@ -699,6 +699,28 @@ select:focus {
     padding: 0;
     margin: 0;
     font-style: normal;
+}
+
+/* Estilo para la ficha de Pronóstico Combinado (agregado) */
+#combined-prediction {
+    padding: 1.5rem;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+#combined-prediction::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 10% 10%, rgba(0, 224, 255, 0.1), transparent 50%);
+    pointer-events: none;
 }
 
 .transition-message {
