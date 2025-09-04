@@ -803,7 +803,7 @@ select option {
 }
 
 /* ========================================================================== */
-/* AJUSTES PARA MÓVIL (MENOS DE 768PX)           */
+/* AJUSTES PARA MÓVIL (MENOS DE 767PX)           */
 /* ========================================================================== */
 
 @media (max-width: 767px) {
@@ -811,18 +811,20 @@ select option {
         padding: 0.8rem;
     }
     .container {
-        gap: 0.8rem;
+        /* Espacio principal entre las fichas */
+        gap: 1rem;
     }
     .main-grid {
         grid-template-columns: 1fr;
         grid-template-areas: none;
-        gap: 0.8rem;
+        gap: 1rem;
     }
     .event-card, #card-home, #card-away, .result-card, .recommendation-ia-grid, .reset-container {
         grid-area: unset;
-        margin-bottom: 0;
+        /* Se eliminó el margin-bottom: 0 para usar el 'gap' del contenedor */
     }
     .card {
+        /* Se eliminó el margin-bottom: 0 para usar el 'gap' del contenedor */
         margin-bottom: 0;
     }
     .app-header {
@@ -896,21 +898,21 @@ select option {
         margin-top: 0.5rem;
     }
     .stat-section {
-        padding: 0.6rem 0.8rem;
+        padding: 0.5rem 0.8rem;
     }
     .stat-section .section-title {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
     .stat-metrics {
-        gap: 0.3rem;
+        gap: 0.2rem;
     }
     .stat-metrics span {
-        padding: 0.2rem 0.5rem;
-        font-size: 0.7rem;
+        padding: 0.15rem 0.4rem;
+        font-size: 0.65rem;
     }
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
-        gap: 0.8rem;
+        gap: 1rem; /* Aumentado a 1rem para que coincida con el contenedor principal */
         margin-top: 0;
     }
     .recommendation-ia-grid .card-header h3 {
