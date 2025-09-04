@@ -291,18 +291,52 @@ select:focus {
     opacity: 1;
 }
 
-.event-item strong {
-    font-weight: 700;
-    color: var(--highlight-blue);
-    display: block;
-    margin-bottom: 0.25rem;
-    text-shadow: 0 0 5px rgba(0, 224, 255, 0.4);
+.event-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.event-item span {
+.team-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.team-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 5px rgba(0, 224, 255, 0.3));
+    border-radius: 4px;
+}
+
+.team-logo.hidden {
+    display: none;
+}
+
+.team-name {
+    font-weight: 700;
+    color: var(--highlight-blue);
+    text-shadow: 0 0 5px rgba(0, 224, 255, 0.4);
+    font-size: 1rem;
+}
+
+.vs {
+    font-weight: 700;
+    color: var(--accent-yellow);
+    font-size: 1.2rem;
+    text-shadow: 0 0 5px rgba(229, 192, 123, 0.5);
+}
+
+.event-details {
     font-size: 0.85rem;
     color: var(--label-color);
     display: block;
+    text-align: center;
 }
 
 .event-item.placeholder {
@@ -1039,25 +1073,23 @@ select option {
         padding: 0.8rem;
         font-size: 0.85rem;
     }
-    .event-item strong {
-        margin-bottom: 0.1rem;
+    .team-logo {
+        width: 30px;
+        height: 30px;
     }
-    .event-item span {
+    .team-name {
+        font-size: 0.9rem;
+    }
+    .vs {
+        font-size: 1rem;
+    }
+    .event-details {
         font-size: 0.75rem;
     }
-    .event-item.placeholder {
-        padding: 0.8rem;
+    .event-content {
+        gap: 0.3rem;
     }
-    select optgroup {
-        font-size: 0.9em;
-        margin-top: 6px;
-        padding-bottom: 3px;
-    }
-    select optgroup:not(:first-child) {
-        margin-top: 12px;
-    }
-    select option {
-        font-size: 0.8em;
-        padding-left: 8px;
+    .team-logo-container {
+        gap: 0.3rem;
     }
 }
