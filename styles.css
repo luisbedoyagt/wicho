@@ -827,96 +827,142 @@ select option {
 
 /* --- Media Queries (ajustes para MÓVIL) --- */
 @media (max-width: 767px) {
+    body {
+        padding: 1rem; /* Reducir el padding general del body */
+    }
+
+    .container {
+        gap: 1.5rem; /* Reducir el gap general entre secciones principales */
+    }
+
     .main-grid {
         grid-template-columns: 1fr;
         grid-template-areas: none;
-        gap: 2rem;
+        gap: 1.5rem; /* Menor separación entre fichas principales */
     }
     .event-card, #card-home, #card-away, .result-card, .recommendation-ia-grid, .reset-container {
         grid-area: unset;
     }
 
-    .recommendation-ia-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
+    .card {
+        margin-bottom: 0; /* Eliminar margin-bottom de las cards individuales, ya que el gap del grid lo maneja */
     }
 
-    .team-card {
-        margin-bottom: 2rem;
+    .card-header {
+        padding: 1rem; /* Reducir padding del header de la card */
+    }
+
+    .card-header h3 {
+        font-size: 1.3rem; /* Títulos de card un poco más pequeños */
+    }
+
+    .card-body {
+        padding: 1rem; /* Reducir padding del body de la card */
+        gap: 1rem; /* Reducir el gap dentro del body de la card */
+    }
+
+    .recommendation-ia-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem; /* Menor separación entre las tarjetas de IA */
     }
 
     .team-logo {
-        width: 50px;
-        height: 50px;
-        margin-right: 15px;
+        width: 45px; /* Logos ligeramente más pequeños */
+        height: 45px;
+        margin-right: 10px;
     }
 
     .stat-metrics {
-        gap: 0.75rem;
+        gap: 0.5rem; /* Reducir el gap entre las métricas */
     }
 
     /* Reglas para la cuadrícula de probabilidades en móvil */
+    #details {
+        margin-bottom: 0.5rem; /* Acercar título a los cuadros */
+        font-size: 1em;
+    }
+
     .probabilities-grid {
         flex-wrap: wrap;
         justify-content: center;
-        gap: 0.5rem;
-        margin-top: 1rem; /* Más cerca del título */
+        gap: 0.4rem; /* Menor gap entre tiles */
+        margin-top: 0.5rem; /* Pegar más al título */
     }
 
     .probability-tile {
         flex: 1 1 30%;
         max-width: 32%;
         min-width: unset;
-        padding: 0.7rem 0.5rem; /* Menor padding */
+        padding: 0.6rem 0.4rem; /* Menor padding */
+        border-width: 1px; /* Borde más fino */
     }
 
     .probability-tile .label {
-        font-size: 0.65rem; /* Fuente más pequeña */
-        margin-bottom: 0.2rem;
+        font-size: 0.6rem; /* Fuente más pequeña */
+        margin-bottom: 0.1rem; /* Menor margen */
     }
 
     .probability-tile .value {
-        font-size: 1.2rem; /* Fuente más pequeña */
+        font-size: 1.1rem; /* Fuente más pequeña */
     }
 
     /* Ajustes para la sección de sugerencias */
     .recommendation-box {
-        margin-top: 1.5rem; /* Menos espacio superior */
+        margin-top: 1rem; /* Menos espacio superior */
+        padding: 1.2rem;
+    }
+
+    .rec-title {
+        font-size: 1.1rem; /* Título "Nuestra Sugerencia" más pequeño */
+        margin-bottom: 0.8rem;
+    }
+
+    .rec-suggestion ul {
+        gap: 8px; /* Menor separación entre ítems de sugerencia */
     }
 
     .rec-item {
-        padding: 10px 15px; /* Menor padding */
-        font-size: 1em; /* Fuente más pequeña */
-        gap: 15px;
+        padding: 8px 12px; /* Menor padding */
+        font-size: 0.9em; /* Fuente más pequeña */
+        gap: 12px;
     }
 
     .rec-rank {
-        width: 25px; /* Menor tamaño del círculo */
-        height: 25px;
-        font-size: 0.8em;
+        width: 22px; /* Menor tamaño del círculo */
+        height: 22px;
+        font-size: 0.75em;
     }
 
     .rec-bet {
-        margin-left: 15px;
-        font-size: 0.9em;
+        margin-left: 10px; /* Menor margen */
+        font-size: 0.85em;
     }
 
     .rec-prob {
-        font-size: 1.2em;
+        font-size: 1.1em;
     }
 
-    /* Ajustes para los títulos */
-    .card-header h3 {
-        font-size: 1.4rem; /* Títulos más pequeños en general */
+    /* Ajuste para los cuadros de estadísticas (Posición, Goles, etc.) */
+    .stats-grid {
+        gap: 0.8rem; /* Menor gap entre las stats boxes */
+        margin-top: 1rem; /* Acercar más al título de las stats */
     }
 
-    /* Ajuste para los cuadros de estadísticas */
     .stat-box {
-        padding: 0.7rem; /* Menor padding en las estadísticas */
+        padding: 0.6rem; /* Menor padding */
+    }
+
+    .stat-label {
+        font-size: 0.7rem; /* Fuente más pequeña */
     }
 
     .stat-value {
-        font-size: 1.2rem; /* Menor tamaño de la fuente */
+        font-size: 1.1rem; /* Menor tamaño de la fuente */
         margin-top: 0.2rem;
+    }
+
+    /* Títulos de las tarjetas de IA */
+    .recommendation-ia-grid .card-header h3 {
+        font-size: 1.3rem; /* Títulos de IA más pequeños */
     }
 }
