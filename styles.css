@@ -812,33 +812,33 @@ select option {
     }
     .container {
         /* Se usa un gap menor, ya que los márgenes de las tarjetas crearán el espacio principal */
-        gap: 0.8rem;
+        gap: 0.6rem;
     }
     .main-grid {
         grid-template-columns: 1fr;
         grid-template-areas: none;
         /* Se usa un gap menor, ya que los márgenes de las tarjetas crearán el espacio principal */
-        gap: 0.8rem;
+        gap: 0.6rem;
     }
 
-    /* AÑADIDO: Espacio entre las fichas */
+    /* AÑADIDO: Espacio entre las fichas (reducido al 50%) */
     .event-card, 
     #card-home, 
     #card-away, 
     .result-card, 
     .recommendation-ia-grid, 
     .reset-container {
-        margin-bottom: 1.2rem;
+        margin-bottom: 0.6rem;
         grid-area: unset;
     }
 
     .card {
-        margin-bottom: 1.2rem;
+        margin-bottom: 0.6rem;
     }
     
     .app-header {
         padding: 1rem 0 0.8rem;
-        margin-bottom: 1.2rem;
+        margin-bottom: 0.6rem;
     }
     
     .app-header h1 {
@@ -922,7 +922,7 @@ select option {
     }
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
-        gap: 0.8rem;
+        gap: 0.6rem;
         margin-top: 0;
     }
     .recommendation-ia-grid .card-header h3 {
@@ -983,7 +983,7 @@ select option {
     }
     .reset-container {
         padding: 1.5rem 0;
-        margin-bottom: 1.2rem;
+        margin-bottom: 0.6rem;
     }
     .control-group {
         margin-bottom: 0;
