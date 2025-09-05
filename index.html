@@ -25,29 +25,20 @@
                 <div class="card-body">
                     <div class="control-group">
                         <label for="leagueSelect">Selecciona una Liga:</label>
-                        <select id="leagueSelect">
-                            <option value="">Selecciona una liga...</option>
-                        </select>
+                        <select id="leagueSelect"></select>
                     </div>
                     <div class="control-group">
-                        <label>Eventos de la Liga Seleccionada:</label>
+                        <label>Selecciona un Evento:</label>
                         <div id="selected-league-events" class="event-list">
                             <div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>
                         </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Otros Eventos Disponibles:</label>
-                        <div id="general-events" class="event-list general-events">
-                            <div class="event-item placeholder"><span>Esperando eventos de otras ligas...</span></div>
+                        <div id="transition-message" class="transition-message" style="display: none;">
+                            <span class="loading-text"></span>
                         </div>
-                    </div>
-                    <div id="transition-message" class="transition-message" style="display: none;">
-                        <span class="loading-text"></span>
                     </div>
                 </div>
             </section>
 
-            <!-- Resto de las secciones sin cambios -->
             <section class="card team-card" id="card-home">
                 <header class="card-header">
                     <i class="fas fa-home"></i>
@@ -198,7 +189,7 @@
                         </div>
                     </div>
                     <div class="recommendation-box">
-                        <h3 class="rec-title">Pronósticos Destacados</h3>
+                        <h4 class="rec-title">Pronósticos Destacados</h4>
                         <div class="rec-suggestion" id="suggestion">
                             <p>Esperando datos...</p>
                         </div>
