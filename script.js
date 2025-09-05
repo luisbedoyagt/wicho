@@ -121,11 +121,10 @@ const leagueRegions = {
 
 // ----------------------
 // NORMALIZACIÓN DE DATOS
-// ----------------------
 function normalizeTeam(raw) {
     if (!raw) return null;
     const r = {};
-    r.name = raw.name || '';
+    r.name = (raw.name || '').trim();
     if (!r.name) return null;
     r.pos = parseNumberString(raw.rank || 0);
     r.gf = parseNumberString(raw.goalsFor || 0);
@@ -936,5 +935,6 @@ function calculateAll() {
     const combinedPrediction = getCombinedPrediction(stats, event?.pronostico, matchData);
     $('combined-prediction').innerHTML = `<div class="combined-box"><h3>${combinedPrediction.header}</h3><div class="combined-body">${combinedPrediction.body}</div></div>`;
 }
+
 
 
