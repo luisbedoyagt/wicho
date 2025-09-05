@@ -1,15 +1,9 @@
-
-/**
- * @fileoverview Script mejorado para interfaz web que muestra estadísticas de fútbol y calcula probabilidades de partidos
- * usando datos de una API de Google Apps Script. Ahora usa un modelo basado en la distribución de Poisson
- * con el ajuste de Dixon y Coles y "shrinkage" para una mejor predicción de empates y resultados realistas.
- * Incluye mejora para bloquear la selección de eventos en curso.
- */
-
-// ----------------------
 // UTILIDADES
-// ----------------------
-const $ = id => document.getElementById(id);
+const $ = id => {
+    const element = document.getElementById(id);
+    if (!element) console.error(`[Utilidades] Elemento con ID ${id} no encontrado en el DOM`);
+    return element;
+};
 const formatPct = x => (100 * (isFinite(x) ? x : 0)).toFixed(1) + '%';
 const formatDec = x => (isFinite(x) ? x.toFixed(2) : '0.00');
 const parseNumberString = val => {
@@ -17,29 +11,23 @@ const parseNumberString = val => {
     const n = Number(s);
     return isFinite(n) ? n : 0;
 };
-
 // Funciones auxiliares para Poisson y Dixon-Coles
 function poissonProbability(lambda, k) {
     if (lambda <= 0 || k < 0) return 0;
     return (Math.exp(-lambda) * Math.pow(lambda, k)) / factorial(k);
 }
-
 function factorial(n) {
     if (n === 0 || n === 1) return 1;
     let res = 1;
     for (let i = 2; i <= n; i++) res *= i;
     return res;
 }
-
-// ----------------------
 // CONFIGURACIÓN DE LIGAS
-// ----------------------
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOJtjsqYuqxn6sMxFKQ7vb5TxoGxj7NoxcfUp5omYIw3C5s3qyAvOfLvRyGeE2xpc4/exec";
 let teamsByLeague = {};
 let allData = {};
 let currentEventPage = 0;
 let eventInterval;
-
 const leagueNames = {
     "esp.1": "LaLiga España",
     "esp.2": "Segunda España",
@@ -70,7 +58,6 @@ const leagueNames = {
     "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
     "fifa.worldq.uefa": "Eliminatorias UEFA"
 };
-
 const leagueCodeToName = {
     "esp.1": "España_LaLiga",
     "esp.2": "España_Segunda",
@@ -101,8 +88,6 @@ const leagueCodeToName = {
     "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
     "fifa.worldq.uefa": "Eliminatorias_UEFA"
 };
-
-// Nuevo objeto para agrupar ligas por región
 const leagueRegions = {
     "esp.1": "Europa",
     "esp.2": "Europa",
@@ -951,4 +936,5 @@ function calculateAll() {
     const combinedPrediction = getCombinedPrediction(stats, event?.pronostico, matchData);
     $('combined-prediction').innerHTML = `<div class="combined-box"><h3>${combinedPrediction.header}</h3><div class="combined-body">${combinedPrediction.body}</div></div>`;
 }
+
 
