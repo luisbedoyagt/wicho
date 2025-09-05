@@ -23,7 +23,7 @@ function factorial(n) {
     return res;
 }
 // CONFIGURACIÓN DE LIGAS
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOJtjsqYuqxn6sMxFKQ7vb5TxoGxj7NoxcfUp5omYIw3C5s3qyAvOfLvRyGeE2xpc4/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOJtjsqYuqxn6sMxFKQ7vb5TxoGxj7NoxcfUp5omYIw3C5s3qyAvOfLvRyGeE2xpc2/exec";
 let teamsByLeague = {};
 let allData = {};
 let currentEventPage = 0;
@@ -177,7 +177,6 @@ function parsePlainText(text, matchData) {
         const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?:Empate:|$)`, 's'));
         const drawJustification = analysisText.match(/Empate:(.*?)(?:(?:[^:]+:)|$)/s);
         const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$)`, 's'));
-
         if (localJustification) aiJustification.home = localJustification[1].trim();
         if (drawJustification) aiJustification.draw = drawJustification[1].trim();
         if (awayJustification) aiJustification.away = awayJustification[1].trim();
@@ -240,7 +239,6 @@ async function fetchAllData() {
         }
         allData = await res.json();
         console.log('[fetchAllData] Datos recibidos:', allData);
-
         if (!allData || !allData.calendario || !allData.ligas) {
             throw new Error('Estructura de datos inválida: la respuesta está vacía o faltan "calendario" o "ligas".');
         }
@@ -297,7 +295,7 @@ function displaySelectedLeagueEvents(leagueCode) {
     }
     if (events.length === 0) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
-        console.log(`[displaySelectedLeagueEvents] No hay eventos para ${ligaName}`);
+        console.log(`[displaySelectedLeagueEvents] No hay eventos para ${leagueCode || 'todas las ligas'}`);
         return;
     }
     const eventsPerPage = 1;
@@ -306,9 +304,7 @@ function displaySelectedLeagueEvents(leagueCode) {
     function showCurrentPage() {
         const startIndex = currentPage * eventsPerPage;
         const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
-
         const currentItems = selectedEventsList.querySelectorAll('.event-item');
-
         if (currentItems.length > 0) {
             currentItems.forEach(item => {
                 item.classList.remove('slide-in');
@@ -323,13 +319,10 @@ function displaySelectedLeagueEvents(leagueCode) {
                 div.style.animationDelay = `${index * 0.1}s`;
                 div.dataset.homeTeam = event.local.trim();
                 div.dataset.awayTeam = event.visitante.trim();
-
-                // Buscar los logos de los equipos
                 const homeTeam = findTeam(leagueCode, event.local.trim());
                 const awayTeam = findTeam(leagueCode, event.visitante.trim());
                 const homeLogo = homeTeam?.logoUrl || '';
                 const awayLogo = awayTeam?.logoUrl || '';
-
                 let eventDateTime;
                 let isInProgress = false;
                 try {
@@ -438,7 +431,6 @@ async function init() {
         return aIndex - bIndex;
     });
     console.log('[init] Regiones ordenadas:', sortedRegions);
-
     sortedRegions.forEach(regionName => {
         const optgroup = document.createElement('optgroup');
         optgroup.label = regionName;
@@ -498,9 +490,9 @@ async function init() {
     } else {
         console.warn('[init] Botón reset no encontrado');
     }
+    // Llama a displaySelectedLeagueEvents() al final de la inicialización para mostrar todos los eventos
+    displaySelectedLeagueEvents('');
 }
-document.addEventListener('DOMContentLoaded', init);
-
 // FUNCIONES AUXILIARES DE UI
 function onLeagueChange() {
     const code = $('leagueSelect').value;
@@ -509,7 +501,6 @@ function onLeagueChange() {
     const teamAwaySelect = $('teamAway');
     teamHomeSelect.disabled = !code;
     teamAwaySelect.disabled = !code;
-
     if (!teamHomeSelect || !teamAwaySelect) {
         console.error('[onLeagueChange] Elementos teamHome o teamAway no encontrados');
         return;
@@ -560,7 +551,6 @@ function selectEvent(homeTeamName, awayTeamName) {
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
     const leagueCode = $('leagueSelect').value;
-
     if (!leagueCode) {
         console.error('[selectEvent] No hay liga seleccionada');
         const details = $('details');
@@ -569,18 +559,14 @@ function selectEvent(homeTeamName, awayTeamName) {
         }
         return;
     }
-
     const normalizeName = name => name.trim().toLowerCase();
     const homeTeamNameNormalized = normalizeName(homeTeamName);
     const awayTeamNameNormalized = normalizeName(awayTeamName);
-
     console.log('[selectEvent] Buscando:', { homeTeamName, awayTeamName }, 'Liga:', leagueCode);
     console.log('[selectEvent] Opciones disponibles en teamHome:', Array.from(teamHomeSelect.options).map(opt => opt.text));
     console.log('[selectEvent] Opciones disponibles en teamAway:', Array.from(teamAwaySelect.options).map(opt => opt.text));
-
     const homeOption = Array.from(teamHomeSelect.options).find(opt => normalizeName(opt.text) === homeTeamNameNormalized);
     const awayOption = Array.from(teamAwaySelect.options).find(opt => normalizeName(opt.text) === awayTeamNameNormalized);
-
     if (homeOption) {
         teamHomeSelect.value = homeOption.value;
     } else {
@@ -591,7 +577,6 @@ function selectEvent(homeTeamName, awayTeamName) {
     } else {
         console.error('[selectEvent] Equipo visitante no encontrado:', awayTeamName);
     }
-
     if (homeOption && awayOption && restrictSameTeam()) {
         fillTeamData(homeTeamName, leagueCode, 'Home');
         fillTeamData(awayTeamName, leagueCode, 'Away');
@@ -628,7 +613,6 @@ function restrictSameTeam() {
 }
 function clearTeamData(type) {
     const typeLower = type.toLowerCase();
-
     $(`pos${type}`).textContent = '--';
     $(`gf${type}`).textContent = '--';
     $(`ga${type}`).textContent = '--';
@@ -694,12 +678,10 @@ function clearAll() {
     if (combinedPrediction) {
         combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
     }
-
     clearTeamData('Home');
     clearTeamData('Away');
     displaySelectedLeagueEvents('');
 }
-
 // BÚSQUEDA Y LLENADO DE EQUIPO
 function findTeam(leagueCode, teamName) {
     if (!teamsByLeague[leagueCode]) return null;
@@ -770,12 +752,10 @@ function fillTeamData(teamName, leagueCode, type) {
         logoImg.style.display = t.logoUrl ? 'inline-block' : 'none';
     }
 }
-
 // CÁLCULO DE PROBABILIDADES CON DIXON-COLES Y SHRINKAGE
 function dixonColesProbabilities(tH, tA, league) {
     const rho = -0.11;
     const shrinkageFactor = 1.0;
-
     const teams = teamsByLeague[league];
     let totalGames = 0, totalGf = 0, totalGa = 0, totalGfHome = 0, totalGaHome = 0, totalGfAway = 0, totalGaAway = 0;
     teams.forEach(t => {
@@ -846,7 +826,6 @@ function dixonColesProbabilities(tH, tA, league) {
         pO25H
     };
 }
-
 // COMBINACIÓN DE PRONÓSTICOS
 function getCombinedPrediction(stats, event, matchData) {
     const combined = {};
@@ -895,7 +874,6 @@ function getCombinedPrediction(stats, event, matchData) {
     console.log('[getCombinedPrediction] Pronóstico combinado:', combined);
     return combined;
 }
-
 // CÁLCULO COMPLETO
 function calculateAll() {
     const leagueSelect = $('leagueSelect');
@@ -910,13 +888,10 @@ function calculateAll() {
         }
         return;
     }
-
     const leagueCode = leagueSelect.value;
     const teamHome = teamHomeSelect.value;
     const teamAway = teamAwaySelect.value;
-
     console.log('[calculateAll] Valores actuales: leagueCode=', leagueCode, 'teamHome=', teamHome, 'teamAway=', teamAway);
-
     if (!leagueCode || !teamHome || !teamAway) {
         const details = $('details');
         if (details) {
@@ -929,7 +904,6 @@ function calculateAll() {
         });
         return;
     }
-
     const tH = findTeam(leagueCode, teamHome);
     const tA = findTeam(leagueCode, teamAway);
     if (!tH || !tA) {
@@ -957,10 +931,9 @@ function calculateAll() {
         if (el) el.textContent = formatPct(p.value);
     });
     const recommendations = probabilities.filter(p => p.value >= 0.3)
-                                       .sort((a, b) => b.value - a.value)
-                                       .slice(0, 3);
+                                         .sort((a, b) => b.value - a.value)
+                                         .slice(0, 3);
     console.log('[calculateAll] Recomendaciones:', recommendations);
-
     let suggestionText = '<h3>Recomendaciones de Apuesta</h3><ul>';
     recommendations.forEach(r => {
         suggestionText += `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`;
@@ -1012,3 +985,4 @@ document.addEventListener('keydown', e => {
         alert('Las herramientas de desarrollo están deshabilitadas.');
     }
 });
+document.addEventListener('DOMContentLoaded', init);
