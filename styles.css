@@ -40,7 +40,7 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM0NDQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4xMiI+PHBhdGggZD0iTTAgNDBoNEwxNiAyOHg0TDM2IDQwSDQwVjMzTDIwIDEyIDAgMzNWNDB6TTEwIDQwSDRsMTYtMjBMNC4yIDBoLTQuMkwyMCAyMiAzNS44IDBoLTQuMkwyMCAyMiAxMCA0MHoiLz48L2c+PC9nPjwvc3ZnPg==');
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM0NDQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4xMiI+PHBhdGggZD0iTTAgNDBoNEwxNiAyOHg0TDM2IDQwSDQwVjMzTDIwIDEyIDAgMzNWNDB6TTEwIDQwSDRsMTYtMjBMNC4yIDBoLTQuMkwyMCAyMiAzNS44IDBoLTQuMkwyMCAyMiAxMCA0MHoiLz48L2c+PC9nPjwvc3ZnPg==');
     background-size: 20px 20px;
     background-blend-mode: overlay;
     display: flex;
@@ -315,8 +315,8 @@ select:focus {
 }
 
 .team-logo {
-    width: 60px;
-    height: 60px;
+    width: 42px;
+    height: 42px;
     object-fit: contain;
     filter: drop-shadow(0 0 5px rgba(0, 224, 255, 0.3));
     flex-shrink: 0;
@@ -947,9 +947,10 @@ select option {
         gap: 0.6rem;
     }
     .team-logo {
-        width: 50px;
-        height: 50px;
-        margin-right: 15px;
+        width: 35px;
+        height: 35px;
+        margin-right: 0;
+        flex-shrink: 0;
     }
     .team-details {
         margin-top: 0;
@@ -1077,12 +1078,6 @@ select option {
         padding: 0.8rem;
         font-size: 0.85rem;
         max-width: 350px;
-    }
-    .team-logo {
-        width: 50px;
-        height: 50px;
-        margin-right: 0;
-        flex-shrink: 0;
     }
     .team-name {
         font-size: 0.85rem;
