@@ -269,7 +269,7 @@ async function fetchAllData() {
         return {};
     }
 }
-// MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
+// MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA O TODOS LOS EVENTOS
 function displaySelectedLeagueEvents(leagueCode) {
     const selectedEventsList = $('selected-league-events');
     if (!selectedEventsList) {
@@ -281,21 +281,45 @@ function displaySelectedLeagueEvents(leagueCode) {
         eventInterval = null;
     }
     selectedEventsList.innerHTML = '';
+    
+    let events = [];
     if (!leagueCode || !allData.calendario) {
-        selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
-        console.log('[displaySelectedLeagueEvents] Sin leagueCode o allData.calendario');
-        return;
+        // Si no hay liga seleccionada, recolectar todos los eventos de todas las ligas
+        if (allData.calendario) {
+            Object.keys(allData.calendario).forEach(ligaName => {
+                if (Array.isArray(allData.calendario[ligaName])) {
+                    events.push(...allData.calendario[ligaName].map(event => ({
+                        ...event,
+                        ligaName: ligaName,
+                        leagueCode: Object.keys(leagueCodeToName).find(code => leagueCodeToName[code] === ligaName) || ''
+                    })));
+                }
+            });
+        }
+        if (events.length === 0) {
+            selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos disponibles.</span></div>';
+            console.log('[displaySelectedLeagueEvents] No hay eventos en el calendario');
+            return;
+        }
+    } else {
+        // Si hay una liga seleccionada, mostrar solo los eventos de esa liga
+        const ligaName = leagueCodeToName[leagueCode];
+        events = (allData.calendario[ligaName] || []).map(event => ({
+            ...event,
+            ligaName: ligaName,
+            leagueCode: leagueCode
+        }));
+        if (events.length === 0) {
+            selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
+            console.log(`[displaySelectedLeagueEvents] No hay eventos para ${ligaName}`);
+            return;
+        }
     }
-    const ligaName = leagueCodeToName[leagueCode];
-    const events = allData.calendario[ligaName] || [];
-    if (events.length === 0) {
-        selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
-        console.log(`[displaySelectedLeagueEvents] No hay eventos para ${ligaName}`);
-        return;
-    }
+
     const eventsPerPage = 1;
     const totalPages = Math.ceil(events.length / eventsPerPage);
     let currentPage = 0;
+
     function showCurrentPage() {
         const startIndex = currentPage * eventsPerPage;
         const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
@@ -316,10 +340,11 @@ function displaySelectedLeagueEvents(leagueCode) {
                 div.style.animationDelay = `${index * 0.1}s`;
                 div.dataset.homeTeam = event.local.trim();
                 div.dataset.awayTeam = event.visitante.trim();
+                div.dataset.leagueCode = event.leagueCode;
 
                 // Buscar los logos de los equipos
-                const homeTeam = findTeam(leagueCode, event.local.trim());
-                const awayTeam = findTeam(leagueCode, event.visitante.trim());
+                const homeTeam = findTeam(event.leagueCode, event.local.trim());
+                const awayTeam = findTeam(event.leagueCode, event.visitante.trim());
                 const homeLogo = homeTeam?.logoUrl || '';
                 const awayLogo = awayTeam?.logoUrl || '';
 
@@ -354,7 +379,7 @@ function displaySelectedLeagueEvents(leagueCode) {
                             <img src="${awayLogo}" class="team-logo away-logo ${!awayLogo ? 'hidden' : ''}" alt="Logo de ${event.visitante.trim()}">
                             <span class="team-name">${event.visitante.trim()}</span>
                         </div>
-                        <span class="event-details">${eventDateTime}${statusText}</span>
+                        <span class="event-details">${leagueNames[event.leagueCode] || event.ligaName}: ${eventDateTime}${statusText}</span>
                         <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
                     </div>
                 `;
@@ -364,6 +389,12 @@ function displaySelectedLeagueEvents(leagueCode) {
                     div.title = 'Evento en curso, no seleccionable';
                 } else {
                     div.addEventListener('click', () => {
+                        // Seleccionar la liga correspondiente antes de seleccionar el evento
+                        const leagueSelect = $('leagueSelect');
+                        if (leagueSelect && event.leagueCode) {
+                            leagueSelect.value = event.leagueCode;
+                            onLeagueChange(); // Actualizar los selectores de equipos
+                        }
                         selectEvent(event.local.trim(), event.visitante.trim());
                     });
                 }
@@ -1005,5 +1036,3 @@ document.addEventListener('keydown', e => {
         alert('Las herramientas de desarrollo están deshabilitadas.');
     }
 });
-
-
