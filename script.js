@@ -34,7 +34,7 @@ function factorial(n) {
 // ----------------------
 // CONFIGURACIÓN DE LIGAS
 // ----------------------
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzRX7K7XwzhgIR_gLFdaOzKpykGqliDKD1a19-EmKiVEobWzCQ1_RZz1_Lhl8pDvfAADQ/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOJtjsqYuqxn6sMxFKQ7vb5TxoGxj7NoxcfUp5omYIw3C5s3qyAvOfLvRyGeE2xpc4/exec";
 let teamsByLeague = {};
 let allData = {};
 let currentEventPage = 0;
@@ -951,3 +951,4 @@ function calculateAll() {
     const combinedPrediction = getCombinedPrediction(stats, event?.pronostico, matchData);
     $('combined-prediction').innerHTML = `<div class="combined-box"><h3>${combinedPrediction.header}</h3><div class="combined-body">${combinedPrediction.body}</div></div>`;
 }
+
