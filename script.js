@@ -276,6 +276,9 @@ function displaySelectedLeagueEvents(leagueCode) {
         console.warn('[displaySelectedLeagueEvents] Elemento selected-league-events no encontrado');
         return;
     }
+    console.log('[displaySelectedLeagueEvents] leagueCode:', leagueCode);
+    console.log('[displaySelectedLeagueEvents] allData.calendario:', allData.calendario);
+    
     if (eventInterval) {
         clearInterval(eventInterval);
         eventInterval = null;
@@ -295,6 +298,7 @@ function displaySelectedLeagueEvents(leagueCode) {
                     })));
                 }
             });
+            console.log('[displaySelectedLeagueEvents] Eventos recolectados (sin liga seleccionada):', events);
         }
         if (events.length === 0) {
             selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos disponibles.</span></div>';
@@ -309,6 +313,7 @@ function displaySelectedLeagueEvents(leagueCode) {
             ligaName: ligaName,
             leagueCode: leagueCode
         }));
+        console.log('[displaySelectedLeagueEvents] Eventos recolectados (liga seleccionada):', events);
         if (events.length === 0) {
             selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
             console.log(`[displaySelectedLeagueEvents] No hay eventos para ${ligaName}`);
@@ -323,6 +328,7 @@ function displaySelectedLeagueEvents(leagueCode) {
     function showCurrentPage() {
         const startIndex = currentPage * eventsPerPage;
         const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
+        console.log('[displaySelectedLeagueEvents] Mostrando página:', currentPage, 'Eventos a mostrar:', eventsToShow);
 
         const currentItems = selectedEventsList.querySelectorAll('.event-item');
 
@@ -1036,3 +1042,4 @@ document.addEventListener('keydown', e => {
         alert('Las herramientas de desarrollo están deshabilitadas.');
     }
 });
+
