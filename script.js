@@ -319,10 +319,22 @@ function displaySelectedLeagueEvents(leagueCode) {
                 div.style.animationDelay = `${index * 0.1}s`;
                 div.dataset.homeTeam = event.local.trim();
                 div.dataset.awayTeam = event.visitante.trim();
-                const homeTeam = findTeam(leagueCode, event.local.trim());
-                const awayTeam = findTeam(leagueCode, event.visitante.trim());
+                
+                // --- CAMBIO CLAVE AQUI ---
+                // Para mostrar los logos sin una liga seleccionada,
+                // necesitamos encontrar la liga del evento para luego buscar los equipos.
+                const eventLeagueCode = Object.keys(allData.calendario).find(key => 
+                    (allData.calendario[key] || []).some(e => 
+                        e.local.trim().toLowerCase() === event.local.trim().toLowerCase() && 
+                        e.visitante.trim().toLowerCase() === event.visitante.trim().toLowerCase()));
+                
+                const homeTeam = findTeam(eventLeagueCode, event.local.trim());
+                const awayTeam = findTeam(eventLeagueCode, event.visitante.trim());
+                
                 const homeLogo = homeTeam?.logoUrl || '';
                 const awayLogo = awayTeam?.logoUrl || '';
+                // ---------------------------
+                
                 let eventDateTime;
                 let isInProgress = false;
                 try {
@@ -490,7 +502,6 @@ async function init() {
     } else {
         console.warn('[init] Botón reset no encontrado');
     }
-    // Llama a displaySelectedLeagueEvents() al final de la inicialización para mostrar todos los eventos
     displaySelectedLeagueEvents('');
 }
 // FUNCIONES AUXILIARES DE UI
@@ -684,6 +695,14 @@ function clearAll() {
 }
 // BÚSQUEDA Y LLENADO DE EQUIPO
 function findTeam(leagueCode, teamName) {
+    if (!leagueCode && teamsByLeague) {
+        // Busca en todas las ligas si no se especificó una
+        for (const code in teamsByLeague) {
+            const team = teamsByLeague[code].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase());
+            if (team) return team;
+        }
+        return null;
+    }
     if (!teamsByLeague[leagueCode]) return null;
     return teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()) || null;
 }
@@ -986,4 +1005,3 @@ document.addEventListener('keydown', e => {
     }
 });
 document.addEventListener('DOMContentLoaded', init);
-
