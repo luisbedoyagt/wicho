@@ -118,8 +118,6 @@ const leagueRegions = {
     "fifa.worldq.concacaf": "Eliminatorias Mundiales",
     "fifa.worldq.uefa": "Eliminatorias Mundiales"
 };
-
-// ----------------------
 // NORMALIZACIÓN DE DATOS
 function normalizeTeam(raw) {
     if (!raw) return null;
@@ -149,44 +147,128 @@ function normalizeTeam(raw) {
     r.logoUrl = raw.logoUrl || '';
     return r;
 }
+// PARSEO DE PRONÓSTICO DE TEXTO PLANO (RESPALDO)
+function parsePlainText(text, matchData) {
+    console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
+    const aiProbs = {};
+    const aiJustification = {
+        home: "Sin justificación detallada.",
+        draw: "Sin justificación detallada.",
+        away: "Sin justificación detallada."
+    };
+    const probsMatch = text.match(/Probabilidades:\s*(.*?)(?:Ambos Anotan|$)/s);
+    if (probsMatch && probsMatch[1]) {
+        const probsText = probsMatch[1];
+        const percentages = probsText.match(/(\d+)%/g) || [];
+        if (percentages.length >= 3) {
+            aiProbs.home = parseFloat(percentages[0]) / 100;
+            aiProbs.draw = parseFloat(percentages[1]) / 100;
+            aiProbs.away = parseFloat(percentages[2]) / 100;
+            console.log(`[parsePlainText] Probabilidades extraídas: Local=${aiProbs.home}, Empate=${aiProbs.draw}, Visitante=${aiProbs.away}`);
+        } else {
+            console.warn(`[parsePlainText] No se encontraron suficientes probabilidades en el texto: ${probsText}`);
+        }
+    } else {
+        console.warn(`[parsePlainText] No se encontró la sección de probabilidades en el texto: ${text}`);
+    }
+    const analysisMatch = text.match(/Análisis del Partido:(.*?)Probabilidades:/s);
+    if (analysisMatch && analysisMatch[1]) {
+        const analysisText = analysisMatch[1];
+        const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?:Empate:|$)`, 's'));
+        const drawJustification = analysisText.match(/Empate:(.*?)(?:(?:[^:]+:)|$)/s);
+        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$)`, 's'));
 
-// ----------------------
+        if (localJustification) aiJustification.home = localJustification[1].trim();
+        if (drawJustification) aiJustification.draw = drawJustification[1].trim();
+        if (awayJustification) aiJustification.away = awayJustification[1].trim();
+        console.log(`[parsePlainText] Justificaciones extraídas: Local=${aiJustification.home}, Empate=${aiJustification.draw}, Visitante=${aiJustification.away}`);
+    } else {
+        console.warn(`[parsePlainText] No se encontró la sección de análisis en el texto: ${text}`);
+    }
+    const result = {
+        "1X2": {
+            victoria_local: {
+                probabilidad: (aiProbs.home * 100 || 0).toFixed(0) + '%',
+                justificacion: aiJustification.home
+            },
+            empate: {
+                probabilidad: (aiProbs.draw * 100 || 0).toFixed(0) + '%',
+                justificacion: aiJustification.draw
+            },
+            victoria_visitante: {
+                probabilidad: (aiProbs.away * 100 || 0).toFixed(0) + '%',
+                justificacion: aiJustification.away
+            }
+        },
+        "BTTS": {
+            si: {
+                probabilidad: (text.match(/BTTS.*Sí:\s*(\d+)%/)?.[1] || '0') + '%',
+                justificacion: ""
+            },
+            no: {
+                probabilidad: (text.match(/BTTS.*No:\s*(\d+)%/)?.[1] || '0') + '%',
+                justificacion: ""
+            }
+        },
+        "Goles": {
+            mas_2_5: {
+                probabilidad: (text.match(/Más de 2\.5:\s*(\d+)%/)?.[1] || '0') + '%',
+                justificacion: ""
+            },
+            menos_2_5: {
+                probabilidad: (text.match(/Menos de 2\.5:\s*(\d+)%/)?.[1] || '0') + '%',
+                justificacion: ""
+            }
+        }
+    };
+    console.log(`[parsePlainText] Resultado final:`, result);
+    return result;
+}
 // FETCH DATOS COMPLETOS
-// ----------------------
 async function fetchAllData() {
     const leagueSelect = $('leagueSelect');
-    if (leagueSelect) leagueSelect.innerHTML = '<option value="">Cargando datos...</option>';
-
+    if (leagueSelect) {
+        leagueSelect.innerHTML = '<option value="">Cargando datos...</option>';
+        leagueSelect.style.display = 'block';
+    }
     try {
+        console.log('[fetchAllData] Solicitando datos desde:', WEBAPP_URL);
         const res = await fetch(`${WEBAPP_URL}?tipo=todo&update=false`);
         if (!res.ok) {
             const errorText = await res.text();
             throw new Error(`Error HTTP ${res.status}: ${res.statusText}. Respuesta: ${errorText}`);
         }
         allData = await res.json();
+        console.log('[fetchAllData] Datos recibidos:', allData);
 
-        // VALIDACIÓN MEJORADA
         if (!allData || !allData.calendario || !allData.ligas) {
             throw new Error('Estructura de datos inválida: la respuesta está vacía o faltan "calendario" o "ligas".');
         }
-
+        if (!Object.keys(allData.ligas).length) {
+            console.warn('[fetchAllData] allData.ligas está vacío');
+            throw new Error('No se encontraron ligas en los datos de la API.');
+        }
         const normalized = {};
         for (const key in allData.ligas) {
             normalized[key] = (allData.ligas[key] || []).map(normalizeTeam).filter(t => t && t.name);
+            console.log(`[fetchAllData] Liga ${key} normalizada con ${normalized[key].length} equipos`, normalized[key]);
         }
         teamsByLeague = normalized;
-
         localStorage.setItem('allData', JSON.stringify(allData));
+        console.log('[fetchAllData] Datos almacenados en localStorage');
         return allData;
     } catch (err) {
-        console.error('Error en fetchAllData:', err);
+        console.error('[fetchAllData] Error:', err);
         const errorMsg = `<div class="error"><strong>Error:</strong> No se pudieron cargar los datos de la API. Verifica la conexión a la hoja de Google Sheets o el endpoint de la API. Detalle: ${err.message}</div>`;
-        $('details').innerHTML = errorMsg;
-        if (leagueSelect) leagueSelect.innerHTML = '<option value="">Error al cargar ligas</option>';
+        const details = $('details');
+        if (details) details.innerHTML = errorMsg;
+        if (leagueSelect) {
+            leagueSelect.innerHTML = '<option value="">Error al cargar ligas</option>';
+            leagueSelect.style.display = 'block';
+        }
         return {};
     }
 }
-
 // MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
 function displaySelectedLeagueEvents(leagueCode) {
     const selectedEventsList = $('selected-league-events');
@@ -935,6 +1017,7 @@ function calculateAll() {
     const combinedPrediction = getCombinedPrediction(stats, event?.pronostico, matchData);
     $('combined-prediction').innerHTML = `<div class="combined-box"><h3>${combinedPrediction.header}</h3><div class="combined-body">${combinedPrediction.body}</div></div>`;
 }
+
 
 
 
