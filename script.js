@@ -1,3 +1,4 @@
+
 // UTILIDADES
 const $ = id => {
     const element = document.getElementById(id);
@@ -293,7 +294,7 @@ function displaySelectedLeagueEvents(leagueCode) {
         console.log(`[displaySelectedLeagueEvents] No hay eventos para ${ligaName}`);
         return;
     }
-    const eventsPerPage = 1;
+    const eventsPerPage = 2;
     const totalPages = Math.ceil(events.length / eventsPerPage);
     let currentPage = 0;
     function showCurrentPage() {
@@ -316,13 +317,6 @@ function displaySelectedLeagueEvents(leagueCode) {
                 div.style.animationDelay = `${index * 0.1}s`;
                 div.dataset.homeTeam = event.local.trim();
                 div.dataset.awayTeam = event.visitante.trim();
-
-                // Buscar los logos de los equipos
-                const homeTeam = findTeam(leagueCode, event.local.trim());
-                const awayTeam = findTeam(leagueCode, event.visitante.trim());
-                const homeLogo = homeTeam?.logoUrl || '';
-                const awayLogo = awayTeam?.logoUrl || '';
-
                 let eventDateTime;
                 let isInProgress = false;
                 try {
@@ -346,17 +340,9 @@ function displaySelectedLeagueEvents(leagueCode) {
                 }
                 let statusText = isInProgress ? ' - Evento en Juego' : '';
                 div.innerHTML = `
-                    <div class="event-content">
-                        <div class="team-logo-container">
-                            <span class="team-name">${event.local.trim()}</span>
-                            <img src="${homeLogo}" class="team-logo home-logo ${!homeLogo ? 'hidden' : ''}" alt="Logo de ${event.local.trim()}">
-                            <span class="vs">vs.</span>
-                            <img src="${awayLogo}" class="team-logo away-logo ${!awayLogo ? 'hidden' : ''}" alt="Logo de ${event.visitante.trim()}">
-                            <span class="team-name">${event.visitante.trim()}</span>
-                        </div>
-                        <span class="event-details">${eventDateTime}${statusText}</span>
-                        <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
-                    </div>
+                    <strong>${event.local.trim()} vs. ${event.visitante.trim()}</strong>
+                    <span>Estadio: ${event.estadio || 'Por confirmar'}</span>
+                    <span>${eventDateTime}${statusText}</span>
                 `;
                 if (isInProgress) {
                     div.classList.add('in-progress');
