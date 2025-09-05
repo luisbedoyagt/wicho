@@ -23,7 +23,7 @@ function factorial(n) {
     return res;
 }
 // CONFIGURACIÓN DE LIGAS
-const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOJtjsqYuqxn6sMxFKQ7vb5TxoGxj7NoxcfUp5omYIw3C5s3qyAvOfLvRyGeE2xpc4/exec";
+const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOJtjsqYuqxn6sMxFKQ7vb5TxoGxj7NoxcfUp5omYIw3C5s3qyAvOfLvRyGeE2xpc2/exec";
 let teamsByLeague = {};
 let allData = {};
 let currentEventPage = 0;
@@ -320,20 +320,11 @@ function displaySelectedLeagueEvents(leagueCode) {
                 div.dataset.homeTeam = event.local.trim();
                 div.dataset.awayTeam = event.visitante.trim();
                 
-                // --- CAMBIO CLAVE AQUI ---
-                // Para mostrar los logos sin una liga seleccionada,
-                // necesitamos encontrar la liga del evento para luego buscar los equipos.
-                const eventLeagueCode = Object.keys(allData.calendario).find(key => 
-                    (allData.calendario[key] || []).some(e => 
-                        e.local.trim().toLowerCase() === event.local.trim().toLowerCase() && 
-                        e.visitante.trim().toLowerCase() === event.visitante.trim().toLowerCase()));
-                
-                const homeTeam = findTeam(eventLeagueCode, event.local.trim());
-                const awayTeam = findTeam(eventLeagueCode, event.visitante.trim());
+                const homeTeam = findTeam(leagueCode, event.local.trim());
+                const awayTeam = findTeam(leagueCode, event.visitante.trim());
                 
                 const homeLogo = homeTeam?.logoUrl || '';
                 const awayLogo = awayTeam?.logoUrl || '';
-                // ---------------------------
                 
                 let eventDateTime;
                 let isInProgress = false;
@@ -561,44 +552,67 @@ function onLeagueChange() {
 function selectEvent(homeTeamName, awayTeamName) {
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
-    const leagueCode = $('leagueSelect').value;
-    if (!leagueCode) {
-        console.error('[selectEvent] No hay liga seleccionada');
+    const leagueSelect = $('leagueSelect');
+    
+    // Encuentra la liga a la que pertenece el evento
+    let eventLeagueCode = '';
+    const ligaName = Object.keys(allData.calendario).find(liga =>
+        (allData.calendario[liga] || []).some(e =>
+            e.local.trim().toLowerCase() === homeTeamName.trim().toLowerCase() &&
+            e.visitante.trim().toLowerCase() === awayTeamName.trim().toLowerCase()
+        )
+    );
+    if (ligaName) {
+        eventLeagueCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '';
+    }
+    
+    // Si se encontró la liga del evento, la selecciona en el dropdown
+    if (eventLeagueCode && leagueSelect) {
+        leagueSelect.value = eventLeagueCode;
+        // Dispara el evento de cambio para cargar los equipos de esa liga
+        const changeEvent = new Event('change');
+        leagueSelect.dispatchEvent(changeEvent);
+    } else {
+        console.error('[selectEvent] No se pudo encontrar la liga para el evento.');
         const details = $('details');
         if (details) {
-            details.innerHTML = '<div class="error"><strong>Error:</strong> Selecciona una liga primero.</div>';
+            details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar la liga del evento.</div>';
         }
         return;
     }
+
     const normalizeName = name => name.trim().toLowerCase();
     const homeTeamNameNormalized = normalizeName(homeTeamName);
     const awayTeamNameNormalized = normalizeName(awayTeamName);
-    console.log('[selectEvent] Buscando:', { homeTeamName, awayTeamName }, 'Liga:', leagueCode);
-    console.log('[selectEvent] Opciones disponibles en teamHome:', Array.from(teamHomeSelect.options).map(opt => opt.text));
-    console.log('[selectEvent] Opciones disponibles en teamAway:', Array.from(teamAwaySelect.options).map(opt => opt.text));
-    const homeOption = Array.from(teamHomeSelect.options).find(opt => normalizeName(opt.text) === homeTeamNameNormalized);
-    const awayOption = Array.from(teamAwaySelect.options).find(opt => normalizeName(opt.text) === awayTeamNameNormalized);
-    if (homeOption) {
-        teamHomeSelect.value = homeOption.value;
-    } else {
-        console.error('[selectEvent] Equipo local no encontrado:', homeTeamName);
-    }
-    if (awayOption) {
-        teamAwaySelect.value = awayOption.value;
-    } else {
-        console.error('[selectEvent] Equipo visitante no encontrado:', awayTeamName);
-    }
-    if (homeOption && awayOption && restrictSameTeam()) {
-        fillTeamData(homeTeamName, leagueCode, 'Home');
-        fillTeamData(awayTeamName, leagueCode, 'Away');
-        calculateAll();
-    } else {
-        const details = $('details');
-        if (details) {
-            details.innerHTML = `<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en la lista de la liga.</div>`;
+
+    // Espera a que los select se llenen con los equipos de la liga correcta
+    setTimeout(() => {
+        const homeOption = Array.from(teamHomeSelect.options).find(opt => normalizeName(opt.text) === homeTeamNameNormalized);
+        const awayOption = Array.from(teamAwaySelect.options).find(opt => normalizeName(opt.text) === awayTeamNameNormalized);
+        
+        if (homeOption) {
+            teamHomeSelect.value = homeOption.value;
+        } else {
+            console.error('[selectEvent] Equipo local no encontrado:', homeTeamName);
         }
-        console.error('[selectEvent] Fallo al seleccionar equipos:', { homeTeamName, awayTeamName, homeOption, awayOption });
-    }
+        if (awayOption) {
+            teamAwaySelect.value = awayOption.value;
+        } else {
+            console.error('[selectEvent] Equipo visitante no encontrado:', awayTeamName);
+        }
+        
+        if (homeOption && awayOption && restrictSameTeam()) {
+            fillTeamData(homeTeamName, eventLeagueCode, 'Home');
+            fillTeamData(awayTeamName, eventLeagueCode, 'Away');
+            calculateAll();
+        } else {
+            const details = $('details');
+            if (details) {
+                details.innerHTML = `<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en la lista de la liga.</div>`;
+            }
+            console.error('[selectEvent] Fallo al seleccionar equipos:', { homeTeamName, awayTeamName, homeOption, awayOption });
+        }
+    }, 500); // Pequeña espera para asegurar que el DOM se actualice
 }
 function restrictSameTeam() {
     const teamHome = $('teamHome').value;
@@ -695,16 +709,18 @@ function clearAll() {
 }
 // BÚSQUEDA Y LLENADO DE EQUIPO
 function findTeam(leagueCode, teamName) {
-    if (!leagueCode && teamsByLeague) {
-        // Busca en todas las ligas si no se especificó una
+    if (leagueCode) {
+        if (!teamsByLeague[leagueCode]) return null;
+        return teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()) || null;
+    } else {
+        // Si no se da un código de liga, busca en todas las ligas
+        if (!teamsByLeague) return null;
         for (const code in teamsByLeague) {
             const team = teamsByLeague[code].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase());
             if (team) return team;
         }
         return null;
     }
-    if (!teamsByLeague[leagueCode]) return null;
-    return teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()) || null;
 }
 function fillTeamData(teamName, leagueCode, type) {
     const t = findTeam(leagueCode, teamName);
