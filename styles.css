@@ -305,25 +305,43 @@ select:focus {
     width: 100%;
 }
 
+/* Añade o modifica esta sección en tu CSS */
+
 .team-logo-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    flex-wrap: nowrap;
-    width: 100%;
+    gap: 10px; /* Espacio entre el nombre del equipo, logo y "vs" */
 }
 
 .team-logo {
-    width: 42px;
-    height: 42px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 5px rgba(0, 224, 255, 0.3));
-    flex-shrink: 0;
+    width: 40px; /* Ajusta el tamaño según necesites */
+    height: 40px; /* Mantener la proporción */
+    object-fit: contain; /* Asegura que el logo se vea completo */
+    border-radius: 50%; /* Si quieres que sean circulares */
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.4); /* Sombra inicial sutil (resplandor blanco) */
+    transition: all 0.3s ease; /* Transición suave para los efectos */
+    padding: 2px; /* Pequeño padding para que la sombra no corte el borde */
+    background-color: rgba(255, 255, 255, 0.05); /* Un fondo muy sutil para logos oscuros */
 }
 
-.team-logo.hidden {
-    display: none;
+.team-logo:hover {
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 25px rgba(0, 191, 255, 0.5); /* Resplandor más intenso y azulado al pasar el ratón */
+    transform: scale(1.1); /* Ligeramente más grande al pasar el ratón */
+}
+
+/* Opcional: Para logos en las tarjetas de equipo */
+.card-home .team-logo,
+.card-away .team-logo {
+    width: 50px; /* Un poco más grandes en las tarjetas */
+    height: 50px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* Sombra inicial más notoria */
+}
+
+.card-home .team-logo:hover,
+.card-away .team-logo:hover {
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.8), 0 0 30px rgba(255, 255, 0, 0.5); /* Resplandor dorado/amarillo al pasar el ratón */
+    transform: scale(1.1);
 }
 
 .team-name {
@@ -1167,3 +1185,4 @@ select option {
         padding-left: 8px;
     }
 }
+
