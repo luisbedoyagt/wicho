@@ -586,8 +586,6 @@ function clearAll() {
     displaySelectedLeagueEvents('');
 }
 
-
-
 // CÁLCULO DE PROBABILIDADES CON DIXON-COLES
 function dixonColesProbabilities(tH, tA, league) {
     console.log('[dixonColesProbabilities] Entrada:', { tH: JSON.stringify(tH, null, 2), tA: JSON.stringify(tA, null, 2), league });
@@ -602,8 +600,8 @@ function dixonColesProbabilities(tH, tA, league) {
         };
     }
 
-    const rho = -0.03; // Ajustado para aumentar probabilidad de empate
-    const shrinkageFactor = 0.7; // Reducido para suavizar tasas extremas
+    const rho = -0.03; // Mantenido para empate ~22%
+    const shrinkageFactor = 0.85; // Aumentado para más goles esperados
     const teams = teamsByLeague[league];
 
     // Calcular promedios de la liga
@@ -623,7 +621,7 @@ function dixonColesProbabilities(tH, tA, league) {
     console.log('[dixonColesProbabilities] Promedios de liga:', { leagueAvgGfHome, leagueAvgGaHome, leagueAvgGfAway, leagueAvgGaAway });
 
     // Calcular tasas de ataque y defensa con suavizado para pocos partidos
-    const minGames = 5; // Aumentado para mayor suavizado
+    const minGames = 5; // Mantenido
     const pjHomeSafe = Math.max(tH.pjHome || 0, minGames);
     const pjAwaySafe = Math.max(tA.pjAway || 0, minGames);
     const homeAttackRaw = (tH.gfHome || 0) / pjHomeSafe;
@@ -651,7 +649,7 @@ function dixonColesProbabilities(tH, tA, league) {
     }
 
     // Calcular goles esperados con límite superior
-    const maxExpectedGoals = 3.5; // Aumentado para permitir más goles
+    const maxExpectedGoals = 4.0; // Aumentado para más goles
     let expectedHomeGoals = Math.min(homeAttack * awayDefense * leagueAvgGfHome, maxExpectedGoals);
     let expectedAwayGoals = Math.min(awayAttack * homeDefense * leagueAvgGaAway, maxExpectedGoals);
     console.log('[dixonColesProbabilities] Goles esperados:', { expectedHomeGoals, expectedAwayGoals });
@@ -687,7 +685,7 @@ function dixonColesProbabilities(tH, tA, league) {
 
     let adjustedDraw = 0;
     for (let i = 0; i <= 10; i++) {
-        const prob = poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, i) * tau(i, i);
+        const prob = poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, j) * tau(i, i);
         adjustedDraw += prob;
     }
 
@@ -710,11 +708,11 @@ function dixonColesProbabilities(tH, tA, league) {
     }
 
     // Suavizado final para evitar probabilidades extremas
-    const maxHomeWin = 0.65; // Reducido para acercar a 63%
+    const maxHomeWin = 0.63; // Reducido para acercar a 63%
     if (homeWin > maxHomeWin) {
         const excess = homeWin - maxHomeWin;
         homeWin = maxHomeWin;
-        adjustedDraw += excess * 0.5; // Redistribuir exceso más equitativamente
+        adjustedDraw += excess * 0.5; // Redistribuir exceso equitativamente
         awayWin += excess * 0.5;
         const newTotal = homeWin + adjustedDraw + awayWin;
         if (newTotal > 0) {
@@ -725,10 +723,10 @@ function dixonColesProbabilities(tH, tA, league) {
         }
     }
 
-    // Calcular BTTS con ajuste para reducir sobreestimación
+    // Calcular BTTS con ajuste
     const pBTTSH = 1 - (poissonProbability(expectedHomeGoals, 0) + poissonProbability(expectedAwayGoals, 0) - 
                         poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0));
-    const adjustedBTTS = pBTTSH * 0.9; // Aumentado para acercar a 34%
+    const adjustedBTTS = pBTTSH * 0.9; // Mantenido para ~34%
 
     // Calcular Más de 2.5 goles con ajuste
     let pO25H = 0;
@@ -739,7 +737,7 @@ function dixonColesProbabilities(tH, tA, league) {
             }
         }
     }
-    const adjustedO25 = pO25H * 0.85; // Aumentado para acercar a 48%
+    const adjustedO25 = pO25H * 0.95; // Aumentado para acercar a 48%
 
     const result = {
         finalHome: isFinite(homeWin) ? homeWin : 1/3,
@@ -751,6 +749,8 @@ function dixonColesProbabilities(tH, tA, league) {
     console.log('[dixonColesProbabilities] Resultado:', result);
     return result;
 }
+
+
 // TERMINA CALCULO DE PROBABILIDADES CON DIXON-COLES
 
 
