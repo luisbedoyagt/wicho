@@ -602,8 +602,8 @@ function dixonColesProbabilities(tH, tA, league) {
         };
     }
 
-    const rho = -0.05; // Ajustado para aumentar probabilidad de empate
-    const shrinkageFactor = 0.8; // Reducido para suavizar tasas extremas
+    const rho = -0.03; // Ajustado para aumentar probabilidad de empate
+    const shrinkageFactor = 0.7; // Reducido para suavizar tasas extremas
     const teams = teamsByLeague[league];
 
     // Calcular promedios de la liga
@@ -623,7 +623,7 @@ function dixonColesProbabilities(tH, tA, league) {
     console.log('[dixonColesProbabilities] Promedios de liga:', { leagueAvgGfHome, leagueAvgGaHome, leagueAvgGfAway, leagueAvgGaAway });
 
     // Calcular tasas de ataque y defensa con suavizado para pocos partidos
-    const minGames = 3; // Aumentado para mayor suavizado
+    const minGames = 5; // Aumentado para mayor suavizado
     const pjHomeSafe = Math.max(tH.pjHome || 0, minGames);
     const pjAwaySafe = Math.max(tA.pjAway || 0, minGames);
     const homeAttackRaw = (tH.gfHome || 0) / pjHomeSafe;
@@ -651,7 +651,7 @@ function dixonColesProbabilities(tH, tA, league) {
     }
 
     // Calcular goles esperados con límite superior
-    const maxExpectedGoals = 3.0; // Límite para evitar sobreestimaciones
+    const maxExpectedGoals = 3.5; // Aumentado para permitir más goles
     let expectedHomeGoals = Math.min(homeAttack * awayDefense * leagueAvgGfHome, maxExpectedGoals);
     let expectedAwayGoals = Math.min(awayAttack * homeDefense * leagueAvgGaAway, maxExpectedGoals);
     console.log('[dixonColesProbabilities] Goles esperados:', { expectedHomeGoals, expectedAwayGoals });
@@ -710,12 +710,12 @@ function dixonColesProbabilities(tH, tA, league) {
     }
 
     // Suavizado final para evitar probabilidades extremas
-    const maxHomeWin = 0.75; // Límite superior para victoria local
+    const maxHomeWin = 0.65; // Reducido para acercar a 63%
     if (homeWin > maxHomeWin) {
         const excess = homeWin - maxHomeWin;
         homeWin = maxHomeWin;
-        adjustedDraw += excess * 0.6; // Redistribuir exceso
-        awayWin += excess * 0.4;
+        adjustedDraw += excess * 0.5; // Redistribuir exceso más equitativamente
+        awayWin += excess * 0.5;
         const newTotal = homeWin + adjustedDraw + awayWin;
         if (newTotal > 0) {
             const scale = 1 / newTotal;
@@ -728,7 +728,7 @@ function dixonColesProbabilities(tH, tA, league) {
     // Calcular BTTS con ajuste para reducir sobreestimación
     const pBTTSH = 1 - (poissonProbability(expectedHomeGoals, 0) + poissonProbability(expectedAwayGoals, 0) - 
                         poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0));
-    const adjustedBTTS = pBTTSH * 0.8; // Reducir ligeramente BTTS
+    const adjustedBTTS = pBTTSH * 0.9; // Aumentado para acercar a 34%
 
     // Calcular Más de 2.5 goles con ajuste
     let pO25H = 0;
@@ -739,7 +739,7 @@ function dixonColesProbabilities(tH, tA, league) {
             }
         }
     }
-    const adjustedO25 = pO25H * 0.7; // Reducir probabilidad de Más de 2.5 goles
+    const adjustedO25 = pO25H * 0.85; // Aumentado para acercar a 48%
 
     const result = {
         finalHome: isFinite(homeWin) ? homeWin : 1/3,
@@ -751,7 +751,6 @@ function dixonColesProbabilities(tH, tA, league) {
     console.log('[dixonColesProbabilities] Resultado:', result);
     return result;
 }
-
 
 
 // TERMINA CALCULO DE PROBABILIDADES CON DIXON-COLES
