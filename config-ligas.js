@@ -337,24 +337,19 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
     const leagueSelect = $('leagueSelect');
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
-
     if (!leagueSelect || !teamHomeSelect || !teamAwaySelect) {
         console.error('Elementos de selección no encontrados.');
         return;
     }
-
     // Set the league value
     leagueSelect.value = eventLeagueCode;
-    
     // Dispatch a change event to populate team selects
     leagueSelect.dispatchEvent(new Event('change'));
-
     // Use a small delay to allow the team selects to be populated
     setTimeout(() => {
         // Find and set the selected values
         teamHomeSelect.value = homeTeamName;
         teamAwaySelect.value = awayTeamName;
-
         // Check if teams were found and if they are different
         if (teamHomeSelect.value === homeTeamName && teamAwaySelect.value === awayTeamName && restrictSameTeam()) {
             fillTeamData(homeTeamName, eventLeagueCode, 'Home');
@@ -371,7 +366,6 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
         }
     }, 100); // 100ms delay to ensure the DOM is updated after league change
 }
-
 
 // INICIALIZACIÓN
 async function init() {
