@@ -25,16 +25,10 @@ function restrictSameTeam() {
 // LIMPIAR DATOS DE EQUIPO
 function clearTeamData(type) {
     const typeLower = type.toLowerCase();
-    const elementsToClear = [
-        `pos${type}`,
-        `gf${type}`,
-        `ga${type}`,
-        `winRate${type}`
-    ];
-    elementsToClear.forEach(id => {
-        const el = $(id);
-        if (el) el.textContent = '--';
-    });
+    $(`pos${type}`).textContent = '--';
+    $(`gf${type}`).textContent = '--';
+    $(`ga${type}`).textContent = '--';
+    $(`winRate${type}`).textContent = '--';
     const box = $(`form${type}Box`);
     if (box) {
         box.innerHTML = `
@@ -67,7 +61,7 @@ function clearTeamData(type) {
         `;
     }
     const cardHeader = $(`card-${typeLower}`)?.querySelector('.card-header');
-    const logoImg = cardHeader?.querySelector('.team-logo');
+    const logoImg = cardHeader ? cardHeader.querySelector('.team-logo') : null;
     if (logoImg) logoImg.remove();
 }
 
@@ -77,9 +71,7 @@ function fillTeamData(teamName, leagueCode, type) {
     const typeLower = type.toLowerCase();
     if (!t) {
         const details = $('details');
-        if (details) {
-            details.innerHTML = `<div class="error"><strong>Error:</strong> Equipo ${teamName} no encontrado en la liga seleccionada.</div>`;
-        }
+        if (details) details.innerHTML = `<div class="error"><strong>Error:</strong> Equipo ${teamName} no encontrado en la liga seleccionada.</div>`;
         return;
     }
     $(`pos${type}`).textContent = t.pos || '--';
@@ -143,14 +135,13 @@ function clearAll() {
         const el = $(id);
         if (el) el.textContent = '--';
     });
-    // Se ajustan los IDs para tu HTML
-    const detailedPrediction = $('ia-prediction-content');
+    const detailedPrediction = $('detailed-prediction');
     if (detailedPrediction) detailedPrediction.innerHTML = '<p>Esperando pronóstico detallado...</p>';
     const details = $('details');
     if (details) details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
-    const suggestion = $('suggestion-list');
-    if (suggestion) suggestion.innerHTML = '';
-    const combinedPrediction = $('combined-prediction-content');
+    const suggestion = $('suggestion');
+    if (suggestion) suggestion.innerHTML = '<p>Esperando datos...</p>';
+    const combinedPrediction = $('combined-prediction');
     if (combinedPrediction) combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
     clearTeamData('Home');
     clearTeamData('Away');
@@ -160,141 +151,107 @@ function clearAll() {
 // CÁLCULO DE PROBABILIDADES CON DIXON-COLES
 function dixonColesProbabilities(tH, tA, league) {
     const rho = -0.11;
+    const shrinkageFactor = 1.0;
     const teams = teamsByLeague[league];
-    if (!teams || teams.length === 0) {
-        return {
-            finalHome: 0, finalDraw: 0, finalAway: 0, pBTTSH: 0, pO25H: 0, expHomeGoals: 0, expAwayGoals: 0
-        };
-    }
-
-    // Calcular promedios de la liga
-    let totalGames = 0, totalGfHome = 0, totalGaHome = 0, totalGfAway = 0, totalGaAway = 0;
+    let totalGames = 0, totalGf = 0, totalGa = 0, totalGfHome = 0, totalGaHome = 0, totalGfAway = 0, totalGaAway = 0;
     teams.forEach(t => {
         totalGames += t.pj || 0;
+        totalGf += t.gf || 0;
+        totalGa += t.ga || 0;
         totalGfHome += t.gfHome || 0;
         totalGaHome += t.gaHome || 0;
         totalGfAway += t.gfAway || 0;
         totalGaAway += t.gaAway || 0;
     });
-    const leagueAvgGfHome = totalGfHome / Math.max(1, teams.reduce((sum, t) => sum + (t.pjHome || 0), 0));
-    const leagueAvgGaHome = totalGaHome / Math.max(1, teams.reduce((sum, t) => sum + (t.pjHome || 0), 0));
-    const leagueAvgGfAway = totalGfAway / Math.max(1, teams.reduce((sum, t) => sum + (t.pjAway || 0), 0));
-    const leagueAvgGaAway = totalGaAway / Math.max(1, teams.reduce((sum, t) => sum + (t.pjAway || 0), 0));
-    
-    // Calcular fuerzas de ataque y defensa, con contracción (shrinkage)
-    const gamesPlayedRatioHome = Math.min(1, (tH.pjHome || 0) / 10);
-    const gamesPlayedRatioAway = Math.min(1, (tA.pjAway || 0) / 10);
-    
-    const homeAttack = ((tH.gfHome || 0) / Math.max(1, tH.pjHome)) / Math.max(1, leagueAvgGfHome);
-    const homeDefense = ((tH.gaHome || 0) / Math.max(1, tH.pjHome)) / Math.max(1, leagueAvgGaHome);
-    const awayAttack = ((tA.gfAway || 0) / Math.max(1, tA.pjAway)) / Math.max(1, leagueAvgGfAway);
-    const awayDefense = ((tA.gaAway || 0) / Math.max(1, tA.pjAway)) / Math.max(1, leagueAvgGaAway);
-
-    const effectiveHomeAttack = (homeAttack * gamesPlayedRatioHome) + (1 - gamesPlayedRatioHome);
-    const effectiveHomeDefense = (homeDefense * gamesPlayedRatioHome) + (1 - gamesPlayedRatioHome);
-    const effectiveAwayAttack = (awayAttack * gamesPlayedRatioAway) + (1 - gamesPlayedRatioAway);
-    const effectiveAwayDefense = (awayDefense * gamesPlayedRatioAway) + (1 - gamesPlayedRatioAway);
-
-    // Calcular goles esperados (Lambdas)
-    const expectedHomeGoals = effectiveHomeAttack * effectiveAwayDefense * leagueAvgGfHome;
-    const expectedAwayGoals = effectiveAwayAttack * effectiveHomeDefense * leagueAvgGaAway;
-
+    const leagueAvgGfHome = totalGfHome / (totalGames || 1);
+    const leagueAvgGaAway = totalGaAway / (totalGames || 1);
+    const leagueAvgGfAway = totalGfAway / (totalGames || 1);
+    const leagueAvgGaHome = totalGaHome / (totalGames || 1);
+    const homeAttackRaw = (tH.gfHome || 0) / (tH.pjHome || 1);
+    const homeDefenseRaw = (tH.gaHome || 0) / (tH.pjHome || 1);
+    const awayAttackRaw = (tA.gfAway || 0) / (tA.pjAway || 1);
+    const awayDefenseRaw = (tA.gaAway || 0) / (tA.pjAway || 1);
+    const homeAttack = (homeAttackRaw / leagueAvgGfHome) * shrinkageFactor;
+    const homeDefense = (homeDefenseRaw / leagueAvgGaHome) * shrinkageFactor;
+    const awayAttack = (awayAttackRaw / leagueAvgGfAway) * shrinkageFactor;
+    const awayDefense = (awayDefenseRaw / leagueAvgGaAway) * shrinkageFactor;
+    const expectedHomeGoals = homeAttack * awayDefense * leagueAvgGfHome;
+    const expectedAwayGoals = awayAttack * homeDefense * leagueAvgGfAway;
     let homeWin = 0, draw = 0, awayWin = 0;
-    let detailedProbabilities = {};
-
-    // Calcular probabilidades para todos los resultados hasta 5x5
-    for (let i = 0; i <= 5; i++) {
-        for (let j = 0; j <= 5; j++) {
+    for (let i = 0; i <= 10; i++) {
+        for (let j = 0; j <= 10; j++) {
             const prob = poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, j);
             if (i > j) homeWin += prob;
             else if (i === j) draw += prob;
             else awayWin += prob;
-            detailedProbabilities[`${i}-${j}`] = prob;
         }
     }
-
-    // Ajuste Dixon-Coles
     const tau = (scoreH, scoreA) => {
-        if (scoreH === 0 && scoreA === 0) return 1 - (effectiveHomeAttack * effectiveAwayDefense * rho);
-        if (scoreH === 0 && scoreA === 1) return 1 + (effectiveHomeAttack * rho);
-        if (scoreH === 1 && scoreA === 0) return 1 + (effectiveAwayDefense * rho);
+        if (scoreH === 0 && scoreA === 0) return 1 - (homeAttack * awayDefense * rho);
+        if (scoreH === 0 && scoreA === 1) return 1 + (homeAttack * rho);
+        if (scoreH === 1 && scoreA === 0) return 1 + (awayDefense * rho);
         if (scoreH === 1 && scoreA === 1) return 1 - rho;
         return 1;
     };
-    
     let adjustedDraw = 0;
-    let homeWinAdjusted = 0;
-    let awayWinAdjusted = 0;
-
-    for (let i = 0; i <= 5; i++) {
-        for (let j = 0; j <= 5; j++) {
-            const prob = poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, j) * tau(i, j);
-            if (i > j) homeWinAdjusted += prob;
-            else if (i === j) adjustedDraw += prob;
-            else awayWinAdjusted += prob;
-        }
+    for (let i = 0; i <= 10; i++) {
+        const prob = poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, i) * tau(i, i);
+        adjustedDraw += prob;
     }
-
-    const totalAdjusted = homeWinAdjusted + adjustedDraw + awayWinAdjusted;
-    const scale = totalAdjusted > 0 ? 1 / totalAdjusted : 0;
-    
-    const finalHome = homeWinAdjusted * scale;
-    const finalDraw = adjustedDraw * scale;
-    const finalAway = awayWinAdjusted * scale;
-
-    const pBTTSH = 1 - (poissonProbability(expectedHomeGoals, 0) + poissonProbability(expectedAwayGoals, 0) - poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0));
-    const pO25H = 1 - (poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0) + poissonProbability(expectedHomeGoals, 1) * poissonProbability(expectedAwayGoals, 0) + poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 1) + poissonProbability(expectedHomeGoals, 1) * poissonProbability(expectedAwayGoals, 1));
-
+    const total = homeWin + draw + awayWin;
+    if (total > 0) {
+        const scale = 1 / total;
+        homeWin *= scale;
+        draw *= scale;
+        awayWin *= scale;
+    }
+    const adjustedTotal = homeWin + adjustedDraw + awayWin;
+    if (adjustedTotal > 0) {
+        const scale = 1 / adjustedTotal;
+        homeWin *= scale;
+        adjustedDraw *= scale;
+        awayWin *= scale;
+    }
+    const pBTTSH = 1 - poissonProbability(expectedHomeGoals, 0) - poissonProbability(expectedAwayGoals, 0) + poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0);
+    const pO25H = 1 - (poissonProbability(expectedHomeGoals, 0) + poissonProbability(expectedHomeGoals, 1) + poissonProbability(expectedHomeGoals, 2)) * (poissonProbability(expectedAwayGoals, 0) + poissonProbability(expectedAwayGoals, 1) + poissonProbability(expectedAwayGoals, 2));
     return {
-        finalHome,
-        finalDraw,
-        finalAway,
+        finalHome: homeWin,
+        finalDraw: adjustedDraw,
+        finalAway: awayWin,
         pBTTSH,
-        pO25H,
-        expHomeGoals: expectedHomeGoals,
-        expAwayGoals: expectedAwayGoals,
-        detailedProbabilities
+        pO25H
     };
 }
 
 // PARSEO DE PRONÓSTICO DE TEXTO PLANO
 function parsePlainText(text, matchData) {
+    console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
     const aiProbs = {};
     const aiJustification = {
         home: "Sin justificación detallada.",
         draw: "Sin justificación detallada.",
         away: "Sin justificación detallada."
     };
-    const bttsMatch = text.match(/BTTS.*Sí:\s*(\d+)%/);
-    const o25Match = text.match(/Más de 2\.5:\s*(\d+)%/);
-
-    const sections = text.split(/Probabilidades:|Análisis del Partido:|Ambos Anotan:|Goles Totales:/).map(s => s.trim());
-    
-    const analysisSection = sections[sections.findIndex(s => s.includes('Análisis del Partido:')) + 1] || '';
-    if (analysisSection) {
-        const localRegex = new RegExp(`${matchData.local}:(.*?)(?:Empate:|$)`, 's');
-        const drawRegex = /Empate:(.*?)(?:(?:[^:]+:)|$)/s;
-        const awayRegex = new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$)`, 's');
-
-        const localJustification = analysisSection.match(localRegex);
-        const drawJustification = analysisSection.match(drawRegex);
-        const awayJustification = analysisSection.match(awayRegex);
-        
-        if (localJustification) aiJustification.home = localJustification[1].trim().replace(/\n/g, ' ');
-        if (drawJustification) aiJustification.draw = drawJustification[1].trim().replace(/\n/g, ' ');
-        if (awayJustification) aiJustification.away = awayJustification[1].trim().replace(/\n/g, ' ');
-    }
-
-    const probsSection = sections[sections.findIndex(s => s.includes('Probabilidades:')) + 1] || '';
-    if (probsSection) {
-        const percentages = probsSection.match(/(\d+)%/g) || [];
+    const probsMatch = text.match(/Probabilidades:\s*(.*?)(?:Ambos Anotan|$)/s);
+    if (probsMatch && probsMatch[1]) {
+        const probsText = probsMatch[1];
+        const percentages = probsText.match(/(\d+)%/g) || [];
         if (percentages.length >= 3) {
             aiProbs.home = parseFloat(percentages[0]) / 100;
             aiProbs.draw = parseFloat(percentages[1]) / 100;
             aiProbs.away = parseFloat(percentages[2]) / 100;
         }
     }
-
+    const analysisMatch = text.match(/Análisis del Partido:(.*?)Probabilidades:/s);
+    if (analysisMatch && analysisMatch[1]) {
+        const analysisText = analysisMatch[1];
+        const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?:Empate:|$)`, 's'));
+        const drawJustification = analysisText.match(/Empate:(.*?)(?:(?:[^:]+:)|$)/s);
+        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$)`, 's'));
+        if (localJustification) aiJustification.home = localJustification[1].trim();
+        if (drawJustification) aiJustification.draw = drawJustification[1].trim();
+        if (awayJustification) aiJustification.away = awayJustification[1].trim();
+    }
     return {
         "1X2": {
             victoria_local: { probabilidad: (aiProbs.home * 100 || 0).toFixed(0) + '%', justificacion: aiJustification.home },
@@ -302,11 +259,11 @@ function parsePlainText(text, matchData) {
             victoria_visitante: { probabilidad: (aiProbs.away * 100 || 0).toFixed(0) + '%', justificacion: aiJustification.away }
         },
         "BTTS": {
-            si: { probabilidad: (bttsMatch?.[1] || '0') + '%', justificacion: "" },
+            si: { probabilidad: (text.match(/BTTS.*Sí:\s*(\d+)%/)?.[1] || '0') + '%', justificacion: "" },
             no: { probabilidad: (text.match(/BTTS.*No:\s*(\d+)%/)?.[1] || '0') + '%', justificacion: "" }
         },
         "Goles": {
-            mas_2_5: { probabilidad: (o25Match?.[1] || '0') + '%', justificacion: "" },
+            mas_2_5: { probabilidad: (text.match(/Más de 2\.5:\s*(\d+)%/)?.[1] || '0') + '%', justificacion: "" },
             menos_2_5: { probabilidad: (text.match(/Menos de 2\.5:\s*(\d+)%/)?.[1] || '0') + '%', justificacion: "" }
         }
     };
@@ -315,19 +272,12 @@ function parsePlainText(text, matchData) {
 // COMBINACIÓN DE PRONÓSTICOS
 function getCombinedPrediction(stats, event, matchData) {
     const combined = {};
-    const ai = event?.pronostico_json || (event?.pronostico ? parsePlainText(event.pronostico, matchData) : null);
-    
-    // Si no hay pronóstico de IA, se basa únicamente en el modelo estadístico
-    if (!ai || !ai["1X2"] || Object.values(ai["1X2"]).every(p => !p?.probabilidad || parseFloat(p.probabilidad) === 0)) {
-        const statMax = Math.max(stats.finalHome, stats.finalDraw, stats.finalAway);
-        const statBest = Object.keys(stats).find(k => stats[k] === statMax);
-        const statResultText = statBest === 'finalHome' ? `Victoria ${matchData.local}` : statBest === 'finalDraw' ? 'Empate' : `Victoria ${matchData.visitante}`;
-        combined.header = "Análisis Estadístico Principal 📊";
-        combined.body = `<p>El modelo de IA no proporcionó un pronóstico para este partido. El análisis se basa en el **modelo estadístico Dixon-Coles**.</p>`;
-        combined.body += `<p>El resultado más probable es la **${statResultText}** con una probabilidad del ${formatPct(statMax)}.</p>`;
+    const ai = event.pronostico_json || parsePlainText(event.pronostico || '', matchData);
+    if (!ai || !ai["1X2"] || Object.values(ai["1X2"]).every(p => !p?.probabilidad)) {
+        combined.header = "Análisis Estadístico Principal";
+        combined.body = `<p>No se encontró un pronóstico de IA válido. El análisis se basa únicamente en datos estadísticos.</p>`;
         return combined;
     }
-
     const statProbs = {
         home: stats.finalHome,
         draw: stats.finalDraw,
@@ -338,33 +288,28 @@ function getCombinedPrediction(stats, event, matchData) {
         draw: parseFloat(ai["1X2"].empate.probabilidad) / 100 || 0,
         away: parseFloat(ai["1X2"].victoria_visitante.probabilidad) / 100 || 0,
     };
-
     const statMax = Math.max(statProbs.home, statProbs.draw, statProbs.away);
     const aiMax = Math.max(aiProbs.home, aiProbs.draw, aiProbs.away);
     const statBest = Object.keys(statProbs).find(k => statProbs[k] === statMax);
     const aiBest = Object.keys(aiProbs).find(k => aiProbs[k] === aiMax);
-    
-    let header;
-    let body;
-
+    let header = "Pronóstico Combinado (Estadística + IA)";
+    let body = `
+        <p><strong>Modelo Estadístico:</strong> Victoria Local: ${formatPct(statProbs.home)}, Empate: ${formatPct(statProbs.draw)}, Victoria Visitante: ${formatPct(statProbs.away)}.</p>
+        <p><strong>Modelo de IA:</strong> Victoria Local: ${formatPct(aiProbs.home)}, Empate: ${formatPct(aiProbs.draw)}, Victoria Visitante: ${formatPct(aiProbs.away)}.</p>
+    `;
     if (statBest === aiBest) {
         const resultText = statBest === 'home' ? `Victoria ${matchData.local}` : statBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
         const reason = ai["1X2"][statBest === 'home' ? 'victoria_local' : statBest === 'draw' ? 'empate' : 'victoria_visitante']?.justificacion || "Sin justificación detallada.";
         header = `¡Consenso! Apuesta Fuerte en la ${resultText} ⭐`;
-        body = `
-            <p>Ambos modelos coinciden en que la **${resultText}** es el resultado más probable.</p>
-            <p>La probabilidad del modelo estadístico es del ${formatPct(statMax)} y la del modelo de IA es del ${formatPct(aiMax)}.</p>
-            <p><strong>Justificación de la IA:</strong> ${reason}</p>
-        `;
+        body += `<p>Ambos modelos coinciden en que la **${resultText}** es el resultado más probable.</p>`;
+        body += `<p><strong>Justificación de la IA:</strong> ${reason}</p>`;
     } else {
         const statResult = statBest === 'home' ? `Victoria ${matchData.local}` : statBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
         const aiResult = aiBest === 'home' ? `Victoria ${matchData.local}` : aiBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
         header = "Discrepancia en Pronósticos ⚠️";
-        body = `
-            <p>El modelo estadístico (${formatPct(statMax)}) favorece la **${statResult}**, mientras que la IA (${formatPct(aiMax)}) se inclina por la **${aiResult}**.</p>
-            <p><strong>Análisis de la IA:</strong> ${ai["1X2"][aiBest === 'home' ? 'victoria_local' : aiBest === 'draw' ? 'empate' : 'victoria_visitante']?.justificacion || "Sin justificación detallada."}</p>
-            <p>Se recomienda cautela. Analiza la justificación de la IA para entender los factores externos que no considera el modelo estadístico.</p>
-        `;
+        body += `<p>El modelo estadístico (${formatPct(statMax)}) favorece la **${statResult}**, mientras que la IA (${formatPct(aiMax)}) se inclina por la **${aiResult}**.</p>`;
+        body += `<p><strong>Análisis de la IA:</strong> ${ai["1X2"][aiBest === 'home' ? 'victoria_local' : aiBest === 'draw' ? 'empate' : 'victoria_visitante']?.justificacion || "Sin justificación detallada."}</p>`;
+        body += `<p>Se recomienda cautela. Analiza la justificación de la IA para entender los factores externos que no considera el modelo estadístico.</p>`;
     }
     combined.header = header;
     combined.body = body;
@@ -397,18 +342,9 @@ function calculateAll() {
         return;
     }
     const stats = dixonColesProbabilities(tH, tA, leagueCode);
-    
-    // No hay elementos para goles esperados en el HTML
-    // const expHomeGoalsEl = $('expHomeGoals');
-    // const expAwayGoalsEl = $('expAwayGoals');
-    // if (expHomeGoalsEl) expHomeGoalsEl.textContent = formatDec(stats.expHomeGoals);
-    // if (expAwayGoalsEl) expAwayGoalsEl.textContent = formatDec(stats.expAwayGoals);
-
     const ligaName = leagueCodeToName[leagueCode];
-    const event = allData.calendario?.[ligaName]?.find(e => e.local.trim().toLowerCase() === teamHome.trim().toLowerCase() && e.visitante.trim().toLowerCase() === teamAway.trim().toLowerCase());
+    const event = allData.calendario[ligaName]?.find(e => e.local.trim().toLowerCase() === teamHome.trim().toLowerCase() && e.visitante.trim().toLowerCase() === teamAway.trim().toLowerCase());
     const matchData = { local: teamHome, visitante: teamAway };
-    
-    // Actualizar probabilidades
     const probabilities = [
         { label: 'Local', value: stats.finalHome, id: 'pHome', type: 'Resultado' },
         { label: 'Empate', value: stats.finalDraw, id: 'pDraw', type: 'Resultado' },
@@ -420,25 +356,19 @@ function calculateAll() {
         const el = $(p.id);
         if (el) el.textContent = formatPct(p.value);
     });
-
-    const recommendations = probabilities.filter(p => p.value >= 0.45).sort((a, b) => b.value - a.value);
-    const suggestionList = $('suggestion-list');
-    if (suggestionList) {
-        let suggestionHtml = '';
-        if (recommendations.length > 0) {
-            recommendations.forEach(r => {
-                suggestionHtml += `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`;
-            });
-        } else {
-            suggestionHtml = '<li>No se encontraron apuestas con una probabilidad de al menos 45%. Se recomienda cautela.</li>';
-        }
-        suggestionList.innerHTML = suggestionHtml;
-    }
-
-    const detailedPredictionBox = $('ia-prediction-content');
-    if (event && (event.pronostico_json || event.pronostico)) {
-        const json = event.pronostico_json || parsePlainText(event.pronostico, matchData);
-        let html = `<h4>Análisis del Partido: ${teamHome} vs. ${teamAway}</h4>`;
+    const recommendations = probabilities.filter(p => p.value >= 0.3).sort((a, b) => b.value - a.value).slice(0, 3);
+    let suggestionText = '<h3>Recomendaciones de Apuesta</h3><ul>';
+    recommendations.forEach(r => {
+        suggestionText += `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`;
+    });
+    suggestionText += '</ul>';
+    const suggestion = $('suggestion');
+    if (suggestion) suggestion.innerHTML = suggestionText;
+    const detailedPredictionBox = $('detailed-prediction');
+    if (event && event.pronostico_json) {
+        const json = event.pronostico_json;
+        let html = `<h3>Análisis de la IA</h3><div class="ia-prediction">`;
+        html += `<h4>Análisis del Partido: ${teamHome} vs. ${teamAway}</h4>`;
         html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion} (Probabilidad: ${json["1X2"].victoria_local.probabilidad})</p>`;
         html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion} (Probabilidad: ${json["1X2"].empate.probabilidad})</p>`;
         html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion} (Probabilidad: ${json["1X2"].victoria_visitante.probabilidad})</p>`;
@@ -447,13 +377,16 @@ function calculateAll() {
         html += `<p><strong>No:</strong> ${json.BTTS.no.probabilidad} ${json.BTTS.no.justificacion ? ` - ${json.BTTS.no.justificacion}` : ''}</p>`;
         html += `<h4>Goles Totales (Más/Menos 2.5):</h4>`;
         html += `<p><strong>Más de 2.5:</strong> ${json.Goles.mas_2_5.probabilidad} ${json.Goles.mas_2_5.justificacion ? ` - ${json.Goles.mas_2_5.justificacion}` : ''}</p>`;
-        html += `<p><strong>Menos de 2.5:</strong> ${json.Goles.menos_2_5.probabilidad} ${json.Goles.menos_2_5.justificacion ? ` - ${json.Goles.menos_2.5.justificacion}` : ''}</p>`;
+        html += `<p><strong>Menos de 2.5:</strong> ${json.Goles.menos_2_5.probabilidad} ${json.Goles.menos_2_5.justificacion ? ` - ${json.Goles.menos_2_5.justificacion}` : ''}</p>`;
+        html += `</div>`;
         if (detailedPredictionBox) detailedPredictionBox.innerHTML = html;
+    } else if (event && event.pronostico) {
+        const formattedPrediction = event.pronostico.replace(/\n/g, '<br>').replace(/###\s*(.*)/g, '<h4>$1</h4>');
+        if (detailedPredictionBox) detailedPredictionBox.innerHTML = `<h3>Análisis de la IA</h3><div class="ia-prediction">${formattedPrediction}</div>`;
     } else if (detailedPredictionBox) {
         detailedPredictionBox.innerHTML = `<p>No hay un pronóstico de la IA disponible para este partido en la hoja de cálculo.</p>`;
     }
-    
-    const combined = getCombinedPrediction(stats, event, matchData);
-    const combinedPrediction = $('combined-prediction-content');
+    const combined = getCombinedPrediction(stats, event || {}, matchData);
+    const combinedPrediction = $('combined-prediction');
     if (combinedPrediction) combinedPrediction.innerHTML = `<h3>${combined.header}</h3>${combined.body}`;
 }
