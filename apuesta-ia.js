@@ -587,107 +587,169 @@ function clearAll() {
 }
 
 
-
 // CÁLCULO DE PROBABILIDADES CON DIXON-COLES
-function dixonColesProbabilities(tH, tA, teams) {
-    // 1. Validar los datos de entrada
-    if (!tH || !tA || !tH.name || !tA.name || !teams || teams.length === 0) {
-        console.warn('Datos insuficientes para los equipos o la liga.');
-        return { finalHome: 0.33, finalDraw: 0.33, finalAway: 0.33, pBTTS: 0.5, pO25: 0.5 };
+function dixonColesProbabilities(tH, tA, league) {
+    console.log('[dixonColesProbabilities] Entrada:', { tH: JSON.stringify(tH, null, 2), tA: JSON.stringify(tA, null, 2), league });
+    if (!tH || !tA || !tH.name || !tA.name || !teamsByLeague[league] || teamsByLeague[league].length === 0) {
+        console.warn('[dixonColesProbabilities] Datos insuficientes para los equipos o la liga:', { tH, tA, league });
+        return {
+            finalHome: 1/3,
+            finalDraw: 1/3,
+            finalAway: 1/3,
+            pBTTSH: 0.5,
+            pO25H: 0.5
+        };
     }
 
-    // 2. Definir parámetros del modelo
-    const RHO = -0.05; // Ajuste para la correlación de empates (ej. 0-0, 1-1)
-    const SHRINKAGE_FACTOR = 0.8; // Factor de suavizado para evitar tasas extremas
-    const MIN_GAMES = 3; // Mínimo de partidos para evitar divisiones por cero
+    const rho = -0.03;
+    const shrinkageFactor = 0.7;
+    const teams = teamsByLeague[league];
 
-    // 3. Calcular promedios de la liga (más precisos)
-    let totalPjHome = 0, totalPjAway = 0;
-    let totalGfHome = 0, totalGaHome = 0;
-    let totalGfAway = 0, totalGaAway = 0;
-
+    // Calcular promedios de la liga
+    let totalGames = 0, totalGfHome = 0, totalGaHome = 0, totalGfAway = 0, totalGaAway = 0;
     teams.forEach(t => {
-        totalPjHome += t.pjHome || 0;
-        totalPjAway += t.pjAway || 0;
+        totalGames += t.pj || 0;
         totalGfHome += t.gfHome || 0;
         totalGaHome += t.gaHome || 0;
         totalGfAway += t.gfAway || 0;
         totalGaAway += t.gaAway || 0;
     });
 
-    const leagueAvgGfHome = totalGfHome / (totalPjHome || 1);
-    const leagueAvgGaHome = totalGaHome / (totalPjHome || 1);
-    const leagueAvgGfAway = totalGfAway / (totalPjAway || 1);
-    const leagueAvgGaAway = totalGaAway / (totalPjAway || 1);
+    const leagueAvgGfHome = totalGfHome / (totalGames || 1);
+    const leagueAvgGaHome = totalGaHome / (totalGames || 1);
+    const leagueAvgGfAway = totalGfAway / (totalGames || 1);
+    const leagueAvgGaAway = totalGaAway / (totalGames || 1);
+    console.log('[dixonColesProbabilities] Promedios de liga:', { leagueAvgGfHome, leagueAvgGaHome, leagueAvgGfAway, leagueAvgGaAway });
 
-    // 4. Calcular tasas de ataque y defensa con suavizado
-    const homeAttack = ((tH.gfHome || 0) / Math.max(tH.pjHome || 0, MIN_GAMES)) / (leagueAvgGfHome || 1) * SHRINKAGE_FACTOR;
-    const homeDefense = ((tH.gaHome || 0) / Math.max(tH.pjHome || 0, MIN_GAMES)) / (leagueAvgGaHome || 1) * SHRINKAGE_FACTOR;
-    const awayAttack = ((tA.gfAway || 0) / Math.max(tA.pjAway || 0, MIN_GAMES)) / (leagueAvgGfAway || 1) * SHRINKAGE_FACTOR;
-    const awayDefense = ((tA.gaAway || 0) / Math.max(tA.pjAway || 0, MIN_GAMES)) / (leagueAvgGaAway || 1) * SHRINKAGE_FACTOR;
+    // Calcular tasas de ataque y defensa con suavizado
+    const minGames = 5;
+    const pjHomeSafe = Math.max(tH.pjHome || 0, minGames);
+    const pjAwaySafe = Math.max(tA.pjAway || 0, minGames);
+    const homeAttackRaw = (tH.gfHome || 0) / pjHomeSafe;
+    const homeDefenseRaw = Math.max((tH.gaHome || 0) / pjHomeSafe, 0.1);
+    const awayAttackRaw = (tA.gfAway || 0) / pjAwaySafe;
+    const awayDefenseRaw = Math.max((tA.gaAway || 0) / pjAwaySafe, 0.1);
 
-    // 5. Calcular goles esperados
-    const expectedHomeGoals = homeAttack * awayDefense * leagueAvgGfHome;
-    const expectedAwayGoals = awayAttack * homeDefense * leagueAvgGaAway;
+    const homeAttack = (homeAttackRaw / (leagueAvgGfHome || 1)) * shrinkageFactor;
+    const homeDefense = (homeDefenseRaw / (leagueAvgGaHome || 1)) * shrinkageFactor;
+    const awayAttack = (awayAttackRaw / (leagueAvgGfAway || 1)) * shrinkageFactor;
+    const awayDefense = (awayDefenseRaw / (leagueAvgGaHome || 1)) * shrinkageFactor;
 
-    if (!isFinite(expectedHomeGoals) || !isFinite(expectedAwayGoals)) {
-        console.warn('Goles esperados no válidos.');
-        return { finalHome: 0.33, finalDraw: 0.33, finalAway: 0.33, pBTTS: 0.5, pO25: 0.5 };
+    console.log('[dixonColesProbabilities] Tasas calculadas:', { homeAttack, homeDefense, awayAttack, awayDefense });
+
+    // Verificar valores finitos
+    if (!isFinite(homeAttack) || !isFinite(homeDefense) || !isFinite(awayAttack) || !isFinite(awayDefense)) {
+        console.warn('[dixonColesProbabilities] Tasas no válidas:', { homeAttack, homeDefense, awayAttack, awayDefense });
+        return {
+            finalHome: 1/3,
+            finalDraw: 1/3,
+            finalAway: 1/3,
+            pBTTSH: 0.5,
+            pO25H: 0.5
+        };
     }
 
-    // 6. Calcular probabilidades del marcador
+    // Calcular goles esperados con límite superior
+    const maxExpectedGoals = 3.5;
+    let expectedHomeGoals = Math.min(homeAttack * awayDefense * leagueAvgGfHome, maxExpectedGoals);
+    let expectedAwayGoals = Math.min(awayAttack * homeDefense * leagueAvgGaAway, maxExpectedGoals);
+    console.log('[dixonColesProbabilities] Goles esperados:', { expectedHomeGoals, expectedAwayGoals });
+
+    if (!isFinite(expectedHomeGoals) || !isFinite(expectedAwayGoals)) {
+        console.warn('[dixonColesProbabilities] Goles esperados no válidos:', { expectedHomeGoals, expectedAwayGoals });
+        return {
+            finalHome: 1/3,
+            finalDraw: 1/3,
+            finalAway: 1/3,
+            pBTTSH: 0.5,
+            pO25H: 0.5
+        };
+    }
+
     let homeWin = 0, draw = 0, awayWin = 0;
-    let pBTTS = 0, pO25 = 0;
-    
-    // Iterar para predecir todos los resultados posibles hasta 10 goles
+    let adjustedDraw = 0; // Se mantiene la variable para no romper el código
+
+    // Primer bucle: para las probabilidades de resultado
     for (let i = 0; i <= 10; i++) {
         for (let j = 0; j <= 10; j++) {
-            let prob = poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, j);
-
-            // Aplicar el factor de correlación (rho) de Dixon-Coles
-            if (i === 0 && j === 0) prob *= (1 - (homeAttack * awayDefense * RHO));
-            else if (i === 1 && j === 0) prob *= (1 + (awayDefense * RHO));
-            else if (i === 0 && j === 1) prob *= (1 + (homeAttack * RHO));
-            else if (i === 1 && j === 1) prob *= (1 - RHO);
-
-            // Acumular probabilidades por resultado
+            const prob = poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, j);
             if (i > j) homeWin += prob;
             else if (i === j) draw += prob;
             else awayWin += prob;
-            
-            // Acumular probabilidades para Ambos Anotan y Más de 2.5 goles
-            if (i > 0 && j > 0) pBTTS += prob;
-            if (i + j > 2) pO25 += prob;
         }
     }
-    
-    // 7. Normalizar las probabilidades finales
-    const totalProb = homeWin + draw + awayWin;
-    if (totalProb > 0) {
-        homeWin /= totalProb;
-        draw /= totalProb;
-        awayWin /= totalProb;
+
+    // Segundo bucle: para el ajuste de empate (manteniendo la lógica original)
+    const tau = (scoreH, scoreA) => {
+        if (scoreH === 0 && scoreA === 0) return 1 - (homeAttack * awayDefense * rho);
+        if (scoreH === 0 && scoreA === 1) return 1 + (homeAttack * rho);
+        if (scoreH === 1 && scoreA === 0) return 1 + (awayDefense * rho);
+        if (scoreH === 1 && scoreA === 1) return 1 - rho;
+        return 1;
+    };
+
+    for (let i = 0; i <= 10; i++) {
+        const prob = poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, i) * tau(i, i);
+        adjustedDraw += prob;
     }
 
-    return {
-        finalHome: homeWin,
-        finalDraw: draw,
-        finalAway: awayWin,
-        pBTTS: pBTTS,
-        pO25: pO25
+    // Normalizar probabilidades iniciales
+    const total = homeWin + draw + awayWin;
+    if (total > 0) {
+        const scale = 1 / total;
+        homeWin *= scale;
+        draw *= scale;
+        awayWin *= scale;
+    }
+
+    // Ajustar con draw ajustado
+    const adjustedTotal = homeWin + adjustedDraw + awayWin;
+    if (adjustedTotal > 0) {
+        const scale = 1 / adjustedTotal;
+        homeWin *= scale;
+        adjustedDraw *= scale;
+        awayWin *= scale;
+    }
+
+    // Suavizado final
+    const maxHomeWin = 0.65;
+    if (homeWin > maxHomeWin) {
+        const excess = homeWin - maxHomeWin;
+        homeWin = maxHomeWin;
+        adjustedDraw += excess * 0.5;
+        awayWin += excess * 0.5;
+        const newTotal = homeWin + adjustedDraw + awayWin;
+        if (newTotal > 0) {
+            const scale = 1 / newTotal;
+            homeWin *= scale;
+            adjustedDraw *= scale;
+            awayWin *= scale;
+        }
+    }
+
+    // Calcular BTTS y Más de 2.5 Goles por separado (como en tu código original)
+    const pBTTSH = 1 - (poissonProbability(expectedHomeGoals, 0) + poissonProbability(expectedAwayGoals, 0) -
+                         poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0));
+    const adjustedBTTS = pBTTSH * 0.9;
+
+    let pO25H = 0;
+    for (let i = 0; i <= 10; i++) {
+        for (let j = 0; j <= 10; j++) {
+            if (i + j >= 3) {
+                pO25H += poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, j);
+            }
+        }
+    }
+    const adjustedO25 = pO25H * 0.85;
+
+    const result = {
+        finalHome: isFinite(homeWin) ? homeWin : 1/3,
+        finalDraw: isFinite(adjustedDraw) ? adjustedDraw : 1/3,
+        finalAway: isFinite(awayWin) ? awayWin : 1/3,
+        pBTTSH: isFinite(adjustedBTTS) ? adjustedBTTS : 0.5,
+        pO25H: isFinite(adjustedO25) ? adjustedO25 : 0.5
     };
-}
-
-// Funciones auxiliares para el cálculo
-function poissonProbability(lambda, k) {
-    if (k < 0) return 0;
-    return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
-}
-
-function factorial(n) {
-    if (n === 0) return 1;
-    let result = 1;
-    for (let i = 2; i <= n; i++) result *= i;
+    console.log('[dixonColesProbabilities] Resultado:', result);
     return result;
 }
 
