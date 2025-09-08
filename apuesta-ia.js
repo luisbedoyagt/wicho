@@ -291,14 +291,7 @@ function onLeagueChange() {
         displaySelectedLeagueEvents('');
         return;
     }
-    const teams = teamsByLeague[code].sort((a, b) => {
-        // Sort by rank (pos) in ascending order; lower pos = higher rank
-        const posA = isFinite(a.pos) && a.pos > 0 ? a.pos : Infinity;
-        const posB = isFinite(b.pos) && b.pos > 0 ? b.pos : Infinity;
-        if (posA !== posB) return posA - posB;
-        // Fallback to alphabetical order if ranks are equal or invalid
-        return a.name.localeCompare(b.name);
-    });
+    const teams = teamsByLeague[code].sort((a, b) => (a.pos || 0) - (b.pos || 0)); // Ordenar por ranking
     const fragmentHome = document.createDocumentFragment();
     const defaultOptionHome = document.createElement('option');
     defaultOptionHome.value = '';
@@ -312,11 +305,11 @@ function onLeagueChange() {
     teams.forEach(t => {
         const opt1 = document.createElement('option');
         opt1.value = t.name;
-        opt1.textContent = t.name;
+        opt1.textContent = `${t.name} (${t.pos})`; // Mostrar posición junto al nombre
         fragmentHome.appendChild(opt1);
         const opt2 = document.createElement('option');
         opt2.value = t.name;
-        opt2.textContent = t.name;
+        opt2.textContent = `${t.name} (${t.pos})`; // Mostrar posición junto al nombre
         fragmentAway.appendChild(opt2);
     });
     dom.teamHomeSelect.innerHTML = '';
@@ -344,8 +337,8 @@ function selectEvent(homeTeamName, awayTeamName) {
     if (dom.leagueSelect) dom.leagueSelect.value = eventLeagueCode;
     onLeagueChange();
     setTimeout(() => {
-        const homeOption = Array.from(dom.teamHomeSelect.options).find(opt => normalizeName(opt.text) === normalizeName(homeTeamName));
-        const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text) === normalizeName(awayTeamName));
+        const homeOption = Array.from(dom.teamHomeSelect.options).find(opt => normalizeName(opt.text.split(' (')[0]) === normalizeName(homeTeamName));
+        const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text.split(' (')[0]) === normalizeName(awayTeamName));
         if (homeOption) dom.teamHomeSelect.value = homeOption.value;
         if (awayOption) dom.teamAwaySelect.value = awayOption.value;
         onTeamChange();
