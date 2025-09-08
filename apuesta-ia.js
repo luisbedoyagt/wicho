@@ -415,45 +415,17 @@ function clearProbabilities() {
 
 // GENERAR HTML PARA DATOS DE EQUIPO
 function generateTeamHtml(team = {}) {
-    // Calculamos el diferencial de goles tanto general como por tipo de partido
     const dg = (team.gf || 0) - (team.ga || 0);
     const dgHome = (team.gfHome || 0) - (team.gaHome || 0);
     const dgAway = (team.gfAway || 0) - (team.gaAway || 0);
-    
-    // Calculamos el porcentaje de victorias
     const winPct = team.pj > 0 ? ((team.g / team.pj) * 100).toFixed(1) : '0.0';
-    
-    // Convertimos el formato de forma "W-L-D" a un texto más descriptivo
-    const formStats = team.form || '';
-    let formDescription = '';
-    if (formStats) {
-        const formArray = formStats.toUpperCase().split('');
-        const formEmojis = { 'W': '✅', 'L': '❌', 'D': '➖' };
-        formDescription = formArray.map(char => {
-            switch (char) {
-                case 'W': return `<span class="form-win">${formEmojis.W}</span>`;
-                case 'L': return `<span class="form-loss">${formEmojis.L}</span>`;
-                case 'D': return `<span class="form-draw">${formEmojis.D}</span>`;
-                default: return '';
-            }
-        }).join(' ');
-    } else {
-        formDescription = '--';
-    }
-
     return `
         <div class="team-details">
             <div class="stat-section">
                 <span class="section-title">General</span>
                 <div class="stat-metrics">
-                    <span>Posición: ${team.pos || '--'}</span>
                     <span>PJ: ${team.pj || 0}</span>
                     <span>Puntos: ${team.points || 0}</span>
-                    <span>Victorias: ${team.g || 0}</span>
-                    <span>Empates: ${team.e || 0}</span>
-                    <span>Derrotas: ${team.p || 0}</span>
-                    <span>GF: ${team.gf || 0}</span>
-                    <span>GC: ${team.ga || 0}</span>
                     <span>DG: ${dg >= 0 ? '+' + dg : dg || 0}</span>
                 </div>
             </div>
@@ -461,11 +433,7 @@ function generateTeamHtml(team = {}) {
                 <span class="section-title">Local</span>
                 <div class="stat-metrics">
                     <span>PJ: ${team.pjHome || 0}</span>
-                    <span>Victorias: ${team.winsHome || 0}</span>
-                    <span>Empates: ${team.tiesHome || 0}</span>
-                    <span>Derrotas: ${team.lossesHome || 0}</span>
-                    <span>GF: ${team.gfHome || 0}</span>
-                    <span>GC: ${team.gaHome || 0}</span>
+                    <span>PG: ${team.winsHome || 0}</span>
                     <span>DG: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
                 </div>
             </div>
@@ -473,19 +441,15 @@ function generateTeamHtml(team = {}) {
                 <span class="section-title">Visitante</span>
                 <div class="stat-metrics">
                     <span>PJ: ${team.pjAway || 0}</span>
-                    <span>Victorias: ${team.winsAway || 0}</span>
-                    <span>Empates: ${team.tiesAway || 0}</span>
-                    <span>Derrotas: ${team.lossesAway || 0}</span>
-                    <span>GF: ${team.gfAway || 0}</span>
-                    <span>GC: ${team.gaAway || 0}</span>
+                    <span>PG: ${team.winsAway || 0}</span>
                     <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
                 </div>
             </div>
             <div class="stat-section">
                 <span class="section-title">Datos</span>
                 <div class="stat-metrics">
-                    <span>% de Victorias: ${winPct || '0.0'}%</span>
-                    <span>Últimos 5: ${formDescription}</span>
+                    <span>Posición: ${team.pos || '--'}</span>
+                    <span>% de Victorias: ${winPct || '--'}%</span>
                 </div>
             </div>
         </div>
