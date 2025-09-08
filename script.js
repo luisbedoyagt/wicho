@@ -267,7 +267,7 @@ async function fetchAllData() {
         return {};
     }
 }
-// MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
+// MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA (migrado: usa template del HTML)
 function displaySelectedLeagueEvents(leagueCode) {
     const selectedEventsList = $('selected-league-events');
     if (!selectedEventsList) {
@@ -314,9 +314,10 @@ function displaySelectedLeagueEvents(leagueCode) {
         setTimeout(() => {
             selectedEventsList.innerHTML = '';
             eventsToShow.forEach((event, index) => {
-                const div = document.createElement('div');
-                div.className = 'event-item slide-in';
-                div.style.animationDelay = `${index * 0.1}s`;
+                const template = document.getElementById('event-item-template').content.cloneNode(true);
+                const div = template.querySelector('.event-item');
+                div.classList.add('slide-in');
+                div.classList.add(`delay-${index}`); // Migrado de style.animationDelay
                 div.dataset.homeTeam = event.local.trim();
                 div.dataset.awayTeam = event.visitante.trim();
                 
@@ -348,29 +349,28 @@ function displaySelectedLeagueEvents(leagueCode) {
                     eventDateTime = `${event.fecha} (Hora no disponible)`;
                 }
                 let statusText = isInProgress ? ' - Evento en Juego' : '';
-                div.innerHTML = `
-                    <div class="event-content">
-                        <div class="team-logo-container">
-                            <span class="team-name">${event.local.trim()}</span>
-                            <img src="${homeLogo}" class="team-logo home-logo ${!homeLogo ? 'hidden' : ''}" alt="Logo de ${event.local.trim()}">
-                            <span class="vs">vs.</span>
-                            <img src="${awayLogo}" class="team-logo away-logo ${!awayLogo ? 'hidden' : ''}" alt="Logo de ${event.visitante.trim()}">
-                            <span class="team-name">${event.visitante.trim()}</span>
-                        </div>
-                        <span class="event-details">${eventDateTime}${statusText}</span>
-                        <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
-                    </div>
-                `;
+                div.querySelector('[data-home-team]').textContent = event.local.trim();
+                const homeLogoImg = div.querySelector('[data-home-logo]');
+                homeLogoImg.src = homeLogo;
+                homeLogoImg.alt = `Logo de ${event.local.trim()}`;
+                if (!homeLogo) homeLogoImg.classList.add('hidden'); // Migrado de class en innerHTML
+                div.querySelector('[data-away-team]').textContent = event.visitante.trim();
+                const awayLogoImg = div.querySelector('[data-away-logo]');
+                awayLogoImg.src = awayLogo;
+                awayLogoImg.alt = `Logo de ${event.visitante.trim()}`;
+                if (!awayLogo) awayLogoImg.classList.add('hidden'); // Migrado de class en innerHTML
+                div.querySelector('[data-event-datetime]').textContent = `${eventDateTime}${statusText}`;
+                div.querySelector('[data-event-stadium]').textContent = `Estadio: ${event.estadio || 'Por confirmar'}`;
+                
                 if (isInProgress) {
-                    div.classList.add('in-progress');
-                    div.style.cursor = 'not-allowed';
+                    div.classList.add('in-progress'); // Migrado de style.cursor y class
                     div.title = 'Evento en curso, no seleccionable';
                 } else {
                     div.addEventListener('click', () => {
                         selectEvent(event.local.trim(), event.visitante.trim());
                     });
                 }
-                selectedEventsList.appendChild(div);
+                selectedEventsList.appendChild(template);
             });
             currentPage = (currentPage + 1) % totalPages;
         }, 800);
@@ -644,34 +644,16 @@ function clearTeamData(type) {
     $(`winRate${type}`).textContent = '--';
     const box = $(`form${type}Box`);
     if (box) {
-        box.innerHTML = `
-        <div class="team-details">
-            <div class="stat-section">
-                <span class="section-title">General</span>
-                <div class="stat-metrics">
-                    <span>PJ: 0</span>
-                    <span>Puntos: 0</span>
-                    <span>DG: 0</span>
-                </div>
-            </div>
-            <div class="stat-section">
-                <span class="section-title">Local</span>
-                <div class="stat-metrics">
-                    <span>PJ: 0</span>
-                    <span>PG: 0</span>
-                    <span>DG: 0</span>
-                </div>
-            </div>
-            <div class="stat-section">
-                <span class="section-title">Visitante</span>
-                <div class="stat-metrics">
-                    <span>PJ: 0</span>
-                    <span>PG: 0</span>
-                    <span>DG: 0</span>
-                </div>
-            </div>
-        </div>
-        `;
+        // Migrado: Actualiza elementos existentes en lugar de innerHTML
+        box.querySelector(`#${typeLower}-pj-general`).textContent = 'PJ: 0';
+        box.querySelector(`#${typeLower}-points-general`).textContent = 'Puntos: 0';
+        box.querySelector(`#${typeLower}-dg-general`).textContent = 'DG: 0';
+        box.querySelector(`#${typeLower}-pj-local`).textContent = 'PJ: 0';
+        box.querySelector(`#${typeLower}-wins-local`).textContent = 'PG: 0';
+        box.querySelector(`#${typeLower}-dg-local`).textContent = 'DG: 0';
+        box.querySelector(`#${typeLower}-pj-away`).textContent = 'PJ: 0';
+        box.querySelector(`#${typeLower}-wins-away`).textContent = 'PG: 0';
+        box.querySelector(`#${typeLower}-dg-away`).textContent = 'DG: 0';
     }
     const cardHeader = $(`card-${typeLower}`)?.querySelector('.card-header');
     const h3 = cardHeader ? cardHeader.querySelector('h3') : null;
@@ -687,7 +669,7 @@ function clearAll() {
         const el = $(id);
         if (el) el.textContent = '--';
     });
-    const detailedPrediction = $('detailed-prediction');
+    const detailedPrediction = $('ia-prediction-content');
     if (detailedPrediction) {
         detailedPrediction.innerHTML = '<p>Esperando pronóstico detallado...</p>';
     }
@@ -695,11 +677,11 @@ function clearAll() {
     if (details) {
         details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
     }
-    const suggestion = $('suggestion');
-    if (suggestion) {
-        suggestion.innerHTML = '<p>Esperando datos...</p>';
+    const suggestionList = $('suggestion-list');
+    if (suggestionList) {
+        suggestionList.innerHTML = '<li>Esperando datos...</li>'; // Migrado: usa ul existente
     }
-    const combinedPrediction = $('combined-prediction');
+    const combinedPrediction = $('combined-prediction-content');
     if (combinedPrediction) {
         combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
     }
@@ -742,34 +724,16 @@ function fillTeamData(teamName, leagueCode, type) {
     const dgAway = t.gfAway - t.gaAway;
     const box = $(`form${type}Box`);
     if (box) {
-        box.innerHTML = `
-        <div class="team-details">
-            <div class="stat-section">
-                <span class="section-title">General</span>
-                <div class="stat-metrics">
-                    <span>PJ: ${t.pj || 0}</span>
-                    <span>Puntos: ${t.points || 0}</span>
-                    <span>DG: ${dg >= 0 ? '+' + dg : dg || 0}</span>
-                </div>
-            </div>
-            <div class="stat-section">
-                <span class="section-title">Local</span>
-                <div class="stat-metrics">
-                    <span>PJ: ${t.pjHome || 0}</span>
-                    <span>PG: ${t.winsHome || 0}</span>
-                    <span>DG: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
-                </div>
-            </div>
-            <div class="stat-section">
-                <span class="section-title">Visitante</span>
-                <div class="stat-metrics">
-                    <span>PJ: ${t.pjAway || 0}</span>
-                    <span>PG: ${t.winsAway || 0}</span>
-                    <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
-                </div>
-            </div>
-        </div>
-        `;
+        // Migrado: Actualiza elementos existentes en lugar de innerHTML
+        box.querySelector(`#${typeLower}-pj-general`).textContent = `PJ: ${t.pj || 0}`;
+        box.querySelector(`#${typeLower}-points-general`).textContent = `Puntos: ${t.points || 0}`;
+        box.querySelector(`#${typeLower}-dg-general`).textContent = `DG: ${dg >= 0 ? '+' + dg : dg || 0}`;
+        box.querySelector(`#${typeLower}-pj-local`).textContent = `PJ: ${t.pjHome || 0}`;
+        box.querySelector(`#${typeLower}-wins-local`).textContent = `PG: ${t.winsHome || 0}`;
+        box.querySelector(`#${typeLower}-dg-local`).textContent = `DG: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}`;
+        box.querySelector(`#${typeLower}-pj-away`).textContent = `PJ: ${t.pjAway || 0}`;
+        box.querySelector(`#${typeLower}-wins-away`).textContent = `PG: ${t.winsAway || 0}`;
+        box.querySelector(`#${typeLower}-dg-away`).textContent = `DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}`;
     }
     const cardHeader = $(`card-${typeLower}`)?.querySelector('.card-header');
     if (cardHeader) {
@@ -784,7 +748,11 @@ function fillTeamData(teamName, leagueCode, type) {
             }
         }
         logoImg.src = t.logoUrl || '';
-        logoImg.style.display = t.logoUrl ? 'inline-block' : 'none';
+        if (t.logoUrl) {
+            logoImg.classList.remove('hidden'); // Migrado de style.display
+        } else {
+            logoImg.classList.add('hidden'); // Migrado de style.display
+        }
     }
 }
 // CÁLCULO DE PROBABILIDADES CON DIXON-COLES Y SHRINKAGE
@@ -909,7 +877,7 @@ function getCombinedPrediction(stats, event, matchData) {
     console.log('[getCombinedPrediction] Pronóstico combinado:', combined);
     return combined;
 }
-// CÁLCULO COMPLETO
+// CÁLCULO COMPLETO (migrado: usa contenedores del HTML para suggestion, detailed-prediction, combined-prediction)
 function calculateAll() {
     const leagueSelect = $('leagueSelect');
     const teamHomeSelect = $('teamHome');
@@ -969,20 +937,19 @@ function calculateAll() {
                                          .sort((a, b) => b.value - a.value)
                                          .slice(0, 3);
     console.log('[calculateAll] Recomendaciones:', recommendations);
-    let suggestionText = '<h3>Recomendaciones de Apuesta</h3><ul>';
-    recommendations.forEach(r => {
-        suggestionText += `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`;
-    });
-    suggestionText += '</ul>';
-    const suggestion = $('suggestion');
-    if (suggestion) {
-        suggestion.innerHTML = suggestionText;
+    const suggestionList = $('suggestion-list');
+    if (suggestionList) {
+        suggestionList.innerHTML = ''; // Migrado: limpia ul existente
+        recommendations.forEach(r => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}`;
+            suggestionList.appendChild(li);
+        });
     }
-    const detailedPredictionBox = $('detailed-prediction');
+    const detailedPredictionContent = $('ia-prediction-content');
     if (event && event.pronostico_json) {
         const json = event.pronostico_json;
-        let html = `<h3>Análisis de la IA</h3><div class="ia-prediction">`;
-        html += `<h4>Análisis del Partido: ${teamHome} vs. ${teamAway}</h4>`;
+        let html = `<h4>Análisis del Partido: ${teamHome} vs. ${teamAway}</h4>`;
         html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion} (Probabilidad: ${json["1X2"].victoria_local.probabilidad})</p>`;
         html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion} (Probabilidad: ${json["1X2"].empate.probabilidad})</p>`;
         html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion} (Probabilidad: ${json["1X2"].victoria_visitante.probabilidad})</p>`;
@@ -992,25 +959,24 @@ function calculateAll() {
         html += `<h4>Goles Totales (Más/Menos 2.5):</h4>`;
         html += `<p><strong>Más de 2.5:</strong> ${json.Goles.mas_2_5.probabilidad} ${json.Goles.mas_2_5.justificacion ? ` - ${json.Goles.mas_2_5.justificacion}` : ''}</p>`;
         html += `<p><strong>Menos de 2.5:</strong> ${json.Goles.menos_2_5.probabilidad} ${json.Goles.menos_2_5.justificacion ? ` - ${json.Goles.menos_2_5.justificacion}` : ''}</p>`;
-        html += `</div>`;
-        if (detailedPredictionBox) {
-            detailedPredictionBox.innerHTML = html;
+        if (detailedPredictionContent) {
+            detailedPredictionContent.innerHTML = html; // Migrado: usa contenedor existente
             console.log('[calculateAll] Mostrando pronóstico JSON:', json);
         }
     } else if (event && event.pronostico) {
         const formattedPrediction = event.pronostico.replace(/\n/g, '<br>').replace(/###\s*(.*)/g, '<h4>$1</h4>');
-        if (detailedPredictionBox) {
-            detailedPredictionBox.innerHTML = `<h3>Análisis de la IA</h3><div class="ia-prediction">${formattedPrediction}</div>`;
+        if (detailedPredictionContent) {
+            detailedPredictionContent.innerHTML = formattedPrediction; // Migrado: usa contenedor existente
             console.log('[calculateAll] Mostrando pronóstico de texto plano:', event.pronostico);
         }
-    } else if (detailedPredictionBox) {
-        detailedPredictionBox.innerHTML = `<p>No hay un pronóstico de la IA disponible para este partido en la hoja de cálculo.</p>`;
+    } else if (detailedPredictionContent) {
+        detailedPredictionContent.innerHTML = `<p>No hay un pronóstico de la IA disponible para este partido en la hoja de cálculo.</p>`;
         console.log('[calculateAll] Sin pronóstico disponible para', teamHome, 'vs', teamAway);
     }
     const combined = getCombinedPrediction(stats, event || {}, matchData);
-    const combinedPrediction = $('combined-prediction');
-    if (combinedPrediction) {
-        combinedPrediction.innerHTML = `<h3>${combined.header}</h3>${combined.body}`;
+    const combinedPredictionContent = $('combined-prediction-content');
+    if (combinedPredictionContent) {
+        combinedPredictionContent.innerHTML = `<h3>${combined.header}</h3>${combined.body}`; // Migrado: usa contenedor existente
     }
 }
 document.addEventListener('contextmenu', e => e.preventDefault());
@@ -1021,4 +987,3 @@ document.addEventListener('keydown', e => {
     }
 });
 document.addEventListener('DOMContentLoaded', init);
-
