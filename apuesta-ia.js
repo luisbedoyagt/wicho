@@ -11,7 +11,11 @@ const formatDec = x => (isFinite(x) ? x.toFixed(2) : '0.00');
 const parseNumberString = val => {
     const s = String(val || '').replace(/,/g, '.').trim();
     const n = Number(s);
-    return isFinite(n) && n >= 0 ? n : 0;
+    if (!isFinite(n) || n < 0) {
+        console.warn(`[parseNumberString] Valor no numérico o negativo: "${val}" -> 0`);
+        return 0;
+    }
+    return n;
 };
 function poissonProbability(lambda, k) {
     if (lambda <= 0 || k < 0) return 0;
@@ -76,8 +80,8 @@ function normalizeTeam(raw) {
     r.gfAway = parseNumberString(raw.goalsForAway || 0);
     r.gaHome = parseNumberString(raw.goalsAgainstHome || 0);
     r.gaAway = parseNumberString(raw.goalsAgainstAway || 0);
-    r.pjHome = parseNumberString(raw.gamesPlayedHome || 0);
-    r.pjAway = parseNumberString(raw.gamesPlayedAway || 0);
+    r.pjHome = parseNumberString(raw.gamesPlayedHome || raw.matchesPlayedHome || 0);
+    r.pjAway = parseNumberString(raw.gamesPlayedAway || raw.matchesPlayedAway || 0);
     r.winsHome = parseNumberString(raw.winsHome || 0);
     r.winsAway = parseNumberString(raw.winsAway || 0);
     r.tiesHome = parseNumberString(raw.tiesHome || 0);
@@ -95,9 +99,11 @@ function findTeam(leagueCode, teamName) {
         console.warn('[findTeam] Liga no encontrada:', leagueCode);
         return null;
     }
-    const team = teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase());
+    const normalizedTeamName = teamName.trim().toLowerCase().replace(/\s+/g, ' ');
+    const team = teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase().replace(/\s+/g, ' ') === normalizedTeamName);
     if (!team) {
         console.warn('[findTeam] Equipo no encontrado:', teamName, 'en liga:', leagueCode);
+        console.log('[findTeam] Nombres disponibles:', teamsByLeague[leagueCode].map(t => t.name));
     }
     return team || null;
 }
@@ -116,6 +122,7 @@ async function fetchAllData() {
             throw new Error(`Error HTTP ${res.status}: ${res.statusText}. Respuesta: ${errorText}`);
         }
         allData = await res.json();
+        console.log('[fetchAllData] Datos recibidos:', allData);
         if (!allData || !allData.calendario || !allData.ligas) {
             throw new Error('Estructura de datos inválida: la respuesta está vacía o faltan "calendario" o "ligas".');
         }
@@ -123,8 +130,12 @@ async function fetchAllData() {
             throw new Error('No se encontraron ligas en los datos de la API.');
         }
         teamsByLeague = Object.fromEntries(
-            Object.entries(allData.ligas).map(([key, value]) => [key, (value || []).map(normalizeTeam).filter(t => t && t.name)])
+            Object.entries(allData.ligas).map(([key, value]) => {
+                console.log(`[fetchAllData] Procesando liga ${key}:`, value);
+                return [key, (value || []).map(normalizeTeam).filter(t => t && t.name)];
+            })
         );
+        console.log('[fetchAllData] teamsByLeague:', teamsByLeague);
         localStorage.setItem('allData', JSON.stringify(allData));
         return allData;
     } catch (err) {
@@ -293,7 +304,7 @@ function selectEvent(homeTeamName, awayTeamName) {
     if (dom.leagueSelect) dom.leagueSelect.value = eventLeagueCode;
     onLeagueChange();
     setTimeout(() => {
-        const normalizeName = name => name.trim().toLowerCase();
+        const normalizeName = name => name.trim().toLowerCase().replace(/\s+/g, ' ');
         const homeOption = Array.from(dom.teamHomeSelect.options).find(opt => normalizeName(opt.text) === normalizeName(homeTeamName));
         const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text) === normalizeName(awayTeamName));
         if (homeOption) dom.teamHomeSelect.value = homeOption.value;
@@ -402,6 +413,9 @@ function onTeamChange(event) {
         const tA = findTeam(leagueCode, teamAway);
         if (tH && tA) {
             calculateAll();
+        } else {
+            if (dom.details) dom.details.innerHTML = `<div class="error"><strong>Error:</strong> Uno o ambos equipos no encontrados en la liga seleccionada.</div>`;
+            clearProbabilities();
         }
     } else {
         clearProbabilities();
@@ -480,6 +494,11 @@ function clearTeamData(type) {
 
 // LLENAR DATOS DE EQUIPO
 function fillTeamData(team, type) {
+    if (!team) {
+        console.warn(`[fillTeamData] Equipo no válido para tipo ${type}`);
+        clearTeamData(type);
+        return;
+    }
     const typeLower = type.toLowerCase();
     const cardHeader = dom[`card${type}`]?.querySelector('.card-header');
     if (cardHeader) {
@@ -849,7 +868,7 @@ function calculateAll() {
 
     // Obtener probabilidades de la IA
     const ai = event?.pronostico_json || parsePlainText(event?.pronostico || '', matchData);
-    const isLimitedData = (tH.pjHome < 1 || tA.pjAway < 1); // Solo activar si no hay partidos jugados
+    const isLimitedData = (!tH || !tA || tH.pjHome < 1 || tA.pjAway < 1);
     const iaHome = validateProbability(parseFloat(ai["1X2"]?.victoria_local?.probabilidad) / 100, stats.finalHome);
     const iaDraw = validateProbability(parseFloat(ai["1X2"]?.empate?.probabilidad) / 100, stats.finalDraw);
     const iaAway = validateProbability(parseFloat(ai["1X2"]?.victoria_visitante?.probabilidad) / 100, stats.finalAway);
@@ -956,7 +975,7 @@ function calculateAll() {
 
     // Mostrar advertencia solo si no hay datos locales
     if (isLimitedData && dom.details) {
-        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Sin datos locales (PJ Home: ${tH.pjHome}, PJ Away: ${tA.pjAway}). Usando pronóstico de IA exclusivamente.</div>`;
+        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Sin datos locales (PJ Home: ${tH?.pjHome || 0}, PJ Away: ${tA?.pjAway || 0}). Usando pronóstico de IA exclusivamente.</div>`;
         setTimeout(() => {
             dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
         }, 5000);
