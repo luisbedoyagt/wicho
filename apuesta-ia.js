@@ -635,6 +635,26 @@ function parsePlainText(text, matchData) {
         away: "Sin justificación detallada."
     };
 
+    // Validar texto de entrada
+    if (!text || typeof text !== 'string' || text.trim() === '') {
+        console.warn('[parsePlainText] Texto inválido o vacío, usando valores predeterminados');
+        return {
+            "1X2": {
+                victoria_local: { probabilidad: '33.3%', justificacion: aiJustification.home },
+                empate: { probabilidad: '33.3%', justificacion: aiJustification.draw },
+                victoria_visitante: { probabilidad: '33.3%', justificacion: aiJustification.away }
+            },
+            "BTTS": {
+                si: { probabilidad: '50.0%', justificacion: "" },
+                no: { probabilidad: '50.0%', justificacion: "" }
+            },
+            "Goles": {
+                mas_2_5: { probabilidad: '50.0%', justificacion: "" },
+                menos_2_5: { probabilidad: '50.0%', justificacion: "" }
+            }
+        };
+    }
+
     // Parsear probabilidades de 1X2
     const probsMatch = text.match(/Probabilidades:\s*(.*?)(?:Ambos Anotan|$)/s);
     if (probsMatch && probsMatch[1]) {
@@ -645,14 +665,16 @@ function parsePlainText(text, matchData) {
             aiProbs.draw = parseFloat(percentages[1]) / 100;
             aiProbs.away = parseFloat(percentages[2]) / 100;
             // Validar que las probabilidades sumen ~100%
-            if (Math.abs(aiProbs.home + aiProbs.draw + aiProbs.away - 1) > 0.05) {
-                console.warn('[parsePlainText] Probabilidades 1X2 no suman 100%:', aiProbs);
+            if (!isFinite(aiProbs.home) || !isFinite(aiProbs.draw) || !isFinite(aiProbs.away) || Math.abs(aiProbs.home + aiProbs.draw + aiProbs.away - 1) > 0.05) {
+                console.warn('[parsePlainText] Probabilidades 1X2 no válidas o no suman 100%:', aiProbs);
                 aiProbs.home = aiProbs.draw = aiProbs.away = 1/3;
             }
         } else {
+            console.warn('[parsePlainText] No se encontraron suficientes porcentajes para 1X2:', percentages);
             aiProbs.home = aiProbs.draw = aiProbs.away = 1/3;
         }
     } else {
+        console.warn('[parsePlainText] No se encontró sección de Probabilidades en el texto');
         aiProbs.home = aiProbs.draw = aiProbs.away = 1/3;
     }
 
@@ -668,14 +690,14 @@ function parsePlainText(text, matchData) {
     let under25 = under25Match ? parseFloat(under25Match[1]) : 50;
 
     // Validar BTTS
-    if (Math.abs(bttsSi + bttsNo - 100) > 5) {
-        console.warn('[parsePlainText] BTTS Sí + No no suma 100%:', { bttsSi, bttsNo });
+    if (!isFinite(bttsSi) || !isFinite(bttsNo) || Math.abs(bttsSi + bttsNo - 100) > 5) {
+        console.warn('[parsePlainText] BTTS Sí + No no válidos o no suman 100%:', { bttsSi, bttsNo });
         bttsSi = bttsNo = 50;
     }
 
     // Validar Más/Menos 2.5
-    if (Math.abs(over25 + under25 - 100) > 5) {
-        console.warn('[parsePlainText] Goles Más/Menos 2.5 no suma 100%:', { over25, under25 });
+    if (!isFinite(over25) || !isFinite(under25) || Math.abs(over25 + under25 - 100) > 5) {
+        console.warn('[parsePlainText] Goles Más/Menos 2.5 no válidos o no suman 100%:', { over25, under25 });
         over25 = under25 = 50;
     }
 
@@ -693,17 +715,17 @@ function parsePlainText(text, matchData) {
 
     return {
         "1X2": {
-            victoria_local: { probabilidad: (aiProbs.home * 100).toFixed(0) + '%', justificacion: aiJustification.home },
-            empate: { probabilidad: (aiProbs.draw * 100).toFixed(0) + '%', justificacion: aiJustification.draw },
-            victoria_visitante: { probabilidad: (aiProbs.away * 100).toFixed(0) + '%', justificacion: aiJustification.away }
+            victoria_local: { probabilidad: (aiProbs.home * 100).toFixed(1) + '%', justificacion: aiJustification.home },
+            empate: { probabilidad: (aiProbs.draw * 100).toFixed(1) + '%', justificacion: aiJustification.draw },
+            victoria_visitante: { probabilidad: (aiProbs.away * 100).toFixed(1) + '%', justificacion: aiJustification.away }
         },
         "BTTS": {
-            si: { probabilidad: bttsSi.toFixed(0) + '%', justificacion: "" },
-            no: { probabilidad: bttsNo.toFixed(0) + '%', justificacion: "" }
+            si: { probabilidad: bttsSi.toFixed(1) + '%', justificacion: "" },
+            no: { probabilidad: bttsNo.toFixed(1) + '%', justificacion: "" }
         },
         "Goles": {
-            mas_2_5: { probabilidad: over25.toFixed(0) + '%', justificacion: "" },
-            menos_2_5: { probabilidad: under25.toFixed(0) + '%', justificacion: "" }
+            mas_2_5: { probabilidad: over25.toFixed(1) + '%', justificacion: "" },
+            menos_2_5: { probabilidad: under25.toFixed(1) + '%', justificacion: "" }
         }
     };
 }
@@ -764,6 +786,11 @@ function getCombinedPrediction(finalProbs, stats, event, matchData) {
     return combined;
 }
 
+// FUNCIÓN AUXILIAR PARA VALIDAR PROBABILIDADES
+function validateProbability(value, defaultValue) {
+    return isFinite(value) && value >= 0 && value <= 1 ? value : defaultValue;
+}
+
 // CÁLCULO COMPLETO
 function calculateAll() {
     const leagueCode = dom.leagueSelect.value;
@@ -789,15 +816,18 @@ function calculateAll() {
     console.log('Equipo Local:', tH);
     console.log('Equipo Visitante:', tA);
     console.log('Stats:', stats);
-    console.log('Pronóstico IA:', event?.pronostico_json);
+    console.log('Evento:', event);
+    console.log('Pronóstico IA:', event?.pronostico_json || event?.pronostico);
 
     // Obtener probabilidades de la IA
     const ai = event?.pronostico_json || parsePlainText(event?.pronostico || '', matchData);
-    const iaHome = event?.pronostico_json ? parseFloat(ai["1X2"].victoria_local.probabilidad) / 100 : stats.finalHome;
-    const iaDraw = event?.pronostico_json ? parseFloat(ai["1X2"].empate.probabilidad) / 100 : stats.finalDraw;
-    const iaAway = event?.pronostico_json ? parseFloat(ai["1X2"].victoria_visitante.probabilidad) / 100 : stats.finalAway;
-    const iaBTTS = event?.pronostico_json ? parseFloat(ai.BTTS.si.probabilidad) / 100 : stats.pBTTSH;
-    const iaO25 = event?.pronostico_json ? parseFloat(ai.Goles.mas_2_5.probabilidad) / 100 : stats.pO25H;
+    const iaHome = validateProbability(parseFloat(ai["1X2"]?.victoria_local?.probabilidad) / 100, stats.finalHome);
+    const iaDraw = validateProbability(parseFloat(ai["1X2"]?.empate?.probabilidad) / 100, stats.finalDraw);
+    const iaAway = validateProbability(parseFloat(ai["1X2"]?.victoria_visitante?.probabilidad) / 100, stats.finalAway);
+    const iaBTTS = validateProbability(parseFloat(ai.BTTS?.si?.probabilidad) / 100, stats.pBTTSH);
+    const iaO25 = validateProbability(parseFloat(ai.Goles?.mas_2_5?.probabilidad) / 100, stats.pO25H);
+
+    console.log('Probabilidades IA:', { iaHome, iaDraw, iaAway, iaBTTS, iaO25 });
 
     // Promediar probabilidades
     const probabilities = [
@@ -808,10 +838,15 @@ function calculateAll() {
         { label: 'Más de 2.5 goles', value: event?.pronostico_json ? (stats.pO25H + iaO25) / 2 : stats.pO25H, id: 'pO25', type: 'Mercado' }
     ];
 
+    // Validar probabilidades antes de actualizar el DOM
     probabilities.forEach(p => {
+        p.value = validateProbability(p.value, 0.5);
         const el = dom[p.id];
         if (el) el.textContent = formatPct(p.value);
+        else console.warn(`[calculateAll] Elemento DOM ${p.id} no encontrado`);
     });
+
+    console.log('Probabilidades Finales:', probabilities);
 
     // Generar recomendaciones
     const recommendations = probabilities.filter(p => p.value >= 0.3).sort((a, b) => b.value - a.value).slice(0, 3);
@@ -821,6 +856,7 @@ function calculateAll() {
     });
     suggestionText += '</ul>';
     if (dom.suggestion) dom.suggestion.innerHTML = suggestionText;
+    else console.warn('[calculateAll] Elemento DOM suggestion no encontrado');
 
     // Mostrar análisis detallado de la IA
     if (dom.detailedPrediction) {
@@ -845,11 +881,14 @@ function calculateAll() {
         } else {
             dom.detailedPrediction.innerHTML = `<p>No hay un pronóstico de la IA disponible para este partido en la hoja de cálculo.</p>`;
         }
+    } else {
+        console.warn('[calculateAll] Elemento DOM detailedPrediction no encontrado');
     }
 
     // Generar pronóstico combinado
     const combined = getCombinedPrediction(probabilities, stats, event || {}, matchData);
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = `<h3>${combined.header}</h3>${combined.body}`;
+    else console.warn('[calculateAll] Elemento DOM combinedPrediction no encontrado');
 }
 
 // EVENTOS DEL DOM
