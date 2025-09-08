@@ -210,7 +210,7 @@ function displaySelectedLeagueEvents(leagueCode) {
     const selectedEventsList = $('selected-league-events');
     if (!selectedEventsList) return;
     if (eventInterval) clearInterval(eventInterval);
-    selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Cargando eventos...</span></div>';
+    selectedEventsList.innerHTML = ''; // Limpiar eventos anteriores
     if (!allData.calendario) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
         return;
@@ -229,7 +229,6 @@ function displaySelectedLeagueEvents(leagueCode) {
             }
         }
     }
-
     if (events.length === 0) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
         return;
@@ -300,7 +299,7 @@ function displaySelectedLeagueEvents(leagueCode) {
 }
 
 // CAMBIO DE LIGA
-function onLeagueChange(callback) {
+function onLeagueChange() {
     const code = $('leagueSelect').value;
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
@@ -315,7 +314,6 @@ function onLeagueChange(callback) {
         const details = $('details');
         if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No hay datos disponibles para esta liga.</div>';
         displaySelectedLeagueEvents('');
-        if (typeof callback === 'function') callback();
         return;
     }
     const teams = teamsByLeague[code].sort((a, b) => a.name.localeCompare(b.name));
@@ -346,7 +344,6 @@ function onLeagueChange(callback) {
     clearTeamData('Home');
     clearTeamData('Away');
     displaySelectedLeagueEvents(code);
-    if (typeof callback === 'function') callback();
 }
 
 // SELECCIÓN DE EVENTO
@@ -358,7 +355,8 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
         return;
     }
     leagueSelect.value = eventLeagueCode;
-    onLeagueChange(() => {
+    onLeagueChange();
+    setTimeout(() => {
         teamHomeSelect.value = homeTeamName;
         teamAwaySelect.value = awayTeamName;
         if (teamHomeSelect.value === homeTeamName && teamAwaySelect.value === awayTeamName && restrictSameTeam()) {
@@ -374,7 +372,7 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
                 }, 5000);
             }
         }
-    });
+    }, 500);
 }
 
 // INICIALIZACIÓN
@@ -423,7 +421,7 @@ async function init() {
         leagueSelect.innerHTML = '<option value="">No hay ligas disponibles</option>';
         if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No se encontraron ligas disponibles. Verifica la conexión con la API.</div>';
     }
-    leagueSelect.addEventListener('change', () => onLeagueChange());
+    leagueSelect.addEventListener('change', onLeagueChange);
     const onTeamChange = () => {
         const leagueCode = $('leagueSelect').value;
         const teamHome = $('teamHome').value;
