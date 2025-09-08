@@ -1,9 +1,7 @@
 // UTILIDADES
 const $ = id => {
     const element = document.getElementById(id);
-    if (!element) {
-        console.warn(`[Utilidad] Elemento con ID "${id}" no encontrado en el DOM.`);
-    }
+    if (!element) console.error(`[Utilidades] Elemento con ID ${id} no encontrado en el DOM`);
     return element;
 };
 const formatPct = x => (100 * (isFinite(x) ? x : 0)).toFixed(1) + '%';
@@ -28,6 +26,7 @@ function factorial(n) {
 const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzOJtjsqYuqxn6sMxFKQ7vb5TxoGxj7NoxcfUp5omYIw3C5s3qyAvOfLvRyGeE2xpc4/exec";
 let teamsByLeague = {};
 let allData = {};
+let currentEventPage = 0;
 let eventInterval;
 const leagueNames = {
     "esp.1": "LaLiga España",
@@ -122,16 +121,10 @@ const leagueRegions = {
 
 // NORMALIZACIÓN DE DATOS
 function normalizeTeam(raw) {
-    if (!raw || typeof raw !== 'object') {
-        console.warn('[normalizeTeam] Entrada inválida. Se esperaba un objeto.');
-        return null;
-    }
+    if (!raw) return null;
     const r = {};
     r.name = (raw.name || '').trim();
-    if (!r.name) {
-        console.warn('[normalizeTeam] Nombre de equipo no encontrado. Omitiendo equipo.');
-        return null;
-    }
+    if (!r.name) return null;
     r.pos = parseNumberString(raw.rank || 0);
     r.gf = parseNumberString(raw.goalsFor || 0);
     r.ga = parseNumberString(raw.goalsAgainst || 0);
@@ -158,10 +151,16 @@ function normalizeTeam(raw) {
 
 // BÚSQUEDA DE EQUIPO
 function findTeam(leagueCode, teamName) {
-    if (!teamsByLeague[leagueCode]) {
+    if (leagueCode) {
+        if (!teamsByLeague[leagueCode]) return null;
+        return teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()) || null;
+    } else {
+        for (const code in teamsByLeague) {
+            const team = teamsByLeague[code].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase());
+            if (team) return team;
+        }
         return null;
     }
-    return teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()) || null;
 }
 
 // FETCH DATOS COMPLETOS
@@ -169,25 +168,29 @@ async function fetchAllData() {
     const leagueSelect = $('leagueSelect');
     if (leagueSelect) {
         leagueSelect.innerHTML = '<option value="">Cargando datos...</option>';
-        leagueSelect.disabled = true;
         leagueSelect.style.display = 'block';
     }
     try {
+        console.log('[fetchAllData] Solicitando datos desde:', WEBAPP_URL);
         const res = await fetch(`${WEBAPP_URL}?tipo=todo&update=false`);
         if (!res.ok) {
             const errorText = await res.text();
             throw new Error(`Error HTTP ${res.status}: ${res.statusText}. Respuesta: ${errorText}`);
         }
         allData = await res.json();
+        console.log('[fetchAllData] Datos recibidos:', allData);
         if (!allData || !allData.calendario || !allData.ligas) {
             throw new Error('Estructura de datos inválida: la respuesta está vacía o faltan "calendario" o "ligas".');
         }
         if (!Object.keys(allData.ligas).length) {
             throw new Error('No se encontraron ligas en los datos de la API.');
         }
-        teamsByLeague = Object.fromEntries(
-            Object.entries(allData.ligas).map(([key, value]) => [key, (value || []).map(normalizeTeam).filter(t => t && t.name)])
-        );
+        const normalized = {};
+        for (const key in allData.ligas) {
+            normalized[key] = (allData.ligas[key] || []).map(normalizeTeam).filter(t => t && t.name);
+            console.log(`[fetchAllData] Liga ${key} normalizada con ${normalized[key].length} equipos`);
+        }
+        teamsByLeague = normalized;
         localStorage.setItem('allData', JSON.stringify(allData));
         return allData;
     } catch (err) {
@@ -195,39 +198,32 @@ async function fetchAllData() {
         const errorMsg = `<div class="error"><strong>Error:</strong> No se pudieron cargar los datos de la API. Verifica la conexión a la hoja de Google Sheets o el endpoint de la API. Detalle: ${err.message}</div>`;
         const details = $('details');
         if (details) details.innerHTML = errorMsg;
-        if (leagueSelect) {
-            leagueSelect.innerHTML = '<option value="">Error al cargar ligas</option>';
-            leagueSelect.disabled = true;
-        }
+        if (leagueSelect) leagueSelect.innerHTML = '<option value="">Error al cargar ligas</option>';
         return {};
-    } finally {
-        if (leagueSelect) leagueSelect.disabled = false;
     }
 }
 
 // MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
 function displaySelectedLeagueEvents(leagueCode) {
     const selectedEventsList = $('selected-league-events');
-    if (!selectedEventsList) return;
+    if (!selectedEventsList) {
+        console.warn('[displaySelectedLeagueEvents] Elemento selected-league-events no encontrado');
+        return;
+    }
     if (eventInterval) clearInterval(eventInterval);
-    selectedEventsList.innerHTML = ''; // Limpiar eventos anteriores
+    selectedEventsList.innerHTML = '';
     if (!allData.calendario) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
         return;
     }
     let events = [];
-    if (leagueCode) {
-        events = allData.calendario[leagueCodeToName[leagueCode]] || [];
+    if (!leagueCode) {
+        Object.keys(allData.calendario).forEach(ligaName => {
+            events = events.concat(allData.calendario[ligaName] || []);
+        });
     } else {
-        // Cargar eventos de todas las ligas para la vista inicial
-        for (const code in allData.calendario) {
-            const originalCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === code);
-            if (originalCode) {
-                allData.calendario[code].forEach(event => {
-                    events.push({ ...event, leagueCode: originalCode });
-                });
-            }
-        }
+        const ligaName = leagueCodeToName[leagueCode];
+        events = allData.calendario[ligaName] || [];
     }
     if (events.length === 0) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
@@ -239,60 +235,68 @@ function displaySelectedLeagueEvents(leagueCode) {
     function showCurrentPage() {
         const startIndex = currentPage * eventsPerPage;
         const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
-        selectedEventsList.innerHTML = '';
-        eventsToShow.forEach((event, index) => {
-            const div = document.createElement('div');
-            div.className = 'event-item slide-in';
-            div.style.animationDelay = `${index * 0.1}s`;
-            const eventLeagueCode = event.leagueCode || leagueCode;
-            div.dataset.homeTeam = event.local.trim();
-            div.dataset.awayTeam = event.visitante.trim();
-            div.dataset.leagueCode = eventLeagueCode;
-            const homeTeam = findTeam(eventLeagueCode, event.local.trim());
-            const awayTeam = findTeam(eventLeagueCode, event.visitante.trim());
-            const homeLogo = homeTeam?.logoUrl || '';
-            const awayLogo = awayTeam?.logoUrl || '';
-            let eventDateTime = 'Fecha no disponible';
-            let isInProgress = false;
-            try {
-                const parsedDate = new Date(event.fecha);
-                if (isFinite(parsedDate)) {
+        const currentItems = selectedEventsList.querySelectorAll('.event-item');
+        if (currentItems.length > 0) {
+            currentItems.forEach(item => {
+                item.classList.remove('slide-in');
+                item.classList.add('slide-out');
+            });
+        }
+        setTimeout(() => {
+            selectedEventsList.innerHTML = '';
+            eventsToShow.forEach((event, index) => {
+                const div = document.createElement('div');
+                div.className = 'event-item slide-in';
+                div.style.animationDelay = `${index * 0.1}s`;
+                div.dataset.homeTeam = event.local.trim();
+                div.dataset.awayTeam = event.visitante.trim();
+                const homeTeam = findTeam(leagueCode, event.local.trim());
+                const awayTeam = findTeam(leagueCode, event.visitante.trim());
+                const homeLogo = homeTeam?.logoUrl || '';
+                const awayLogo = awayTeam?.logoUrl || '';
+                let eventDateTime;
+                let isInProgress = false;
+                try {
+                    const parsedDate = new Date(event.fecha);
+                    if (isNaN(parsedDate.getTime())) throw new Error("Fecha inválida");
                     const now = new Date();
                     const matchDuration = 120 * 60 * 1000;
-                    isInProgress = now >= parsedDate && now < new Date(parsedDate.getTime() + matchDuration);
+                    if (now >= parsedDate && now < new Date(parsedDate.getTime() + matchDuration)) {
+                        isInProgress = true;
+                    }
                     const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
                     const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
                     const formattedDate = parsedDate.toLocaleDateString('es-ES', dateOptions);
                     const formattedTime = parsedDate.toLocaleTimeString('es-ES', timeOptions);
                     eventDateTime = `${formattedDate} ${formattedTime} (GT)`;
+                } catch (err) {
+                    eventDateTime = `${event.fecha} (Hora no disponible)`;
                 }
-            } catch (err) {
-                console.error('Error al parsear fecha del evento:', err);
-            }
-            const statusText = isInProgress ? ' - Evento en Juego' : '';
-            div.innerHTML = `
-                <div class="event-content">
-                    <div class="team-logo-container">
-                        <span class="team-name">${event.local.trim()}</span>
-                        <img src="${homeLogo}" class="team-logo home-logo ${!homeLogo ? 'hidden' : ''}" alt="Logo de ${event.local.trim()}">
-                        <span class="vs">vs.</span>
-                        <img src="${awayLogo}" class="team-logo away-logo ${!awayLogo ? 'hidden' : ''}" alt="Logo de ${event.visitante.trim()}">
-                        <span class="team-name">${event.visitante.trim()}</span>
+                let statusText = isInProgress ? ' - Evento en Juego' : '';
+                div.innerHTML = `
+                    <div class="event-content">
+                        <div class="team-logo-container">
+                            <span class="team-name">${event.local.trim()}</span>
+                            <img src="${homeLogo}" class="team-logo home-logo ${!homeLogo ? 'hidden' : ''}" alt="Logo de ${event.local.trim()}">
+                            <span class="vs">vs.</span>
+                            <img src="${awayLogo}" class="team-logo away-logo ${!awayLogo ? 'hidden' : ''}" alt="Logo de ${event.visitante.trim()}">
+                            <span class="team-name">${event.visitante.trim()}</span>
+                        </div>
+                        <span class="event-details">${eventDateTime}${statusText}</span>
+                        <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
                     </div>
-                    <span class="event-details">${eventDateTime}${statusText}</span>
-                    <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
-                </div>
-            `;
-            if (isInProgress) {
-                div.classList.add('in-progress');
-                div.style.cursor = 'not-allowed';
-                div.title = 'Evento en curso, no seleccionable';
-            } else {
-                div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim(), eventLeagueCode));
-            }
-            selectedEventsList.appendChild(div);
-        });
-        currentPage = (currentPage + 1) % totalPages;
+                `;
+                if (isInProgress) {
+                    div.classList.add('in-progress');
+                    div.style.cursor = 'not-allowed';
+                    div.title = 'Evento en curso, no seleccionable';
+                } else {
+                    div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim()));
+                }
+                selectedEventsList.appendChild(div);
+            });
+            currentPage = (currentPage + 1) % totalPages;
+        }, 800);
     }
     showCurrentPage();
     if (totalPages > 1) eventInterval = setInterval(showCurrentPage, 10000);
@@ -303,9 +307,9 @@ function onLeagueChange() {
     const code = $('leagueSelect').value;
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
-    if (!teamHomeSelect || !teamAwaySelect) return;
     teamHomeSelect.disabled = !code;
     teamAwaySelect.disabled = !code;
+    if (!teamHomeSelect || !teamAwaySelect) return;
     teamHomeSelect.innerHTML = '<option value="">Cargando equipos...</option>';
     teamAwaySelect.innerHTML = '<option value="">Cargando equipos...</option>';
     if (!code || !teamsByLeague[code] || teamsByLeague[code].length === 0) {
@@ -347,36 +351,50 @@ function onLeagueChange() {
 }
 
 // SELECCIÓN DE EVENTO
-function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
-    const leagueSelect = $('leagueSelect');
+function selectEvent(homeTeamName, awayTeamName) {
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
-    if (!leagueSelect || !teamHomeSelect || !teamAwaySelect) {
+    const leagueSelect = $('leagueSelect');
+    let eventLeagueCode = '';
+    const ligaName = Object.keys(allData.calendario).find(liga =>
+        (allData.calendario[liga] || []).some(e =>
+            e.local.trim().toLowerCase() === homeTeamName.trim().toLowerCase() &&
+            e.visitante.trim().toLowerCase() === awayTeamName.trim().toLowerCase()
+        )
+    );
+    if (ligaName) {
+        eventLeagueCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '';
+    }
+    if (eventLeagueCode && leagueSelect) {
+        leagueSelect.value = eventLeagueCode;
+        const changeEvent = new Event('change');
+        leagueSelect.dispatchEvent(changeEvent);
+    } else {
+        const details = $('details');
+        if (details) details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar la liga del evento.</div>';
         return;
     }
-    leagueSelect.value = eventLeagueCode;
-    onLeagueChange();
     setTimeout(() => {
-        teamHomeSelect.value = homeTeamName;
-        teamAwaySelect.value = awayTeamName;
-        if (teamHomeSelect.value === homeTeamName && teamAwaySelect.value === awayTeamName && restrictSameTeam()) {
+        const normalizeName = name => name.trim().toLowerCase();
+        const homeOption = Array.from(teamHomeSelect.options).find(opt => normalizeName(opt.text) === normalizeName(homeTeamName));
+        const awayOption = Array.from(teamAwaySelect.options).find(opt => normalizeName(opt.text) === normalizeName(awayTeamName));
+        if (homeOption) teamHomeSelect.value = homeOption.value;
+        if (awayOption) teamAwaySelect.value = awayOption.value;
+        if (homeOption && awayOption && restrictSameTeam()) {
             fillTeamData(homeTeamName, eventLeagueCode, 'Home');
             fillTeamData(awayTeamName, eventLeagueCode, 'Away');
             calculateAll();
         } else {
             const details = $('details');
-            if (details) {
-                details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en la lista de la liga.</div>';
-                setTimeout(() => {
-                    details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
-                }, 5000);
-            }
+            if (details) details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en la lista de la liga.</div>';
         }
     }, 500);
 }
 
 // INICIALIZACIÓN
 async function init() {
+    console.log('[init] Iniciando aplicación a las', new Date().toLocaleString('es-ES', { timeZone: 'America/Guatemala' }));
+    clearAll();
     const leagueSelect = $('leagueSelect');
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
@@ -385,10 +403,13 @@ async function init() {
         if (details) details.innerHTML = '<div class="error"><strong>Error:</strong> Problema con la interfaz HTML. Verifica que los elementos select existan.</div>';
         return;
     }
+    leagueSelect.style.display = 'block';
+    leagueSelect.innerHTML = '<option value="">Cargando ligas...</option>';
     const details = $('details');
     if (details) details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
     await fetchAllData();
     if (!allData.ligas || !Object.keys(allData.ligas).length) {
+        leagueSelect.innerHTML = '<option value="">No hay ligas disponibles</option>';
         if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No se encontraron ligas disponibles. Verifica la conexión con la API.</div>';
         return;
     }
@@ -404,6 +425,8 @@ async function init() {
         const aIndex = customOrder.indexOf(a);
         const bIndex = customOrder.indexOf(b);
         if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
         return aIndex - bIndex;
     });
     sortedRegions.forEach(regionName => {
@@ -420,25 +443,32 @@ async function init() {
     if (leagueSelect.children.length <= 1) {
         leagueSelect.innerHTML = '<option value="">No hay ligas disponibles</option>';
         if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No se encontraron ligas disponibles. Verifica la conexión con la API.</div>';
+    } else {
+        leagueSelect.style.display = 'block';
     }
     leagueSelect.addEventListener('change', onLeagueChange);
-    const onTeamChange = () => {
-        const leagueCode = $('leagueSelect').value;
-        const teamHome = $('teamHome').value;
-        const teamAway = $('teamAway').value;
-        if (leagueCode && teamHome && teamAway) {
-            if (document.activeElement === $('teamHome')) {
+    teamHomeSelect.addEventListener('change', () => {
+        if (restrictSameTeam()) {
+            const leagueCode = $('leagueSelect').value;
+            const teamHome = $('teamHome').value;
+            const teamAway = $('teamAway').value;
+            if (leagueCode && teamHome && teamAway) {
                 fillTeamData(teamHome, leagueCode, 'Home');
-            } else if (document.activeElement === $('teamAway')) {
-                fillTeamData(teamAway, leagueCode, 'Away');
-            }
-            if (restrictSameTeam()) {
-                 calculateAll();
+                calculateAll();
             }
         }
-    };
-    teamHomeSelect.addEventListener('change', onTeamChange);
-    teamAwaySelect.addEventListener('change', onTeamChange);
+    });
+    teamAwaySelect.addEventListener('change', () => {
+        if (restrictSameTeam()) {
+            const leagueCode = $('leagueSelect').value;
+            const teamHome = $('teamHome').value;
+            const teamAway = $('teamAway').value;
+            if (leagueCode && teamHome && teamAway) {
+                fillTeamData(teamAway, leagueCode, 'Away');
+                calculateAll();
+            }
+        }
+    });
     const resetButton = $('reset');
     if (resetButton) resetButton.addEventListener('click', clearAll);
     displaySelectedLeagueEvents('');
