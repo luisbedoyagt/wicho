@@ -285,7 +285,6 @@ function selectEvent(homeTeamName, awayTeamName) {
         const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text) === normalizeName(awayTeamName));
         if (homeOption) dom.teamHomeSelect.value = homeOption.value;
         if (awayOption) dom.teamAwaySelect.value = awayOption.value;
-        // Se llama a onTeamChange() aquí para asegurar que los datos se llenen.
         onTeamChange();
     }, 500);
 }
@@ -355,25 +354,34 @@ function onTeamChange(event) {
 
     if (!leagueCode) {
         clearProbabilities();
-        if (!teamHome) clearTeamData('Home');
-        if (!teamAway) clearTeamData('Away');
+        clearTeamData('Home');
+        clearTeamData('Away');
         return;
     }
 
-    // Lógica para actualizar los datos del equipo seleccionado al instante
-    const selectedTeamName = event ? event.target.value : (teamHome || teamAway);
-    const isHome = event ? event.target.id === 'teamHome' : !!teamHome;
-
-    if (selectedTeamName) {
+    if (event) {
+        const selectedTeamName = event.target.value;
+        const isHome = event.target.id === 'teamHome';
         const teamData = findTeam(leagueCode, selectedTeamName);
+        
         if (isHome) {
-            fillTeamData(teamData, 'Home');
+            if (selectedTeamName) {
+                fillTeamData(teamData, 'Home');
+            } else {
+                clearTeamData('Home');
+            }
         } else {
-            fillTeamData(teamData, 'Away');
+            if (selectedTeamName) {
+                fillTeamData(teamData, 'Away');
+            } else {
+                clearTeamData('Away');
+            }
         }
-    } else {
-        if (isHome) clearTeamData('Home');
-        else clearTeamData('Away');
+    } else { // Caso de 'selectEvent'
+        const teamHData = findTeam(leagueCode, teamHome);
+        const teamAData = findTeam(leagueCode, teamAway);
+        if (teamHData) fillTeamData(teamHData, 'Home');
+        if (teamAData) fillTeamData(teamAData, 'Away');
     }
 
     // Lógica para calcular si ambos equipos están seleccionados
