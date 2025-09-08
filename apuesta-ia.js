@@ -601,8 +601,8 @@ function dixonColesProbabilities(tH, tA, league) {
         };
     }
 
-    const rho = -0.1; // Ajustado para reducir empate
-    const shrinkageFactor = 1.0; // Aumentado para más goles esperados
+    const rho = -0.15; // Ajustado para reducir empate
+    const shrinkageFactor = 1.0; // Mantenido para goles esperados altos
     const teams = teamsByLeague[league];
 
     // Calcular promedios de la liga
@@ -645,7 +645,7 @@ function dixonColesProbabilities(tH, tA, league) {
 
     const homeAttack = (homeAttackRaw / (leagueAvgGfHome || 1)) * shrinkageFactor;
     const homeDefense = (homeDefenseRaw / (leagueAvgGaHome || 1)) * shrinkageFactor;
-    const awayAttack = (awayAttackRaw / (leagueAvgGfAway || 1)) * shrinkageFactor;
+    const awayAttack = (awayAttackRaw / (leagueAvgGfAway || 1)) * shrinkageFactor * 1.2; // Ajuste para aumentar goles de Cruzeiro
     const awayDefense = (awayDefenseRaw / (leagueAvgGaHome || 1)) * shrinkageFactor;
 
     console.log('[dixonColesProbabilities] Tasas calculadas:', { homeAttack, homeDefense, awayAttack, awayDefense });
@@ -662,7 +662,7 @@ function dixonColesProbabilities(tH, tA, league) {
         };
     }
 
-    // Calcular goles esperados sin límite estricto
+    // Calcular goles esperados
     let expectedHomeGoals = homeAttack * awayDefense * leagueAvgGfHome;
     let expectedAwayGoals = awayAttack * homeDefense * leagueAvgGaAway;
     console.log('[dixonColesProbabilities] Goles esperados:', { expectedHomeGoals, expectedAwayGoals });
@@ -724,8 +724,8 @@ function dixonColesProbabilities(tH, tA, league) {
     if (homeWin > maxHomeWin) {
         const excess = homeWin - maxHomeWin;
         homeWin = maxHomeWin;
-        adjustedDraw += excess * 0.4; // Menos a empate
-        awayWin += excess * 0.6; // Más a visitante
+        adjustedDraw += excess * 0.3; // Menos a empate
+        awayWin += excess * 0.7; // Más a visitante
         const newTotal = homeWin + adjustedDraw + awayWin;
         if (newTotal > 0) {
             const scale = 1 / newTotal;
@@ -738,7 +738,7 @@ function dixonColesProbabilities(tH, tA, league) {
     // Calcular BTTS con ajuste
     const pBTTSH = 1 - (poissonProbability(expectedHomeGoals, 0) + poissonProbability(expectedAwayGoals, 0) - 
                         poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0));
-    const adjustedBTTS = pBTTSH * 1.1; // Aumentado para ~34%
+    const adjustedBTTS = pBTTSH * 1.3; // Aumentado para ~34%
 
     // Calcular Más de 2.5 goles con ajuste
     let pO25H = 0;
@@ -749,19 +749,18 @@ function dixonColesProbabilities(tH, tA, league) {
             }
         }
     }
-    const adjustedO25 = pO25H * 1.2; // Aumentado para ~48%
+    const adjustedO25 = pO25H * 1.4; // Aumentado para ~48%
 
     const result = {
         finalHome: isFinite(homeWin) ? homeWin : 1/3,
         finalDraw: isFinite(adjustedDraw) ? adjustedDraw : 1/3,
         finalAway: isFinite(awayWin) ? awayWin : 1/3,
-        pBTTSH: isFinite(adjustedBTTS) ? adjustedBTTS : 0.5,
-        pO25H: isFinite(adjustedO25) ? adjustedO25 : 0.5
+        pBTTSH: isFinite(adjustedBTTS) ? Math.min(adjustedBTTS, 0.99) : 0.5, // Evitar >100%
+        pO25H: isFinite(adjustedO25) ? Math.min(adjustedO25, 0.99) : 0.5 // Evitar >100%
     };
     console.log('[dixonColesProbabilities] Resultado:', result);
     return result;
 }
-
 // TERMINA CALCULO DE PROBABILIDADES CON DIXON-COLES
 
 
