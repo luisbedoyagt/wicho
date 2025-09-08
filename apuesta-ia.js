@@ -492,40 +492,40 @@ function generateTeamHtml(team = {}) {
             <div class="stat-section">
                 <span class="section-title">General</span>
                 <div class="stat-metrics">
-                    <span>PJ ${team.pj || 0}</span>
-                    <span>V ${team.g || 0}</span>
-                    <span>E ${team.e || 0}</span>
-                    <span>D ${team.p || 0}</span>
+                    <span>PJ: ${team.pj || 0}</span>
+                    <span>V: ${team.g || 0}</span>
+                    <span>E: ${team.e || 0}</span>
+                    <span>D: ${team.p || 0}</span>
                     <span>Puntos: ${team.points || 0}</span>
-                    <span>GF ${team.gf || 0}</span>
-                    <span>GC ${team.ga || 0}</span>
-                    <span>DG ${dgTotal >= 0 ? '+' + dgTotal : dgTotal || 0}</span>
+                    <span>GF: ${team.gf || 0}</span>
+                    <span>GC: ${team.ga || 0}</span>
+                    <span>DG: ${dgTotal >= 0 ? '+' + dgTotal : dgTotal || 0}</span>
                 </div>
             </div>
             <div class="stat-section">
                 <span class="section-title">Local</span>
                 <div class="stat-metrics">
-                    <span>PJ ${team.pjHome || 0}</span>
-                    <span>V ${team.winsHome || 0}</span>
-                    <span>E ${team.tiesHome || 0}</span>
-                    <span>D ${team.lossesHome || 0}</span>
-                    <span>GF ${team.gfHome || 0}</span>
-                    <span>GC ${team.gaHome || 0}</span>
-                    <span>DG ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
-                    <span>% V ${winPctHome}%</span>
+                    <span>PJ: ${team.pjHome || 0}</span>
+                    <span>V: ${team.winsHome || 0}</span>
+                    <span>E: ${team.tiesHome || 0}</span>
+                    <span>D: ${team.lossesHome || 0}</span>
+                    <span>GF: ${team.gfHome || 0}</span>
+                    <span>GC: ${team.gaHome || 0}</span>
+                    <span>DG: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
+                    <span>% V: ${winPctHome}%</span>
                 </div>
             </div>
             <div class="stat-section">
                 <span class="section-title">Visitante</span>
                 <div class="stat-metrics">
-                    <span>PJ ${team.pjAway || 0}</span>
-                    <span>V ${team.winsAway || 0}</span>
-                    <span>E ${team.tiesAway || 0}</span>
-                    <span>D ${team.lossesAway || 0}</span>
-                    <span>GF ${team.gfAway || 0}</span>
-                    <span>GC ${team.gaAway || 0}</span>
-                    <span>DG ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
-                    <span>% V ${winPctAway}%</span>
+                    <span>PJ: ${team.pjAway || 0}</span>
+                    <span>V: ${team.winsAway || 0}</span>
+                    <span>E: ${team.tiesAway || 0}</span>
+                    <span>D: ${team.lossesAway || 0}</span>
+                    <span>GF: ${team.gfAway || 0}</span>
+                    <span>GC: ${team.gaAway || 0}</span>
+                    <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
+                    <span>% V: ${winPctAway}%</span>
                 </div>
             </div>
             <div class="stat-section">
