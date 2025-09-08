@@ -9,9 +9,9 @@ const $ = id => {
 const formatPct = x => (100 * (isFinite(x) ? x : 0)).toFixed(1) + '%';
 const formatDec = x => (isFinite(x) ? x.toFixed(2) : '0.00');
 const parseNumberString = val => {
-    const s = String(val || '').replace(/,/g, '.');
+    const s = String(val || '').replace(/,/g, '.').trim();
     const n = Number(s);
-    return isFinite(n) ? n : 0;
+    return isFinite(n) && n >= 0 ? n : 0;
 };
 function poissonProbability(lambda, k) {
     if (lambda <= 0 || k < 0) return 0;
@@ -53,10 +53,17 @@ let eventInterval;
 
 // NORMALIZACIÓN DE DATOS
 function normalizeTeam(raw) {
-    if (!raw) return null;
+    if (!raw) {
+        console.warn('[normalizeTeam] Datos crudos nulos o indefinidos');
+        return null;
+    }
+    console.log('[normalizeTeam] Normalizando datos crudos:', raw);
     const r = {};
     r.name = (raw.name || '').trim();
-    if (!r.name) return null;
+    if (!r.name) {
+        console.warn('[normalizeTeam] Nombre de equipo inválido:', raw.name);
+        return null;
+    }
     r.pos = parseNumberString(raw.rank || 0);
     r.gf = parseNumberString(raw.goalsFor || 0);
     r.ga = parseNumberString(raw.goalsAgainst || 0);
@@ -78,15 +85,21 @@ function normalizeTeam(raw) {
     r.lossesHome = parseNumberString(raw.lossesHome || 0);
     r.lossesAway = parseNumberString(raw.lossesAway || 0);
     r.logoUrl = raw.logoUrl || '';
+    console.log('[normalizeTeam] Equipo normalizado:', r);
     return r;
 }
 
 // BÚSQUEDA DE EQUIPO
 function findTeam(leagueCode, teamName) {
     if (!teamsByLeague[leagueCode]) {
+        console.warn('[findTeam] Liga no encontrada:', leagueCode);
         return null;
     }
-    return teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()) || null;
+    const team = teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase());
+    if (!team) {
+        console.warn('[findTeam] Equipo no encontrado:', teamName, 'en liga:', leagueCode);
+    }
+    return team || null;
 }
 
 // FETCH DATOS COMPLETOS
@@ -530,7 +543,7 @@ function dixonColesProbabilities(tH, tA, league) {
     const leagueAvgGaAway = totalGaAway / (totalGames || 1);
 
     // Calcular tasas de ataque y defensa con suavizado para pocos partidos
-    const minGames = 1; // Permitir cálculos con 1 partido
+    const minGames = 1;
     const homeAttackRaw = (tH.gfHome || 0) / (Math.max(tH.pjHome || 1, minGames));
     const homeDefenseRaw = Math.max((tH.gaHome || 0) / (Math.max(tH.pjHome || 1, minGames)), 0.1);
     const awayAttackRaw = (tA.gfAway || 0) / (Math.max(tA.pjAway || 1, minGames));
@@ -656,7 +669,7 @@ function parsePlainText(text, matchData) {
         };
     }
 
-    // Parsear probabilidades de 1X2 con expresiones más flexibles
+    // Parsear probabilidades de 1X2
     const probsMatch = text.match(/Probabilidades\s*[:|-]?\s*(.*?)(?:Ambos\s*Anotan|$)/is);
     if (probsMatch && probsMatch[1]) {
         const probsText = probsMatch[1];
@@ -836,7 +849,7 @@ function calculateAll() {
 
     // Obtener probabilidades de la IA
     const ai = event?.pronostico_json || parsePlainText(event?.pronostico || '', matchData);
-    const isLimitedData = (tH.pjHome <= 2 || tA.pjAway <= 2); // Priorizar IA si hay pocos partidos
+    const isLimitedData = (tH.pjHome < 1 || tA.pjAway < 1); // Solo activar si no hay partidos jugados
     const iaHome = validateProbability(parseFloat(ai["1X2"]?.victoria_local?.probabilidad) / 100, stats.finalHome);
     const iaDraw = validateProbability(parseFloat(ai["1X2"]?.empate?.probabilidad) / 100, stats.finalDraw);
     const iaAway = validateProbability(parseFloat(ai["1X2"]?.victoria_visitante?.probabilidad) / 100, stats.finalAway);
@@ -941,12 +954,14 @@ function calculateAll() {
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = `<h3>${combined.header}</h3>${combined.body}`;
     else console.warn('[calculateAll] Elemento DOM combinedPrediction no encontrado');
 
-    // Mostrar advertencia si se usó IA debido a datos limitados
+    // Mostrar advertencia solo si no hay datos locales
     if (isLimitedData && dom.details) {
-        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Datos locales limitados (PJ Home: ${tH.pjHome}, PJ Away: ${tA.pjAway}). Usando pronóstico de IA como principal.</div>`;
+        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Sin datos locales (PJ Home: ${tH.pjHome}, PJ Away: ${tA.pjAway}). Usando pronóstico de IA exclusivamente.</div>`;
         setTimeout(() => {
             dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
         }, 5000);
+    } else if (dom.details) {
+        dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
     }
 }
 
