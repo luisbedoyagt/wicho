@@ -507,9 +507,9 @@ function dixonColesProbabilities(tH, tA, league) {
     const homeAttack = (homeAttackRaw / leagueAvgGfHome) * shrinkageFactor;
     const homeDefense = (homeDefenseRaw / leagueAvgGaHome) * shrinkageFactor;
     const awayAttack = (awayAttackRaw / leagueAvgGfAway) * shrinkageFactor;
-    const awayDefense = (awayDefenseRaw / leagueAvgGaAway) * shrinkageFactor;
+    const awayDefense = (awayDefenseRaw / leagueAvgGaHome) * shrinkageFactor;
     const expectedHomeGoals = homeAttack * awayDefense * leagueAvgGfHome;
-    const expectedAwayGoals = awayAttack * homeDefense * leagueAvgGfAway;
+    const expectedAwayGoals = awayAttack * homeDefense * leagueAvgGaAway;
     let homeWin = 0, draw = 0, awayWin = 0;
     for (let i = 0; i <= 10; i++) {
         for (let j = 0; j <= 10; j++) {
