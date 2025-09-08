@@ -234,6 +234,7 @@ function displaySelectedLeagueEvents(leagueCode) {
             div.style.animationDelay = `${index * 0.1}s`;
             div.dataset.homeTeam = event.local.trim();
             div.dataset.awayTeam = event.visitante.trim();
+            div.dataset.leagueCode = leagueCode; 
             const homeTeam = findTeam(leagueCode, event.local.trim());
             const awayTeam = findTeam(leagueCode, event.visitante.trim());
             const homeLogo = homeTeam?.logoUrl || '';
@@ -285,7 +286,7 @@ function displaySelectedLeagueEvents(leagueCode) {
 }
 
 // CAMBIO DE LIGA
-function onLeagueChange() {
+function onLeagueChange(callback) {
     const code = $('leagueSelect').value;
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
@@ -300,6 +301,7 @@ function onLeagueChange() {
         const details = $('details');
         if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No hay datos disponibles para esta liga.</div>';
         displaySelectedLeagueEvents('');
+        if (typeof callback === 'function') callback();
         return;
     }
     const teams = teamsByLeague[code].sort((a, b) => a.name.localeCompare(b.name));
@@ -308,7 +310,7 @@ function onLeagueChange() {
     defaultOptionHome.value = '';
     defaultOptionHome.textContent = '-- Selecciona equipo --';
     fragmentHome.appendChild(defaultOptionHome);
-    const fragmentAway = document.createDocumentFragment();
+    const fragmentAway = document.createElement('option');
     const defaultOptionAway = document.createElement('option');
     defaultOptionAway.value = '';
     defaultOptionAway.textContent = '-- Selecciona equipo --';
@@ -330,6 +332,7 @@ function onLeagueChange() {
     clearTeamData('Home');
     clearTeamData('Away');
     displaySelectedLeagueEvents(code);
+    if (typeof callback === 'function') callback();
 }
 
 // SELECCIÓN DE EVENTO
@@ -343,10 +346,8 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
     }
     // Set the league value
     leagueSelect.value = eventLeagueCode;
-    // Dispatch a change event to populate team selects
-    leagueSelect.dispatchEvent(new Event('change'));
-    // Use a small delay to allow the team selects to be populated
-    setTimeout(() => {
+    // Call onLeagueChange with a callback to ensure teams are populated
+    onLeagueChange(() => {
         // Find and set the selected values
         teamHomeSelect.value = homeTeamName;
         teamAwaySelect.value = awayTeamName;
@@ -364,7 +365,7 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
                 }, 5000);
             }
         }
-    }, 100); // 100ms delay to ensure the DOM is updated after league change
+    });
 }
 
 // INICIALIZACIÓN
@@ -413,7 +414,7 @@ async function init() {
         leagueSelect.innerHTML = '<option value="">No hay ligas disponibles</option>';
         if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No se encontraron ligas disponibles. Verifica la conexión con la API.</div>';
     }
-    leagueSelect.addEventListener('change', onLeagueChange);
+    leagueSelect.addEventListener('change', () => onLeagueChange());
     const onTeamChange = () => {
         const leagueCode = $('leagueSelect').value;
         const teamHome = $('teamHome').value;
