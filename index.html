@@ -39,6 +39,23 @@
                 </div>
             </section>
 
+            <!-- Template para eventos -->
+            <template id="event-item-template">
+                <div class="event-item">
+                    <div class="event-content">
+                        <div class="team-logo-container">
+                            <span class="team-name" data-home-team></span>
+                            <img class="team-logo home-logo" data-home-logo alt="">
+                            <span class="vs">vs.</span>
+                            <img class="team-logo away-logo" data-away-logo alt="">
+                            <span class="team-name" data-away-team></span>
+                        </div>
+                        <span class="event-details" data-event-datetime></span>
+                        <span class="event-details" data-event-stadium></span>
+                    </div>
+                </div>
+            </template>
+
             <section class="card team-card" id="card-home">
                 <header class="card-header">
                     <i class="fas fa-home"></i>
@@ -72,25 +89,25 @@
                             <div class="stat-section">
                                 <span class="section-title">General</span>
                                 <div class="stat-metrics">
-                                    <span>PJ: 0</span>
-                                    <span>Puntos: 0</span>
-                                    <span>DG: 0</span>
+                                    <span id="home-pj-general">PJ: 0</span>
+                                    <span id="home-points-general">Puntos: 0</span>
+                                    <span id="home-dg-general">DG: 0</span>
                                 </div>
                             </div>
                             <div class="stat-section">
                                 <span class="section-title">Local</span>
                                 <div class="stat-metrics">
-                                    <span>PJ: 0</span>
-                                    <span>PG: 0</span>
-                                    <span>DG: 0</span>
+                                    <span id="home-pj-local">PJ: 0</span>
+                                    <span id="home-wins-local">PG: 0</span>
+                                    <span id="home-dg-local">DG: 0</span>
                                 </div>
                             </div>
                             <div class="stat-section">
                                 <span class="section-title">Visitante</span>
                                 <div class="stat-metrics">
-                                    <span>PJ: 0</span>
-                                    <span>PG: 0</span>
-                                    <span>DG: 0</span>
+                                    <span id="home-pj-away">PJ: 0</span>
+                                    <span id="home-wins-away">PG: 0</span>
+                                    <span id="home-dg-away">DG: 0</span>
                                 </div>
                             </div>
                         </div>
@@ -131,25 +148,25 @@
                             <div class="stat-section">
                                 <span class="section-title">General</span>
                                 <div class="stat-metrics">
-                                    <span>PJ: 0</span>
-                                    <span>Puntos: 0</span>
-                                    <span>DG: 0</span>
+                                    <span id="away-pj-general">PJ: 0</span>
+                                    <span id="away-points-general">Puntos: 0</span>
+                                    <span id="away-dg-general">DG: 0</span>
                                 </div>
                             </div>
                             <div class="stat-section">
                                 <span class="section-title">Local</span>
                                 <div class="stat-metrics">
-                                    <span>PJ: 0</span>
-                                    <span>PG: 0</span>
-                                    <span>DG: 0</span>
+                                    <span id="away-pj-local">PJ: 0</span>
+                                    <span id="away-wins-local">PG: 0</span>
+                                    <span id="away-dg-local">DG: 0</span>
                                 </div>
                             </div>
                             <div class="stat-section">
                                 <span class="section-title">Visitante</span>
                                 <div class="stat-metrics">
-                                    <span>PJ: 0</span>
-                                    <span>PG: 0</span>
-                                    <span>DG: 0</span>
+                                    <span id="away-pj-away">PJ: 0</span>
+                                    <span id="away-wins-away">PG: 0</span>
+                                    <span id="away-dg-away">DG: 0</span>
                                 </div>
                             </div>
                         </div>
@@ -164,7 +181,7 @@
                 </header>
                 <div class="card-body">
                     <div id="details">
-                        Detalles del Pronóstico
+                        <div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>
                     </div>
                     <div class="probabilities-grid">
                         <div class="probability-tile">
@@ -191,7 +208,7 @@
                     <div class="recommendation-box">
                         <h4 class="rec-title">Pronósticos Destacados</h4>
                         <div class="rec-suggestion" id="suggestion">
-                            <p>Esperando datos...</p>
+                            <ul id="suggestion-list"></ul>
                         </div>
                     </div>
                 </div>
@@ -205,7 +222,7 @@
                     </header>
                     <div class="card-body">
                         <div id="detailed-prediction">
-                            <p>Esperando pronóstico detallado...</p>
+                            <div class="ia-prediction" id="ia-prediction-content"></div>
                         </div>
                     </div>
                 </section>
@@ -217,7 +234,7 @@
                     </header>
                     <div class="card-body">
                         <div id="combined-prediction">
-                            <p>Esperando pronóstico combinado...</p>
+                            <div id="combined-prediction-content"></div>
                         </div>
                     </div>
                 </section>
