@@ -305,11 +305,11 @@ function onLeagueChange() {
     teams.forEach(t => {
         const opt1 = document.createElement('option');
         opt1.value = t.name;
-        opt1.textContent = `${t.pos} - ${t.name}`; // Mostrar posición antes del nombre
+        opt1.textContent = `${t.pos || ''} - ${t.name}`; // Mostrar posición antes del nombre
         fragmentHome.appendChild(opt1);
         const opt2 = document.createElement('option');
         opt2.value = t.name;
-        opt2.textContent = `${t.pos} - ${t.name}`; // Mostrar posición antes del nombre
+        opt2.textContent = `${t.pos || ''} - ${t.name}`; // Mostrar posición antes del nombre
         fragmentAway.appendChild(opt2);
     });
     dom.teamHomeSelect.innerHTML = '';
@@ -337,8 +337,14 @@ function selectEvent(homeTeamName, awayTeamName) {
     if (dom.leagueSelect) dom.leagueSelect.value = eventLeagueCode;
     onLeagueChange();
     setTimeout(() => {
-        const homeOption = Array.from(dom.teamHomeSelect.options).find(opt => normalizeName(opt.text.split(' - ')[1]) === normalizeName(homeTeamName));
-        const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text.split(' - ')[1]) === normalizeName(awayTeamName));
+        const homeOption = Array.from(dom.teamHomeSelect.options).find(opt => {
+            const textParts = opt.text.split(' - ');
+            return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(homeTeamName);
+        });
+        const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => {
+            const textParts = opt.text.split(' - ');
+            return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(awayTeamName);
+        });
         if (homeOption) dom.teamHomeSelect.value = homeOption.value;
         if (awayOption) dom.teamAwaySelect.value = awayOption.value;
         onTeamChange();
@@ -472,43 +478,61 @@ function clearProbabilities() {
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
 }
 
-// GENERAR HTML PARA DATOS DE EQUIPO
+// GENERAR HTML PARA DATOS DE EQUIPO (ENRIQUECIDO)
 function generateTeamHtml(team = {}) {
-    const dg = (team.gf || 0) - (team.ga || 0);
+    const dgTotal = (team.gf || 0) - (team.ga || 0);
     const dgHome = (team.gfHome || 0) - (team.gaHome || 0);
     const dgAway = (team.gfAway || 0) - (team.gaAway || 0);
     const winPct = team.pj > 0 ? ((team.g / team.pj) * 100).toFixed(1) : '0.0';
+    const winPctHome = team.pjHome > 0 ? ((team.winsHome / team.pjHome) * 100).toFixed(1) : '0.0';
+    const winPctAway = team.pjAway > 0 ? ((team.winsAway / team.pjAway) * 100).toFixed(1) : '0.0';
+
     return `
         <div class="team-details">
             <div class="stat-section">
                 <span class="section-title">General</span>
                 <div class="stat-metrics">
                     <span>PJ: ${team.pj || 0}</span>
+                    <span>V: ${team.g || 0}</span>
+                    <span>E: ${team.e || 0}</span>
+                    <span>D: ${team.p || 0}</span>
                     <span>Puntos: ${team.points || 0}</span>
-                    <span>DG: ${dg >= 0 ? '+' + dg : dg || 0}</span>
+                    <span>GF Total: ${team.gf || 0}</span>
+                    <span>GC Total: ${team.ga || 0}</span>
+                    <span>DG: ${dgTotal >= 0 ? '+' + dgTotal : dgTotal || 0}</span>
                 </div>
             </div>
             <div class="stat-section">
                 <span class="section-title">Local</span>
                 <div class="stat-metrics">
-                    <span>PJ: ${team.pjHome || 0}</span>
-                    <span>PG: ${team.winsHome || 0}</span>
-                    <span>DG: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
+                    <span>PJ Local: ${team.pjHome || 0}</span>
+                    <span>V Local: ${team.winsHome || 0}</span>
+                    <span>E Local: ${team.tiesHome || 0}</span>
+                    <span>D Local: ${team.lossesHome || 0}</span>
+                    <span>GF Local: ${team.gfHome || 0}</span>
+                    <span>GC Local: ${team.gaHome || 0}</span>
+                    <span>DG Local: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
+                    <span>% V Local: ${winPctHome}%</span>
                 </div>
             </div>
             <div class="stat-section">
                 <span class="section-title">Visitante</span>
                 <div class="stat-metrics">
-                    <span>PJ: ${team.pjAway || 0}</span>
-                    <span>PG: ${team.winsAway || 0}</span>
-                    <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
+                    <span>PJ Visit: ${team.pjAway || 0}</span>
+                    <span>V Visit: ${team.winsAway || 0}</span>
+                    <span>E Visit: ${team.tiesAway || 0}</span>
+                    <span>D Visit: ${team.lossesAway || 0}</span>
+                    <span>GF Visit: ${team.gfAway || 0}</span>
+                    <span>GC Visit: ${team.gaAway || 0}</span>
+                    <span>DG Visit: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
+                    <span>% V Visit: ${winPctAway}%</span>
                 </div>
             </div>
             <div class="stat-section">
                 <span class="section-title">Datos</span>
                 <div class="stat-metrics">
-                    <span>Posición: ${team.pos || '--'}</span>
-                    <span>% de Victorias: ${winPct || '--'}%</span>
+                    <span>Rank: ${team.pos || '--'}</span>
+                    <span>% Victorias: ${winPct}%</span>
                 </div>
             </div>
         </div>
@@ -520,9 +544,9 @@ function clearTeamData(type) {
     const typeLower = type.toLowerCase();
     const cardHeader = dom[`card${type}`]?.querySelector('.card-header');
     const logoImg = cardHeader?.querySelector('.team-logo');
-    logoImg?.remove();
+    if (logoImg) logoImg.remove();
     const box = dom[`form${type}Box`];
-    if (box) box.innerHTML = generateTeamHtml();
+    if (box) box.innerHTML = generateTeamHtml({}); // Usa equipo vacío para mostrar ceros o guiones
 }
 
 // LLENAR DATOS DE EQUIPO
