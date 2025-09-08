@@ -149,10 +149,18 @@ function normalizeTeam(raw) {
     return r;
 }
 
-// BUSCAR EQUIPO
-function findTeam(league, teamName) {
-    if (!teamsByLeague[league] || !teamName) return null;
-    return teamsByLeague[league].find(t => t && t.name && t.name.toLowerCase() === teamName.toLowerCase()) || null;
+// BÚSQUEDA DE EQUIPO
+function findTeam(leagueCode, teamName) {
+    if (leagueCode) {
+        if (!teamsByLeague[leagueCode]) return null;
+        return teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()) || null;
+    } else {
+        for (const code in teamsByLeague) {
+            const team = teamsByLeague[code].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase());
+            if (team) return team;
+        }
+        return null;
+    }
 }
 
 // FETCH DATOS COMPLETOS
@@ -175,151 +183,303 @@ async function fetchAllData() {
             throw new Error('Estructura de datos inválida: la respuesta está vacía o faltan "calendario" o "ligas".');
         }
         if (!Object.keys(allData.ligas).length) {
-            throw new Error('No se encontraron ligas en los datos recibidos.');
+            throw new Error('No se encontraron ligas en los datos de la API.');
         }
-
-        // Organizar equipos por liga
-        teamsByLeague = {};
-        Object.entries(allData.ligas).forEach(([league, teams]) => {
-            teamsByLeague[league] = (teams || []).map(normalizeTeam).filter(t => t);
-        });
-
-        // Rellenar el selector de ligas
-        const regions = [...new Set(Object.values(leagueRegions))];
-        leagueSelect.innerHTML = '<option value="">Selecciona una liga</option>';
-        regions.forEach(region => {
-            const optgroup = document.createElement('optgroup');
-            optgroup.label = region;
-            Object.entries(leagueNames)
-                .filter(([code]) => leagueRegions[code] === region)
-                .sort((a, b) => a[1].localeCompare(b[1]))
-                .forEach(([code, name]) => {
-                    const option = document.createElement('option');
-                    option.value = code;
-                    option.textContent = name;
-                    optgroup.appendChild(option);
-                });
-            leagueSelect.appendChild(optgroup);
-        });
-    } catch (error) {
-        console.error('[fetchAllData] Error:', error);
-        leagueSelect.innerHTML = '<option value="">Error al cargar datos</option>';
-        const eventsContainer = $('selected-league-events');
-        if (eventsContainer) {
-            eventsContainer.innerHTML = '<div class="event-item placeholder"><span>Error al cargar los datos. Por favor, intenta de nuevo.</span></div>';
+        const normalized = {};
+        for (const key in allData.ligas) {
+            normalized[key] = (allData.ligas[key] || []).map(normalizeTeam).filter(t => t && t.name);
+            console.log(`[fetchAllData] Liga ${key} normalizada con ${normalized[key].length} equipos`);
         }
+        teamsByLeague = normalized;
+        localStorage.setItem('allData', JSON.stringify(allData));
+        return allData;
+    } catch (err) {
+        console.error('[fetchAllData] Error:', err);
+        const errorMsg = `<div class="error"><strong>Error:</strong> No se pudieron cargar los datos de la API. Verifica la conexión a la hoja de Google Sheets o el endpoint de la API. Detalle: ${err.message}</div>`;
+        const details = $('details');
+        if (details) details.innerHTML = errorMsg;
+        if (leagueSelect) leagueSelect.innerHTML = '<option value="">Error al cargar ligas</option>';
+        return {};
     }
+}
+
+// MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
+function displaySelectedLeagueEvents(leagueCode) {
+    const selectedEventsList = $('selected-league-events');
+    if (!selectedEventsList) {
+        console.warn('[displaySelectedLeagueEvents] Elemento selected-league-events no encontrado');
+        return;
+    }
+    if (eventInterval) clearInterval(eventInterval);
+    selectedEventsList.innerHTML = '';
+    if (!allData.calendario) {
+        selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
+        return;
+    }
+    let events = [];
+    if (!leagueCode) {
+        Object.keys(allData.calendario).forEach(ligaName => {
+            events = events.concat(allData.calendario[ligaName] || []);
+        });
+    } else {
+        const ligaName = leagueCodeToName[leagueCode];
+        events = allData.calendario[ligaName] || [];
+    }
+    if (events.length === 0) {
+        selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
+        return;
+    }
+    const eventsPerPage = 1;
+    const totalPages = Math.ceil(events.length / eventsPerPage);
+    let currentPage = 0;
+    function showCurrentPage() {
+        const startIndex = currentPage * eventsPerPage;
+        const eventsToShow = events.slice(startIndex, startIndex + eventsPerPage);
+        const currentItems = selectedEventsList.querySelectorAll('.event-item');
+        if (currentItems.length > 0) {
+            currentItems.forEach(item => {
+                item.classList.remove('slide-in');
+                item.classList.add('slide-out');
+            });
+        }
+        setTimeout(() => {
+            selectedEventsList.innerHTML = '';
+            eventsToShow.forEach((event, index) => {
+                const div = document.createElement('div');
+                div.className = 'event-item slide-in';
+                div.style.animationDelay = `${index * 0.1}s`;
+                div.dataset.homeTeam = event.local.trim();
+                div.dataset.awayTeam = event.visitante.trim();
+                const homeTeam = findTeam(leagueCode, event.local.trim());
+                const awayTeam = findTeam(leagueCode, event.visitante.trim());
+                const homeLogo = homeTeam?.logoUrl || '';
+                const awayLogo = awayTeam?.logoUrl || '';
+                let eventDateTime;
+                let isInProgress = false;
+                try {
+                    const parsedDate = new Date(event.fecha);
+                    if (isNaN(parsedDate.getTime())) throw new Error("Fecha inválida");
+                    const now = new Date();
+                    const matchDuration = 120 * 60 * 1000;
+                    if (now >= parsedDate && now < new Date(parsedDate.getTime() + matchDuration)) {
+                        isInProgress = true;
+                    }
+                    const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
+                    const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
+                    const formattedDate = parsedDate.toLocaleDateString('es-ES', dateOptions);
+                    const formattedTime = parsedDate.toLocaleTimeString('es-ES', timeOptions);
+                    eventDateTime = `${formattedDate} ${formattedTime} (GT)`;
+                } catch (err) {
+                    eventDateTime = `${event.fecha} (Hora no disponible)`;
+                }
+                let statusText = isInProgress ? ' - Evento en Juego' : '';
+                div.innerHTML = `
+                    <div class="event-content">
+                        <div class="team-logo-container">
+                            <span class="team-name">${event.local.trim()}</span>
+                            <img src="${homeLogo}" class="team-logo home-logo ${!homeLogo ? 'hidden' : ''}" alt="Logo de ${event.local.trim()}">
+                            <span class="vs">vs.</span>
+                            <img src="${awayLogo}" class="team-logo away-logo ${!awayLogo ? 'hidden' : ''}" alt="Logo de ${event.visitante.trim()}">
+                            <span class="team-name">${event.visitante.trim()}</span>
+                        </div>
+                        <span class="event-details">${eventDateTime}${statusText}</span>
+                        <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
+                    </div>
+                `;
+                if (isInProgress) {
+                    div.classList.add('in-progress');
+                    div.style.cursor = 'not-allowed';
+                    div.title = 'Evento en curso, no seleccionable';
+                } else {
+                    div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim()));
+                }
+                selectedEventsList.appendChild(div);
+            });
+            currentPage = (currentPage + 1) % totalPages;
+        }, 800);
+    }
+    showCurrentPage();
+    if (totalPages > 1) eventInterval = setInterval(showCurrentPage, 10000);
 }
 
 // CAMBIO DE LIGA
 function onLeagueChange() {
-    const leagueSelect = $('leagueSelect');
-    const selectedLeague = leagueSelect.value;
-    const teamHome = $('teamHome');
-    const teamAway = $('teamAway');
-    if (!selectedLeague) {
-        teamHome.innerHTML = '<option value="">Selecciona una liga primero</option>';
-        teamAway.innerHTML = '<option value="">Selecciona una liga primero</option>';
-        $('selected-league-events').innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
-        clearAll();
+    const code = $('leagueSelect').value;
+    const teamHomeSelect = $('teamHome');
+    const teamAwaySelect = $('teamAway');
+    teamHomeSelect.disabled = !code;
+    teamAwaySelect.disabled = !code;
+    if (!teamHomeSelect || !teamAwaySelect) return;
+    teamHomeSelect.innerHTML = '<option value="">Cargando equipos...</option>';
+    teamAwaySelect.innerHTML = '<option value="">Cargando equipos...</option>';
+    if (!code || !teamsByLeague[code] || teamsByLeague[code].length === 0) {
+        clearTeamData('Home');
+        clearTeamData('Away');
+        const details = $('details');
+        if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No hay datos disponibles para esta liga.</div>';
+        displaySelectedLeagueEvents('');
         return;
     }
-
-    // Rellenar selectores de equipos
-    teamHome.innerHTML = '<option value="">Selecciona equipo local</option>';
-    teamAway.innerHTML = '<option value="">Selecciona equipo visitante</option>';
-    if (teamsByLeague[selectedLeague]) {
-        teamsByLeague[selectedLeague].sort((a, b) => a.name.localeCompare(b.name)).forEach(team => {
-            const optionHome = document.createElement('option');
-            optionHome.value = team.name;
-            optionHome.textContent = team.name;
-            teamHome.appendChild(optionHome);
-            const optionAway = document.createElement('option');
-            optionAway.value = team.name;
-            optionAway.textContent = team.name;
-            teamAway.appendChild(optionAway);
-        });
-    }
-
-    // Mostrar eventos de la liga seleccionada
-    displaySelectedLeagueEvents(selectedLeague);
-    clearAll();
-}
-
-// MOSTRAR EVENTOS DE LA LIGA SELECCIONADA
-function displaySelectedLeagueEvents(league) {
-    const eventsContainer = $('selected-league-events');
-    if (!eventsContainer) return;
-    eventsContainer.innerHTML = '<div class="event-item placeholder"><span>Cargando eventos...</span></div>';
-
-    const events = (allData.calendario && allData.calendario[league]) || [];
-    if (!events.length) {
-        eventsContainer.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
-        return;
-    }
-
-    eventsContainer.innerHTML = '';
-    currentEventPage = 0;
-    if (eventInterval) clearInterval(eventInterval);
-
-    function showEvent(index) {
-        eventsContainer.innerHTML = '';
-        const event = events[index];
-        const eventItem = document.importNode($('event-item-template').content, true).querySelector('.event-item');
-        const homeLogo = eventItem.querySelector('.home-logo');
-        const awayLogo = eventItem.querySelector('.away-logo');
-        eventItem.querySelector('[data-home-team]').textContent = event.homeTeam || 'TBD';
-        eventItem.querySelector('[data-away-team]').textContent = event.awayTeam || 'TBD';
-        eventItem.querySelector('[data-event-datetime]').textContent = event.datetime || 'Fecha TBD';
-        eventItem.querySelector('[data-event-stadium]').textContent = event.stadium || 'Estadio TBD';
-        homeLogo.src = event.homeLogo || '';
-        awayLogo.src = event.awayLogo || '';
-        homeLogo.classList.toggle('hidden', !event.homeLogo);
-        awayLogo.classList.toggle('hidden', !event.awayLogo);
-        eventItem.classList.add('slide-in');
-        eventItem.addEventListener('click', () => selectEvent(event));
-        eventsContainer.appendChild(eventItem);
-    }
-
-    showEvent(currentEventPage);
-    if (events.length > 1) {
-        eventInterval = setInterval(() => {
-            const prevEvent = eventsContainer.querySelector('.event-item');
-            if (prevEvent) prevEvent.classList.replace('slide-in', 'slide-out');
-            setTimeout(() => {
-                currentEventPage = (currentEventPage + 1) % events.length;
-                showEvent(currentEventPage);
-            }, 800);
-        }, 5000);
-    }
+    const teams = teamsByLeague[code].sort((a, b) => a.name.localeCompare(b.name));
+    const fragmentHome = document.createDocumentFragment();
+    const defaultOptionHome = document.createElement('option');
+    defaultOptionHome.value = '';
+    defaultOptionHome.textContent = '-- Selecciona equipo --';
+    fragmentHome.appendChild(defaultOptionHome);
+    const fragmentAway = document.createDocumentFragment();
+    const defaultOptionAway = document.createElement('option');
+    defaultOptionAway.value = '';
+    defaultOptionAway.textContent = '-- Selecciona equipo --';
+    fragmentAway.appendChild(defaultOptionAway);
+    teams.forEach(t => {
+        const opt1 = document.createElement('option');
+        opt1.value = t.name;
+        opt1.textContent = t.name;
+        fragmentHome.appendChild(opt1);
+        const opt2 = document.createElement('option');
+        opt2.value = t.name;
+        opt2.textContent = t.name;
+        fragmentAway.appendChild(opt2);
+    });
+    teamHomeSelect.innerHTML = '';
+    teamAwaySelect.innerHTML = '';
+    teamHomeSelect.appendChild(fragmentHome);
+    teamAwaySelect.appendChild(fragmentAway);
+    clearTeamData('Home');
+    clearTeamData('Away');
+    displaySelectedLeagueEvents(code);
 }
 
 // SELECCIÓN DE EVENTO
-function selectEvent(event) {
+function selectEvent(homeTeamName, awayTeamName) {
+    const teamHomeSelect = $('teamHome');
+    const teamAwaySelect = $('teamAway');
     const leagueSelect = $('leagueSelect');
-    const teamHome = $('teamHome');
-    const teamAway = $('teamAway');
-    if (eventInterval) clearInterval(eventInterval);
-    if (event.homeTeam && event.awayTeam && leagueSelect.value) {
-        teamHome.value = event.homeTeam;
-        teamAway.value = event.awayTeam;
-        restrictSameTeam();
-        calculateAll();
+    let eventLeagueCode = '';
+    const ligaName = Object.keys(allData.calendario).find(liga =>
+        (allData.calendario[liga] || []).some(e =>
+            e.local.trim().toLowerCase() === homeTeamName.trim().toLowerCase() &&
+            e.visitante.trim().toLowerCase() === awayTeamName.trim().toLowerCase()
+        )
+    );
+    if (ligaName) {
+        eventLeagueCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '';
     }
+    if (eventLeagueCode && leagueSelect) {
+        leagueSelect.value = eventLeagueCode;
+        const changeEvent = new Event('change');
+        leagueSelect.dispatchEvent(changeEvent);
+    } else {
+        const details = $('details');
+        if (details) details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar la liga del evento.</div>';
+        return;
+    }
+    setTimeout(() => {
+        const normalizeName = name => name.trim().toLowerCase();
+        const homeOption = Array.from(teamHomeSelect.options).find(opt => normalizeName(opt.text) === normalizeName(homeTeamName));
+        const awayOption = Array.from(teamAwaySelect.options).find(opt => normalizeName(opt.text) === normalizeName(awayTeamName));
+        if (homeOption) teamHomeSelect.value = homeOption.value;
+        if (awayOption) teamAwaySelect.value = awayOption.value;
+        if (homeOption && awayOption && restrictSameTeam()) {
+            fillTeamData(homeTeamName, eventLeagueCode, 'Home');
+            fillTeamData(awayTeamName, eventLeagueCode, 'Away');
+            calculateAll();
+        } else {
+            const details = $('details');
+            if (details) details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en la lista de la liga.</div>';
+        }
+    }, 500);
 }
 
 // INICIALIZACIÓN
 async function init() {
-    await fetchAllData();
+    console.log('[init] Iniciando aplicación a las', new Date().toLocaleString('es-ES', { timeZone: 'America/Guatemala' }));
+    clearAll();
     const leagueSelect = $('leagueSelect');
-    const teamHome = $('teamHome');
-    const teamAway = $('teamAway');
+    const teamHomeSelect = $('teamHome');
+    const teamAwaySelect = $('teamAway');
+    if (!leagueSelect || !teamHomeSelect || !teamAwaySelect) {
+        const details = $('details');
+        if (details) details.innerHTML = '<div class="error"><strong>Error:</strong> Problema con la interfaz HTML. Verifica que los elementos select existan.</div>';
+        return;
+    }
+    leagueSelect.style.display = 'block';
+    leagueSelect.innerHTML = '<option value="">Cargando ligas...</option>';
+    const details = $('details');
+    if (details) details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
+    await fetchAllData();
+    if (!allData.ligas || !Object.keys(allData.ligas).length) {
+        leagueSelect.innerHTML = '<option value="">No hay ligas disponibles</option>';
+        if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No se encontraron ligas disponibles. Verifica la conexión con la API.</div>';
+        return;
+    }
+    leagueSelect.innerHTML = '<option value="">-- Selecciona liga --</option>';
+    const regionsMap = {};
+    Object.keys(allData.ligas).forEach(code => {
+        const region = leagueRegions[code] || 'Otras Ligas';
+        if (!regionsMap[region]) regionsMap[region] = [];
+        regionsMap[region].push(code);
+    });
+    const customOrder = ["Europa", "Sudamérica", "Norteamérica", "Centroamérica", "Asia", "Copas Internacionales", "Eliminatorias Mundiales", "Otras Ligas"];
+    const sortedRegions = Object.keys(regionsMap).sort((a, b) => {
+        const aIndex = customOrder.indexOf(a);
+        const bIndex = customOrder.indexOf(b);
+        if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+    });
+    sortedRegions.forEach(regionName => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = regionName;
+        regionsMap[regionName].sort().forEach(code => {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = leagueNames[code] || code;
+            optgroup.appendChild(opt);
+        });
+        if (optgroup.children.length > 0) leagueSelect.appendChild(optgroup);
+    });
+    if (leagueSelect.children.length <= 1) {
+        leagueSelect.innerHTML = '<option value="">No hay ligas disponibles</option>';
+        if (details) details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No se encontraron ligas disponibles. Verifica la conexión con la API.</div>';
+    } else {
+        leagueSelect.style.display = 'block';
+    }
+    leagueSelect.addEventListener('change', onLeagueChange);
+    teamHomeSelect.addEventListener('change', () => {
+        if (restrictSameTeam()) {
+            const leagueCode = $('leagueSelect').value;
+            const teamHome = $('teamHome').value;
+            const teamAway = $('teamAway').value;
+            if (leagueCode && teamHome && teamAway) {
+                fillTeamData(teamHome, leagueCode, 'Home');
+                calculateAll();
+            }
+        }
+    });
+    teamAwaySelect.addEventListener('change', () => {
+        if (restrictSameTeam()) {
+            const leagueCode = $('leagueSelect').value;
+            const teamHome = $('teamHome').value;
+            const teamAway = $('teamAway').value;
+            if (leagueCode && teamHome && teamAway) {
+                fillTeamData(teamAway, leagueCode, 'Away');
+                calculateAll();
+            }
+        }
+    });
     const resetButton = $('reset');
-    if (leagueSelect) leagueSelect.addEventListener('change', onLeagueChange);
-    if (teamHome) teamHome.addEventListener('change', restrictSameTeam);
-    if (teamAway) teamAway.addEventListener('change', restrictSameTeam);
     if (resetButton) resetButton.addEventListener('click', clearAll);
+    displaySelectedLeagueEvents('');
 }
 
-// INICIAR APLICACIÓN
-init();
+// EVENTOS DEL DOM
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        e.preventDefault();
+        alert('Las herramientas de desarrollo están deshabilitadas.');
+    }
+});
+document.addEventListener('DOMContentLoaded', init);
