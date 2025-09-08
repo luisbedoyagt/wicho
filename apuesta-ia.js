@@ -496,7 +496,6 @@ function generateTeamHtml(team = {}) {
                     <span>V: ${team.g || 0}</span>
                     <span>E: ${team.e || 0}</span>
                     <span>D: ${team.p || 0}</span>
-                    <span>Puntos: ${team.points || 0}</span>
                     <span>GF: ${team.gf || 0}</span>
                     <span>GC: ${team.ga || 0}</span>
                     <span>DG: ${dgTotal >= 0 ? '+' + dgTotal : dgTotal || 0}</span>
@@ -532,7 +531,7 @@ function generateTeamHtml(team = {}) {
                 <span class="section-title">Datos</span>
                 <div class="stat-metrics">
                     <span>Puntos: ${team.points || 0}</span>
-                    <span>Ranking: ${team.pos || '--'}</span>
+                    <span>Ranking: ${team.pos || ''}</span>
                     <span>% Victorias: ${winPct}%</span>
                 </div>
             </div>
