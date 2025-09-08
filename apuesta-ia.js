@@ -262,6 +262,7 @@ function onLeagueChange() {
     clearTeamData('Home');
     clearTeamData('Away');
     displaySelectedLeagueEvents(code);
+    clearProbabilities();
 }
 
 // SELECCIÓN DE EVENTO
@@ -284,15 +285,7 @@ function selectEvent(homeTeamName, awayTeamName) {
         const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text) === normalizeName(awayTeamName));
         if (homeOption) dom.teamHomeSelect.value = homeOption.value;
         if (awayOption) dom.teamAwaySelect.value = awayOption.value;
-        if (homeOption && awayOption && restrictSameTeam()) {
-            const tH = findTeam(eventLeagueCode, homeTeamName);
-            const tA = findTeam(eventLeagueCode, awayTeamName);
-            fillTeamData(tH, 'Home');
-            fillTeamData(tA, 'Away');
-            calculateAll();
-        } else {
-            if (dom.details) dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en la lista de la liga.</div>';
-        }
+        onTeamChange();
     }, 500);
 }
 
@@ -347,32 +340,50 @@ async function init() {
         dom.leagueSelect.style.display = 'block';
     }
     dom.leagueSelect.addEventListener('change', onLeagueChange);
-    const onTeamChange = () => {
-        if (restrictSameTeam()) {
-            const leagueCode = dom.leagueSelect.value;
-            const teamHome = dom.teamHomeSelect.value;
-            const teamAway = dom.teamAwaySelect.value;
-            if (leagueCode && teamHome && teamAway) {
-                const tH = findTeam(leagueCode, teamHome);
-                const tA = findTeam(leagueCode, teamAway);
-                if (tH && tA) {
-                    fillTeamData(tH, 'Home');
-                    fillTeamData(tA, 'Away');
-                    calculateAll();
-                }
-            } else {
-                // Si no se han seleccionado ambos equipos, se limpian los datos y los pronósticos.
-                clearTeamData('Home');
-                clearTeamData('Away');
-                clearProbabilities();
-            }
-        }
-    };
     dom.teamHomeSelect.addEventListener('change', onTeamChange);
     dom.teamAwaySelect.addEventListener('change', onTeamChange);
     if (dom.resetButton) dom.resetButton.addEventListener('click', clearAll);
     displaySelectedLeagueEvents('');
 }
+
+// ONTEAMCHANGE MODIFICADA
+function onTeamChange(event) {
+    const leagueCode = dom.leagueSelect.value;
+    const teamHome = dom.teamHomeSelect.value;
+    const teamAway = dom.teamAwaySelect.value;
+    // Si no se han seleccionado ambos equipos, se limpian los datos y los pronósticos.
+    if (!leagueCode || !teamHome || !teamAway || teamHome === teamAway) {
+        clearProbabilities();
+        if (!teamHome) clearTeamData('Home');
+        if (!teamAway) clearTeamData('Away');
+        if (teamHome && teamAway && teamHome === teamAway) {
+            dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No puedes seleccionar el mismo equipo para local y visitante.</div>';
+            setTimeout(() => {
+                dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
+            }, 5000);
+        }
+    }
+    // Lógica para actualizar los datos del equipo seleccionado al instante
+    const selectedTeamName = event.target.value;
+    const isHome = event.target.id === 'teamHome';
+    if (selectedTeamName) {
+        const teamData = findTeam(leagueCode, selectedTeamName);
+        if (isHome) {
+            fillTeamData(teamData, 'Home');
+        } else {
+            fillTeamData(teamData, 'Away');
+        }
+    }
+    // Lógica para calcular si ambos equipos están seleccionados
+    if (leagueCode && teamHome && teamAway && teamHome !== teamAway) {
+        const tH = findTeam(leagueCode, teamHome);
+        const tA = findTeam(leagueCode, teamAway);
+        if (tH && tA) {
+            calculateAll();
+        }
+    }
+}
+
 
 // FUNCIÓN PARA LIMPIAR SOLO LAS PROBABILIDADES
 function clearProbabilities() {
@@ -385,36 +396,12 @@ function clearProbabilities() {
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
 }
 
-// RESTRINGIR SELECCIÓN DEL MISMO EQUIPO
-function restrictSameTeam() {
-    if (!dom.teamHomeSelect || !dom.teamAwaySelect) return true;
-    const teamHome = dom.teamHomeSelect.value;
-    const teamAway = dom.teamAwaySelect.value;
-    if (teamHome && teamAway && teamHome === teamAway) {
-        if (dom.details) {
-            dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No puedes seleccionar el mismo equipo para local y visitante.</div>';
-            setTimeout(() => {
-                dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
-            }, 5000);
-        }
-        if (document.activeElement === dom.teamHomeSelect) {
-            dom.teamHomeSelect.value = '';
-            clearTeamData('Home');
-        } else {
-            dom.teamAwaySelect.value = '';
-            clearTeamData('Away');
-        }
-        clearProbabilities();
-        return false;
-    }
-    return true;
-}
-
 // GENERAR HTML PARA DATOS DE EQUIPO (MEJORA)
 function generateTeamHtml(team = {}) {
     const dg = (team.gf || 0) - (team.ga || 0);
     const dgHome = (team.gfHome || 0) - (team.gaHome || 0);
     const dgAway = (team.gaAway || 0) - (team.gfAway || 0);
+    const winPct = team.pj > 0 ? ((team.g / team.pj) * 100).toFixed(1) : '0.0';
     return `
         <div class="team-details">
             <div class="stat-section">
@@ -439,6 +426,13 @@ function generateTeamHtml(team = {}) {
                     <span>PJ: ${team.pjAway || 0}</span>
                     <span>PG: ${team.winsAway || 0}</span>
                     <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
+                </div>
+            </div>
+            <div class="stat-section">
+                <span class="section-title">Datos</span>
+                <div class="stat-metrics">
+                    <span>Posición: ${team.pos || '--'}</span>
+                    <span>% de Victorias: ${winPct || '--'}%</span>
                 </div>
             </div>
         </div>
