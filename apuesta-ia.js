@@ -377,14 +377,13 @@ function onTeamChange(event) {
                 clearTeamData('Away');
             }
         }
-    } else { // Caso de 'selectEvent'
+    } else {
         const teamHData = findTeam(leagueCode, teamHome);
         const teamAData = findTeam(leagueCode, teamAway);
         if (teamHData) fillTeamData(teamHData, 'Home');
         if (teamAData) fillTeamData(teamAData, 'Away');
     }
 
-    // Lógica para calcular si ambos equipos están seleccionados
     if (teamHome && teamAway && teamHome !== teamAway) {
         const tH = findTeam(leagueCode, teamHome);
         const tA = findTeam(leagueCode, teamAway);
@@ -414,7 +413,7 @@ function clearProbabilities() {
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
 }
 
-// GENERAR HTML PARA DATOS DE EQUIPO (MEJORA)
+// GENERAR HTML PARA DATOS DE EQUIPO
 function generateTeamHtml(team = {}) {
     const dg = (team.gf || 0) - (team.ga || 0);
     const dgHome = (team.gfHome || 0) - (team.gaHome || 0);
