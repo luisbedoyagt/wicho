@@ -74,7 +74,6 @@ function normalizeTeam(raw) {
         console.warn('[normalizeTeam] Nombre de equipo inválido:', raw.name);
         return null;
     }
-    // Intentar múltiples nombres de campos para partidos jugados
     const possibleHomeFields = [
         'gamesPlayedHome', 'matchesPlayedHome', 'homeGamesPlayed', 'homeMatches',
         'playedHome', 'homePlayed', 'gamesHome', 'matchesHome'
@@ -292,7 +291,14 @@ function onLeagueChange() {
         displaySelectedLeagueEvents('');
         return;
     }
-    const teams = teamsByLeague[code].sort((a, b) => a.name.localeCompare(b.name));
+    const teams = teamsByLeague[code].sort((a, b) => {
+        // Sort by rank (pos) in ascending order; lower pos = higher rank
+        const posA = isFinite(a.pos) && a.pos > 0 ? a.pos : Infinity;
+        const posB = isFinite(b.pos) && b.pos > 0 ? b.pos : Infinity;
+        if (posA !== posB) return posA - posB;
+        // Fallback to alphabetical order if ranks are equal or invalid
+        return a.name.localeCompare(b.name);
+    });
     const fragmentHome = document.createDocumentFragment();
     const defaultOptionHome = document.createElement('option');
     defaultOptionHome.value = '';
