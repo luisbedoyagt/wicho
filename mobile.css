@@ -101,8 +101,6 @@
         font-size: 0.9rem;
         margin-top: 0.15rem;
     }
-
-    /* Ajuste para que las estadísticas aparezcan en dos líneas */
     .stat-section {
         padding: 0.4rem 0.6rem;
         margin-top: 0;
@@ -110,32 +108,9 @@
     .stat-section .section-title {
         font-size: 0.8rem;
     }
-    
-    /* MODIFICACIÓN CLAVE: Se permite que el contenedor se envuelva */
     .stat-metrics {
-        display: flex;
-        flex-wrap: wrap; /* Nuevo: permite que los elementos pasen a la siguiente línea */
         gap: 0.2rem;
-        justify-content: flex-end;
     }
-
-    /* Estilos para los datos de la primera línea (Puntos, PJ, V, E, D) */
-    .stat-metrics .primary-stats {
-        display: flex;
-        gap: 0.2rem;
-        width: 100%;
-        justify-content: flex-end;
-        margin-bottom: 0.2rem; /* Espacio entre las dos líneas de stats */
-    }
-
-    /* Estilos para los datos de la segunda línea (GF, GC, DG) */
-    .stat-metrics .secondary-stats {
-        display: flex;
-        gap: 0.2rem;
-        width: 100%;
-        justify-content: flex-end;
-    }
-    
     .stat-metrics span {
         padding: 0.1rem 0.3rem;
         font-size: 0.6rem;
