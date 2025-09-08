@@ -159,7 +159,6 @@ function normalizeTeam(raw) {
 // BÚSQUEDA DE EQUIPO
 function findTeam(leagueCode, teamName) {
     if (!teamsByLeague[leagueCode]) {
-        console.warn(`[findTeam] Liga con código "${leagueCode}" no encontrada.`);
         return null;
     }
     return teamsByLeague[leagueCode].find(t => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()) || null;
@@ -216,7 +215,21 @@ function displaySelectedLeagueEvents(leagueCode) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>';
         return;
     }
-    const events = leagueCode ? allData.calendario[leagueCodeToName[leagueCode]] || [] : Object.values(allData.calendario).flat();
+    let events = [];
+    if (leagueCode) {
+        events = allData.calendario[leagueCodeToName[leagueCode]] || [];
+    } else {
+        // Cargar eventos de todas las ligas para la vista inicial
+        for (const code in allData.calendario) {
+            const originalCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === code);
+            if (originalCode) {
+                allData.calendario[code].forEach(event => {
+                    events.push({ ...event, leagueCode: originalCode });
+                });
+            }
+        }
+    }
+
     if (events.length === 0) {
         selectedEventsList.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos para esta liga.</span></div>';
         return;
@@ -232,11 +245,12 @@ function displaySelectedLeagueEvents(leagueCode) {
             const div = document.createElement('div');
             div.className = 'event-item slide-in';
             div.style.animationDelay = `${index * 0.1}s`;
+            const eventLeagueCode = event.leagueCode || leagueCode;
             div.dataset.homeTeam = event.local.trim();
             div.dataset.awayTeam = event.visitante.trim();
-            div.dataset.leagueCode = leagueCode; 
-            const homeTeam = findTeam(leagueCode, event.local.trim());
-            const awayTeam = findTeam(leagueCode, event.visitante.trim());
+            div.dataset.leagueCode = eventLeagueCode;
+            const homeTeam = findTeam(eventLeagueCode, event.local.trim());
+            const awayTeam = findTeam(eventLeagueCode, event.visitante.trim());
             const homeLogo = homeTeam?.logoUrl || '';
             const awayLogo = awayTeam?.logoUrl || '';
             let eventDateTime = 'Fecha no disponible';
@@ -275,7 +289,7 @@ function displaySelectedLeagueEvents(leagueCode) {
                 div.style.cursor = 'not-allowed';
                 div.title = 'Evento en curso, no seleccionable';
             } else {
-                div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim(), leagueCode));
+                div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim(), eventLeagueCode));
             }
             selectedEventsList.appendChild(div);
         });
@@ -310,7 +324,7 @@ function onLeagueChange(callback) {
     defaultOptionHome.value = '';
     defaultOptionHome.textContent = '-- Selecciona equipo --';
     fragmentHome.appendChild(defaultOptionHome);
-    const fragmentAway = document.createElement('option');
+    const fragmentAway = document.createDocumentFragment();
     const defaultOptionAway = document.createElement('option');
     defaultOptionAway.value = '';
     defaultOptionAway.textContent = '-- Selecciona equipo --';
@@ -341,17 +355,12 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
     const teamHomeSelect = $('teamHome');
     const teamAwaySelect = $('teamAway');
     if (!leagueSelect || !teamHomeSelect || !teamAwaySelect) {
-        console.error('Elementos de selección no encontrados.');
         return;
     }
-    // Set the league value
     leagueSelect.value = eventLeagueCode;
-    // Call onLeagueChange with a callback to ensure teams are populated
     onLeagueChange(() => {
-        // Find and set the selected values
         teamHomeSelect.value = homeTeamName;
         teamAwaySelect.value = awayTeamName;
-        // Check if teams were found and if they are different
         if (teamHomeSelect.value === homeTeamName && teamAwaySelect.value === awayTeamName && restrictSameTeam()) {
             fillTeamData(homeTeamName, eventLeagueCode, 'Home');
             fillTeamData(awayTeamName, eventLeagueCode, 'Away');
