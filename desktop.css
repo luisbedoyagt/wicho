@@ -7,7 +7,7 @@
         grid-template-areas:
             "events home"
             "results away"
-            "results ia";
+            "ia ia"; /* Nueva área para el pronóstico de la IA */
         gap: 2.5rem;
     }
 
@@ -25,6 +25,10 @@
 
     .result-card {
         grid-area: results;
+    }
+
+    .ia-card {
+        grid-area: ia; /* Aplicación del nuevo grid-area */
     }
 
     .recommendation-ia-grid {
@@ -45,5 +49,12 @@
 
     .recommendation-ia-grid .card-header .fas {
         text-shadow: 0 0 5px var(--highlight-blue);
+    }
+
+    /* Estilos de la ficha de equipo */
+    .team-card .team-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
     }
 }
