@@ -305,11 +305,11 @@ function onLeagueChange() {
     teams.forEach(t => {
         const opt1 = document.createElement('option');
         opt1.value = t.name;
-        opt1.textContent = `${t.name} (${t.pos})`; // Mostrar posición junto al nombre
+        opt1.textContent = `${t.pos} - ${t.name}`; // Mostrar posición antes del nombre
         fragmentHome.appendChild(opt1);
         const opt2 = document.createElement('option');
         opt2.value = t.name;
-        opt2.textContent = `${t.name} (${t.pos})`; // Mostrar posición junto al nombre
+        opt2.textContent = `${t.pos} - ${t.name}`; // Mostrar posición antes del nombre
         fragmentAway.appendChild(opt2);
     });
     dom.teamHomeSelect.innerHTML = '';
@@ -337,8 +337,8 @@ function selectEvent(homeTeamName, awayTeamName) {
     if (dom.leagueSelect) dom.leagueSelect.value = eventLeagueCode;
     onLeagueChange();
     setTimeout(() => {
-        const homeOption = Array.from(dom.teamHomeSelect.options).find(opt => normalizeName(opt.text.split(' (')[0]) === normalizeName(homeTeamName));
-        const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text.split(' (')[0]) === normalizeName(awayTeamName));
+        const homeOption = Array.from(dom.teamHomeSelect.options).find(opt => normalizeName(opt.text.split(' - ')[1]) === normalizeName(homeTeamName));
+        const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text.split(' - ')[1]) === normalizeName(awayTeamName));
         if (homeOption) dom.teamHomeSelect.value = homeOption.value;
         if (awayOption) dom.teamAwaySelect.value = awayOption.value;
         onTeamChange();
