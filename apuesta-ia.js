@@ -46,7 +46,7 @@ const dom = {
     cardAway: $('card-away'),
 };
 
-// VARIABLES GLOBALES (NO CAMBIAR A CONST, YA QUE SE REASIGNAN)
+// VARIABLES GLOBALES
 let teamsByLeague = {};
 let allData = {};
 let eventInterval;
@@ -346,7 +346,7 @@ async function init() {
     displaySelectedLeagueEvents('');
 }
 
-// ONTEAMCHANGE MODIFICADA
+// ONTEAMCHANGE
 function onTeamChange(event) {
     const leagueCode = dom.leagueSelect.value;
     const teamHome = dom.teamHomeSelect.value;
@@ -499,7 +499,7 @@ function clearAll() {
 
 // CÁLCULO DE PROBABILIDADES CON DIXON-COLES
 function dixonColesProbabilities(tH, tA, league) {
-    if (!tH || !tA || tH.pjHome <= 0 || tA.pjAway <= 0 || !teamsByLeague[league] || teamsByLeague[league].length === 0) {
+    if (!tH || !tA || !teamsByLeague[league] || teamsByLeague[league].length === 0) {
         console.warn('[dixonColesProbabilities] Datos insuficientes para los equipos o la liga:', { tH, tA, league });
         return {
             finalHome: 1/3,
@@ -529,11 +529,12 @@ function dixonColesProbabilities(tH, tA, league) {
     const leagueAvgGfAway = totalGfAway / (totalGames || 1);
     const leagueAvgGaAway = totalGaAway / (totalGames || 1);
 
-    // Calcular tasas de ataque y defensa con valor mínimo para defensa
-    const homeAttackRaw = (tH.gfHome || 0) / (tH.pjHome || 1);
-    const homeDefenseRaw = Math.max((tH.gaHome || 0) / (tH.pjHome || 1), 0.1);
-    const awayAttackRaw = (tA.gfAway || 0) / (tA.pjAway || 1);
-    const awayDefenseRaw = Math.max((tA.gaAway || 0) / (tA.pjAway || 1), 0.1);
+    // Calcular tasas de ataque y defensa con suavizado para pocos partidos
+    const minGames = 1; // Permitir cálculos con 1 partido
+    const homeAttackRaw = (tH.gfHome || 0) / (Math.max(tH.pjHome || 1, minGames));
+    const homeDefenseRaw = Math.max((tH.gaHome || 0) / (Math.max(tH.pjHome || 1, minGames)), 0.1);
+    const awayAttackRaw = (tA.gfAway || 0) / (Math.max(tA.pjAway || 1, minGames));
+    const awayDefenseRaw = Math.max((tA.gaAway || 0) / (Math.max(tA.pjAway || 1, minGames)), 0.1);
 
     const homeAttack = (homeAttackRaw / (leagueAvgGfHome || 1)) * shrinkageFactor;
     const homeDefense = (homeDefenseRaw / (leagueAvgGaHome || 1)) * shrinkageFactor;
@@ -655,19 +656,23 @@ function parsePlainText(text, matchData) {
         };
     }
 
-    // Parsear probabilidades de 1X2
-    const probsMatch = text.match(/Probabilidades:\s*(.*?)(?:Ambos Anotan|$)/s);
+    // Parsear probabilidades de 1X2 con expresiones más flexibles
+    const probsMatch = text.match(/Probabilidades\s*[:|-]?\s*(.*?)(?:Ambos\s*Anotan|$)/is);
     if (probsMatch && probsMatch[1]) {
         const probsText = probsMatch[1];
-        const percentages = probsText.match(/(\d+)%/g) || [];
+        const percentages = probsText.match(/(\d+\.?\d*)%/g) || [];
         if (percentages.length >= 3) {
             aiProbs.home = parseFloat(percentages[0]) / 100;
             aiProbs.draw = parseFloat(percentages[1]) / 100;
             aiProbs.away = parseFloat(percentages[2]) / 100;
-            // Validar que las probabilidades sumen ~100%
-            if (!isFinite(aiProbs.home) || !isFinite(aiProbs.draw) || !isFinite(aiProbs.away) || Math.abs(aiProbs.home + aiProbs.draw + aiProbs.away - 1) > 0.05) {
-                console.warn('[parsePlainText] Probabilidades 1X2 no válidas o no suman 100%:', aiProbs);
-                aiProbs.home = aiProbs.draw = aiProbs.away = 1/3;
+            // Normalizar si no suman ~100%
+            const sum = aiProbs.home + aiProbs.draw + aiProbs.away;
+            if (!isFinite(sum) || sum < 0.95 || sum > 1.05) {
+                console.warn('[parsePlainText] Probabilidades 1X2 no válidas o no suman ~100%:', aiProbs);
+                const scale = sum > 0 ? 1 / sum : 1/3;
+                aiProbs.home = (aiProbs.home * scale) || 1/3;
+                aiProbs.draw = (aiProbs.draw * scale) || 1/3;
+                aiProbs.away = (aiProbs.away * scale) || 1/3;
             }
         } else {
             console.warn('[parsePlainText] No se encontraron suficientes porcentajes para 1X2:', percentages);
@@ -679,35 +684,45 @@ function parsePlainText(text, matchData) {
     }
 
     // Parsear BTTS y Goles
-    const bttsSiMatch = text.match(/BTTS.*Sí:\s*(\d+)%/);
-    const bttsNoMatch = text.match(/BTTS.*No:\s*(\d+)%/);
-    const over25Match = text.match(/Más de 2\.5:\s*(\d+)%/);
-    const under25Match = text.match(/Menos de 2\.5:\s*(\d+)%/);
+    const bttsSiMatch = text.match(/BTTS.*Sí\s*[:|-]?\s*(\d+\.?\d*)%/is);
+    const bttsNoMatch = text.match(/BTTS.*No\s*[:|-]?\s*(\d+\.?\d*)%/is);
+    const over25Match = text.match(/Más\s*de\s*2\.5\s*[:|-]?\s*(\d+\.?\d*)%/is);
+    const under25Match = text.match(/Menos\s*de\s*2\.5\s*[:|-]?\s*(\d+\.?\d*)%/is);
 
     let bttsSi = bttsSiMatch ? parseFloat(bttsSiMatch[1]) : 50;
     let bttsNo = bttsNoMatch ? parseFloat(bttsNoMatch[1]) : 50;
     let over25 = over25Match ? parseFloat(over25Match[1]) : 50;
     let under25 = under25Match ? parseFloat(under25Match[1]) : 50;
 
-    // Validar BTTS
-    if (!isFinite(bttsSi) || !isFinite(bttsNo) || Math.abs(bttsSi + bttsNo - 100) > 5) {
-        console.warn('[parsePlainText] BTTS Sí + No no válidos o no suman 100%:', { bttsSi, bttsNo });
+    // Normalizar BTTS
+    const bttsSum = bttsSi + bttsNo;
+    if (!isFinite(bttsSum) || bttsSum < 95 || bttsSum > 105) {
+        console.warn('[parsePlainText] BTTS Sí + No no válidos o no suman ~100%:', { bttsSi, bttsNo });
         bttsSi = bttsNo = 50;
+    } else {
+        const scale = bttsSum > 0 ? 100 / bttsSum : 1;
+        bttsSi *= scale;
+        bttsNo *= scale;
     }
 
-    // Validar Más/Menos 2.5
-    if (!isFinite(over25) || !isFinite(under25) || Math.abs(over25 + under25 - 100) > 5) {
-        console.warn('[parsePlainText] Goles Más/Menos 2.5 no válidos o no suman 100%:', { over25, under25 });
+    // Normalizar Más/Menos 2.5
+    const goalsSum = over25 + under25;
+    if (!isFinite(goalsSum) || goalsSum < 95 || goalsSum > 105) {
+        console.warn('[parsePlainText] Goles Más/Menos 2.5 no válidos o no suman ~100%:', { over25, under25 });
         over25 = under25 = 50;
+    } else {
+        const scale = goalsSum > 0 ? 100 / goalsSum : 1;
+        over25 *= scale;
+        under25 *= scale;
     }
 
     // Parsear justificaciones
-    const analysisMatch = text.match(/Análisis del Partido:(.*?)Probabilidades:/s);
+    const analysisMatch = text.match(/Análisis\s*del\s*Partido\s*[:|-]?\s*(.*?)(?:Probabilidades\s*[:|-]?|$)/is);
     if (analysisMatch && analysisMatch[1]) {
         const analysisText = analysisMatch[1];
-        const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?:Empate:|$)`, 's'));
-        const drawJustification = analysisText.match(/Empate:(.*?)(?:(?:[^:]+:)|$)/s);
-        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$)`, 's'));
+        const localJustification = analysisText.match(new RegExp(`${matchData.local}\\s*[:|-]?\s*(.*?)(?:Empate\s*[:|-]?|$|${matchData.visitante}\\s*[:|-]?)`, 'is'));
+        const drawJustification = analysisText.match(/Empate\s*[:|-]?\s*(.*?)(?:(?:[^:]+[:|-]?)|$)/is);
+        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}\\s*[:|-]?\s*(.*?)(?:Probabilidades\s*[:|-]?|$)`, 'is'));
         if (localJustification) aiJustification.home = localJustification[1].trim();
         if (drawJustification) aiJustification.draw = drawJustification[1].trim();
         if (awayJustification) aiJustification.away = awayJustification[1].trim();
@@ -736,7 +751,7 @@ function getCombinedPrediction(finalProbs, stats, event, matchData) {
     const ai = event.pronostico_json || parsePlainText(event.pronostico || '', matchData);
     if (!ai || !ai["1X2"] || Object.values(ai["1X2"]).every(p => !p?.probabilidad)) {
         combined.header = "Análisis Estadístico Principal";
-        combined.body = `<p>No se encontró un pronóstico de IA válido. El análisis se basa en una combinación de datos estadísticos y valores predeterminados.</p>`;
+        combined.body = `<p>No se encontró un pronóstico de IA válido. El análisis se basa en datos estadísticos locales.</p>`;
         return combined;
     }
     const statProbs = {
@@ -764,7 +779,7 @@ function getCombinedPrediction(finalProbs, stats, event, matchData) {
     let body = `
         <p><strong>Modelo Estadístico:</strong> Victoria Local: ${formatPct(statProbs.home)}, Empate: ${formatPct(statProbs.draw)}, Victoria Visitante: ${formatPct(statProbs.away)}.</p>
         <p><strong>Modelo de IA:</strong> Victoria Local: ${formatPct(aiProbs.home)}, Empate: ${formatPct(aiProbs.draw)}, Victoria Visitante: ${formatPct(aiProbs.away)}.</p>
-        <p><strong>Pronóstico Final (Promedio):</strong> Victoria Local: ${formatPct(finalProbsMap.home)}, Empate: ${formatPct(finalProbsMap.draw)}, Victoria Visitante: ${formatPct(finalProbsMap.away)}.</p>
+        <p><strong>Pronóstico Final:</strong> Victoria Local: ${formatPct(finalProbsMap.home)}, Empate: ${formatPct(finalProbsMap.draw)}, Victoria Visitante: ${formatPct(finalProbsMap.away)}.</p>
     `;
     if (statBest === aiBest && aiBest === finalBest) {
         const resultText = finalBest === 'home' ? `Victoria ${matchData.local}` : finalBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
@@ -777,7 +792,7 @@ function getCombinedPrediction(finalProbs, stats, event, matchData) {
         const aiResult = aiBest === 'home' ? `Victoria ${matchData.local}` : aiBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
         const finalResult = finalBest === 'home' ? `Victoria ${matchData.local}` : finalBest === 'draw' ? 'Empate' : `Victoria ${matchData.visitante}`;
         header = "Discrepancia en Pronósticos ⚠️";
-        body += `<p>El modelo estadístico (${formatPct(statMax)}) favorece la **${statResult}**, mientras que la IA (${formatPct(aiMax)}) se inclina por la **${aiResult}**. El pronóstico final (promedio, ${formatPct(finalMax)}) sugiere la **${finalResult}**.</p>`;
+        body += `<p>El modelo estadístico (${formatPct(statMax)}) favorece la **${statResult}**, mientras que la IA (${formatPct(aiMax)}) se inclina por la **${aiResult}**. El pronóstico final sugiere la **${finalResult}** (${formatPct(finalMax)}).</p>`;
         body += `<p><strong>Análisis de la IA:</strong> ${ai["1X2"][aiBest === 'home' ? 'victoria_local' : aiBest === 'draw' ? 'empate' : 'victoria_visitante']?.justificacion || "Sin justificación detallada."}</p>`;
         body += `<p>Se recomienda cautela. Analiza la justificación de la IA para entender los factores externos que no considera el modelo estadístico.</p>`;
     }
@@ -815,30 +830,66 @@ function calculateAll() {
 
     console.log('Equipo Local:', tH);
     console.log('Equipo Visitante:', tA);
-    console.log('Stats:', stats);
+    console.log('Stats (Dixon-Coles):', stats);
     console.log('Evento:', event);
-    console.log('Pronóstico IA:', event?.pronostico_json || event?.pronostico);
+    console.log('Pronóstico IA (crudo):', event?.pronostico_json || event?.pronostico);
 
     // Obtener probabilidades de la IA
     const ai = event?.pronostico_json || parsePlainText(event?.pronostico || '', matchData);
+    const isLimitedData = (tH.pjHome <= 2 || tA.pjAway <= 2); // Priorizar IA si hay pocos partidos
     const iaHome = validateProbability(parseFloat(ai["1X2"]?.victoria_local?.probabilidad) / 100, stats.finalHome);
     const iaDraw = validateProbability(parseFloat(ai["1X2"]?.empate?.probabilidad) / 100, stats.finalDraw);
     const iaAway = validateProbability(parseFloat(ai["1X2"]?.victoria_visitante?.probabilidad) / 100, stats.finalAway);
     const iaBTTS = validateProbability(parseFloat(ai.BTTS?.si?.probabilidad) / 100, stats.pBTTSH);
     const iaO25 = validateProbability(parseFloat(ai.Goles?.mas_2_5?.probabilidad) / 100, stats.pO25H);
 
-    console.log('Probabilidades IA:', { iaHome, iaDraw, iaAway, iaBTTS, iaO25 });
+    console.log('Probabilidades IA (parseadas):', { iaHome, iaDraw, iaAway, iaBTTS, iaO25 });
 
-    // Promediar probabilidades
+    // Usar IA directamente si hay pocos datos locales, o promediar si hay suficientes
     const probabilities = [
-        { label: 'Local', value: event?.pronostico_json ? (stats.finalHome + iaHome) / 2 : stats.finalHome, id: 'pHome', type: 'Resultado' },
-        { label: 'Empate', value: event?.pronostico_json ? (stats.finalDraw + iaDraw) / 2 : stats.finalDraw, id: 'pDraw', type: 'Resultado' },
-        { label: 'Visitante', value: event?.pronostico_json ? (stats.finalAway + iaAway) / 2 : stats.finalAway, id: 'pAway', type: 'Resultado' },
-        { label: 'Ambos Anotan', value: event?.pronostico_json ? (stats.pBTTSH + iaBTTS) / 2 : stats.pBTTSH, id: 'pBTTS', type: 'Mercado' },
-        { label: 'Más de 2.5 goles', value: event?.pronostico_json ? (stats.pO25H + iaO25) / 2 : stats.pO25H, id: 'pO25', type: 'Mercado' }
+        {
+            label: 'Local',
+            value: isLimitedData || !event?.pronostico_json ? iaHome : (stats.finalHome + iaHome) / 2,
+            id: 'pHome',
+            type: 'Resultado'
+        },
+        {
+            label: 'Empate',
+            value: isLimitedData || !event?.pronostico_json ? iaDraw : (stats.finalDraw + iaDraw) / 2,
+            id: 'pDraw',
+            type: 'Resultado'
+        },
+        {
+            label: 'Visitante',
+            value: isLimitedData || !event?.pronostico_json ? iaAway : (stats.finalAway + iaAway) / 2,
+            id: 'pAway',
+            type: 'Resultado'
+        },
+        {
+            label: 'Ambos Anotan',
+            value: isLimitedData || !event?.pronostico_json ? iaBTTS : (stats.pBTTSH + iaBTTS) / 2,
+            id: 'pBTTS',
+            type: 'Mercado'
+        },
+        {
+            label: 'Más de 2.5 goles',
+            value: isLimitedData || !event?.pronostico_json ? iaO25 : (stats.pO25H + iaO25) / 2,
+            id: 'pO25',
+            type: 'Mercado'
+        }
     ];
 
-    // Validar probabilidades antes de actualizar el DOM
+    // Normalizar 1X2 para que sume ~100%
+    const sum1X2 = probabilities[0].value + probabilities[1].value + probabilities[2].value;
+    if (sum1X2 > 0 && (sum1X2 < 0.95 || sum1X2 > 1.05)) {
+        console.warn('[calculateAll] Probabilidades 1X2 no suman ~100%:', sum1X2);
+        const scale = 1 / sum1X2;
+        probabilities[0].value *= scale;
+        probabilities[1].value *= scale;
+        probabilities[2].value *= scale;
+    }
+
+    // Actualizar DOM
     probabilities.forEach(p => {
         p.value = validateProbability(p.value, 0.5);
         const el = dom[p.id];
@@ -889,6 +940,14 @@ function calculateAll() {
     const combined = getCombinedPrediction(probabilities, stats, event || {}, matchData);
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = `<h3>${combined.header}</h3>${combined.body}`;
     else console.warn('[calculateAll] Elemento DOM combinedPrediction no encontrado');
+
+    // Mostrar advertencia si se usó IA debido a datos limitados
+    if (isLimitedData && dom.details) {
+        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Datos locales limitados (PJ Home: ${tH.pjHome}, PJ Away: ${tA.pjAway}). Usando pronóstico de IA como principal.</div>`;
+        setTimeout(() => {
+            dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
+        }, 5000);
+    }
 }
 
 // EVENTOS DEL DOM
