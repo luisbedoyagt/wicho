@@ -410,7 +410,7 @@ function clearProbabilities() {
 function generateTeamHtml(team = {}) {
     const dg = (team.gf || 0) - (team.ga || 0);
     const dgHome = (team.gfHome || 0) - (team.gaHome || 0);
-    const dgAway = (team.gaAway || 0) - (team.gaAway || 0);
+    const dgAway = (team.gfAway || 0) - (team.gaAway || 0);
     const winPct = team.pj > 0 ? ((team.g / team.pj) * 100).toFixed(1) : '0.0';
     return `
         <div class="team-details">
