@@ -1,0 +1,256 @@
+```css
+/* Configuración Móvil: Estilos para pantallas de hasta 767px */
+
+@media (max-width: 767px) {
+    body {
+        padding: 0.8rem;
+    }
+    .container {
+        gap: 0.6rem;
+    }
+    .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas: none;
+        gap: 0.6rem;
+    }
+
+    /* Espacio entre todas las fichas */
+    .app-header,
+    .event-card,
+    #card-home,
+    #card-away,
+    .result-card,
+    .recommendation-ia-grid,
+    .reset-container {
+        margin-bottom: 0.6rem;
+    }
+    .card {
+        margin-bottom: 0.6rem;
+    }
+
+    .app-header {
+        padding: 1rem 0 0.8rem;
+    }
+    .app-header h1 {
+        font-size: 1.5rem;
+    }
+    .app-header p {
+        font-size: 0.9rem;
+    }
+    .card-header {
+        padding: 0.6rem;
+    }
+    .card-header h3 {
+        font-size: 1.2rem;
+    }
+    .card-header .fas {
+        font-size: 1.2rem;
+    }
+    .card-header::before,
+    .card-header::after {
+        width: 8px;
+        height: 8px;
+        top: 6px;
+        right: 6px;
+    }
+    .card-header::before {
+        left: 6px;
+    }
+    .team-card .card-header .fas {
+        font-size: 1.5rem;
+    }
+    .team-card .card-header h3 {
+        font-size: 1.4rem;
+    }
+
+    /* COMPACTACIÓN DE LA FICHA DE EQUIPO */
+    .card-body {
+        padding: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+    .team-logo {
+        width: 35px;
+        height: 35px;
+        margin-right: 0;
+        flex-shrink: 0;
+    }
+    .team-details {
+        margin-top: 0;
+    }
+    .stats-grid {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-around;
+        gap: 0.3rem;
+        margin-top: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.3rem;
+    }
+    .stat-box {
+        flex-basis: 22%;
+        flex-shrink: 0;
+        min-width: 55px;
+        padding: 0.3rem;
+    }
+    .stat-label {
+        font-size: 0.55rem;
+    }
+    .stat-value {
+        font-size: 0.9rem;
+        margin-top: 0.15rem;
+    }
+    .stat-section {
+        padding: 0.4rem 0.6rem;
+        margin-top: 0;
+    }
+    .stat-section .section-title {
+        font-size: 0.8rem;
+    }
+    .stat-metrics {
+        gap: 0.2rem;
+    }
+    .stat-metrics span {
+        padding: 0.1rem 0.3rem;
+        font-size: 0.6rem;
+    }
+
+    /* Resto de las secciones */
+    .recommendation-ia-grid {
+        grid-template-columns: 1fr;
+        gap: 0.6rem;
+        margin-top: 0;
+    }
+    .recommendation-ia-grid .card-header h3 {
+        font-size: 1.15rem;
+    }
+    .rec-suggestion h3 {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+    .rec-suggestion ul {
+        gap: 5px;
+    }
+    .rec-suggestion ul li {
+        padding: 6px 8px;
+        font-size: 0.75em;
+        gap: 8px;
+    }
+    .rec-suggestion ul li strong {
+        font-size: 0.7em;
+        margin-right: 6px;
+    }
+    #details {
+        margin-bottom: 0.2rem;
+        font-size: 0.85em;
+    }
+    .probabilities-grid {
+        gap: 0.25rem;
+        margin-top: 0.3rem;
+        flex-wrap: wrap;
+    }
+    .probability-tile {
+        flex: 1 1 30%;
+        max-width: 32%;
+        padding: 0.4rem 0.25rem;
+    }
+    .probability-tile .label {
+        font-size: 0.5rem;
+        margin-bottom: 0.05rem;
+    }
+    .probability-tile .value {
+        font-size: 0.9rem;
+    }
+    .probability-tile:nth-child(n+4) {
+        flex: 1 1 45%;
+        max-width: 48%;
+    }
+    .recommendation-box {
+        margin-top: 0.6rem;
+        padding: 0.8rem;
+    }
+    .rec-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+    .rec-suggestion ul {
+        gap: 5px;
+    }
+    .rec-item {
+        padding: 6px 8px;
+        font-size: 0.75em;
+        gap: 8px;
+    }
+    .rec-rank {
+        width: 18px;
+        height: 18px;
+        font-size: 0.65em;
+    }
+    .rec-bet {
+        margin-left: 6px;
+        font-size: 0.7em;
+    }
+    .rec-prob {
+        font-size: 0.9em;
+    }
+    .reset-container {
+        padding: 1.5rem 0;
+    }
+    .control-group {
+        margin-bottom: 0;
+    }
+    .control-group label {
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+    }
+    select {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.7rem;
+        background-position: right 0.4rem top 50%;
+        background-size: 0.8rem auto;
+    }
+    .event-list {
+        gap: 0.8rem;
+    }
+    .event-item {
+        padding: 0.8rem;
+        font-size: 0.85rem;
+        max-width: 350px;
+    }
+    .team-name {
+        font-size: 0.85rem;
+        text-align: center;
+    }
+    .vs {
+        font-size: 0.85rem;
+        margin: 0 0.3rem;
+    }
+    .event-details {
+        font-size: 0.75rem;
+        white-space: normal;
+    }
+    .event-content {
+        gap: 0.3rem;
+    }
+    .team-logo-container {
+        gap: 0.3rem;
+    }
+    .event-item.placeholder {
+        padding: 0.8rem;
+    }
+    select optgroup {
+        font-size: 0.9em;
+        margin-top: 6px;
+        padding-bottom: 3px;
+    }
+    select optgroup:not(:first-child) {
+        margin-top: 12px;
+    }
+    select option {
+        font-size: 0.8em;
+        padding-left: 8px;
+    }
+}
+```
