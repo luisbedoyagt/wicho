@@ -1,5 +1,5 @@
 /* ========================================================================== */
-/* ESTILOS GLOBALES Y VARIABLES */
+/* ESTILOS GLOBALES Y VARIABLES (APLICAN A AMBOS) */
 /* ========================================================================== */
 
 /* Variables de color y tipografía */
@@ -369,13 +369,14 @@ select:focus {
     box-shadow: none;
 }
 
-.in-progress {
+.disabled-event {
     cursor: not-allowed;
     opacity: 0.6;
     filter: grayscale(80%);
+    transition: none;
 }
 
-.in-progress:hover {
+.disabled-event:hover {
     transform: none;
     box-shadow: none;
 }
@@ -636,7 +637,7 @@ select:focus {
     gap: 12px;
 }
 
-/* Estilos para los elementos generados por script.js */
+/* Estilos para los elementos generados por script2.js */
 .rec-suggestion h3 {
     font-size: 1.2rem;
     color: var(--highlight-blue);
@@ -787,7 +788,7 @@ select:focus {
     font-style: normal;
 }
 
-/* Estilo para la ficha de Pronóstico Combinado */
+/* Estilo para la ficha de Pronóstico Combinado (agregado) */
 #combined-prediction {
     padding: 1.5rem;
     background: var(--secondary-bg);
@@ -910,30 +911,28 @@ select option {
     animation: slide-in-right 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-/* Clases para retrasos de animación */
-.delay-0 { animation-delay: 0s; }
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
-.delay-4 { animation-delay: 0.4s; }
-.delay-5 { animation-delay: 0.5s; }
 
-/* Efectos de luz y estilos de logos */
+/* ========================================= */
+/* EFECTOS DE LUZ Y ESTILOS DE LOGOS */
+/* ========================================= */
 .team-logo-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 10px; /* Espacio entre el nombre del equipo, logo y "vs" */
 }
 
 .team-logo {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
+    width: 40px; /* Ajusta el tamaño según necesites */
+    height: 40px; /* Mantener la proporción */
+    object-fit: contain; /* Asegura que el logo se vea completo */
+    /* border-radius: 50%; <--- Eliminado para que no sea circular */
+    
+    /* Brillo inicial que simula un rayo */
     filter: drop-shadow(0 0 3px rgba(0, 191, 255, 0.5)) drop-shadow(0 0 8px rgba(0, 191, 255, 0.3));
-    transition: filter 0.4s ease-in-out, transform 0.3s ease;
-    padding: 2px;
-    background-color: transparent;
+    transition: filter 0.4s ease-in-out, transform 0.3s ease; /* Transición suave para el brillo y la escala */
+    padding: 2px; /* Pequeño padding si se necesita */
+    background-color: transparent; /* Fondo transparente para que el brillo sea el protagonista */
 }
 
 .team-logo.hidden {
@@ -941,25 +940,30 @@ select option {
 }
 
 .team-logo:hover {
+    /* Efecto de rayo más intenso y 'pulsante' al pasar el cursor */
     filter: drop-shadow(0 0 6px rgba(0, 191, 255, 0.7)) drop-shadow(0 0 15px rgba(0, 191, 255, 0.5)) drop-shadow(0 0 25px rgba(0, 191, 255, 0.3));
-    transform: scale(1.1);
-    animation: neon-pulse 1.2s ease-in-out infinite alternate;
+    transform: scale(1.1); /* Ligeramente más grande al pasar el ratón */
+    animation: neon-pulse 1.2s ease-in-out infinite alternate; /* Animación de pulsación sutil */
 }
 
+/* Estilos para logos en las tarjetas de equipo */
 .card-home .team-logo,
 .card-away .team-logo {
-    width: 50px;
+    width: 50px; /* Un poco más grandes en las tarjetas */
     height: 50px;
+    /* Efecto de rayo inicial para tarjetas */
     filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
 }
 
 .card-home .team-logo:hover,
 .card-away .team-logo:hover {
+    /* Efecto de rayo dorado/amarillo al pasar el cursor */
     filter: drop-shadow(0 0 8px rgba(255, 255, 0, 0.8)) drop-shadow(0 0 18px rgba(255, 255, 0, 0.6)) drop-shadow(0 0 30px rgba(255, 255, 0, 0.4));
     transform: scale(1.1);
     animation: neon-pulse-yellow 1.2s ease-in-out infinite alternate;
 }
 
+/* Animación de pulsación para el efecto de rayo */
 @keyframes neon-pulse {
     from {
         filter: drop-shadow(0 0 6px rgba(0, 191, 255, 0.7)) drop-shadow(0 0 15px rgba(0, 191, 255, 0.5));
@@ -978,7 +982,10 @@ select option {
     }
 }
 
-/* Ajustes para móvil (menos de 767px) */
+/* ========================================================================== */
+/* AJUSTES PARA MÓVIL (MENOS DE 767PX) */
+/* ========================================================================== */
+
 @media (max-width: 767px) {
     body {
         padding: 0.8rem;
@@ -991,6 +998,8 @@ select option {
         grid-template-areas: none;
         gap: 0.6rem;
     }
+
+    /* Espacio entre todas las fichas */
     .app-header,
     .event-card,
     #card-home,
@@ -1003,6 +1012,7 @@ select option {
     .card {
         margin-bottom: 0.6rem;
     }
+
     .app-header {
         padding: 1rem 0 0.8rem;
     }
@@ -1037,6 +1047,8 @@ select option {
     .team-card .card-header h3 {
         font-size: 1.4rem;
     }
+
+    /* COMPACTACIÓN DE LA FICHA DE EQUIPO */
     .card-body {
         padding: 0.6rem;
         display: flex;
@@ -1089,6 +1101,8 @@ select option {
         padding: 0.1rem 0.3rem;
         font-size: 0.6rem;
     }
+
+    /* Resto de las secciones */
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
         gap: 0.6rem;
@@ -1223,4 +1237,26 @@ select option {
         font-size: 0.8em;
         padding-left: 8px;
     }
+}
+
+/* Clases migradas del JS para estilos inline */
+.in-progress {
+    cursor: not-allowed;
+    opacity: 0.6;
+    filter: grayscale(80%);
+    transition: none;
+}
+
+.in-progress:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Clases para retrasos de animación (migrado de style.animationDelay) */
+.delay-0 { animation-delay: 0s; }
+.delay-1 { animation-delay: 0.1s; }
+
+/* Asegurar que .hidden funcione para logos (ya existe, pero confirmado) */
+.team-logo.hidden {
+    display: none;
 }
