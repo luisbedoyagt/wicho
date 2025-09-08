@@ -87,7 +87,7 @@ const leagueRegions = {
     "gua.1": "Centroamérica",
     "crc.1": "Centroamérica",
     "hon.1": "Centroamérica",
-    "slv.1": "ElSalvador_LigaPrimeraDivision",
+    "slv.1": "Centroamérica",
     "ksa.1": "Asia",
     "chn.1": "Asia",
     "conmebol.sudamericana": "Copas Internacionales",
