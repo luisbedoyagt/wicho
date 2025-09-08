@@ -285,6 +285,7 @@ function selectEvent(homeTeamName, awayTeamName) {
         const awayOption = Array.from(dom.teamAwaySelect.options).find(opt => normalizeName(opt.text) === normalizeName(awayTeamName));
         if (homeOption) dom.teamHomeSelect.value = homeOption.value;
         if (awayOption) dom.teamAwaySelect.value = awayOption.value;
+        // Se llama a onTeamChange() aquí para asegurar que los datos se llenen.
         onTeamChange();
     }, 500);
 }
@@ -351,21 +352,18 @@ function onTeamChange(event) {
     const leagueCode = dom.leagueSelect.value;
     const teamHome = dom.teamHomeSelect.value;
     const teamAway = dom.teamAwaySelect.value;
-    // Si no se han seleccionado ambos equipos, se limpian los datos y los pronósticos.
-    if (!leagueCode || !teamHome || !teamAway || teamHome === teamAway) {
+
+    if (!leagueCode) {
         clearProbabilities();
         if (!teamHome) clearTeamData('Home');
         if (!teamAway) clearTeamData('Away');
-        if (teamHome && teamAway && teamHome === teamAway) {
-            dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No puedes seleccionar el mismo equipo para local y visitante.</div>';
-            setTimeout(() => {
-                dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
-            }, 5000);
-        }
+        return;
     }
+
     // Lógica para actualizar los datos del equipo seleccionado al instante
-    const selectedTeamName = event.target.value;
-    const isHome = event.target.id === 'teamHome';
+    const selectedTeamName = event ? event.target.value : (teamHome || teamAway);
+    const isHome = event ? event.target.id === 'teamHome' : !!teamHome;
+
     if (selectedTeamName) {
         const teamData = findTeam(leagueCode, selectedTeamName);
         if (isHome) {
@@ -373,13 +371,25 @@ function onTeamChange(event) {
         } else {
             fillTeamData(teamData, 'Away');
         }
+    } else {
+        if (isHome) clearTeamData('Home');
+        else clearTeamData('Away');
     }
+
     // Lógica para calcular si ambos equipos están seleccionados
-    if (leagueCode && teamHome && teamAway && teamHome !== teamAway) {
+    if (teamHome && teamAway && teamHome !== teamAway) {
         const tH = findTeam(leagueCode, teamHome);
         const tA = findTeam(leagueCode, teamAway);
         if (tH && tA) {
             calculateAll();
+        }
+    } else {
+        clearProbabilities();
+        if (teamHome && teamAway && teamHome === teamAway) {
+            dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No puedes seleccionar el mismo equipo para local y visitante.</div>';
+            setTimeout(() => {
+                dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
+            }, 5000);
         }
     }
 }
@@ -400,7 +410,7 @@ function clearProbabilities() {
 function generateTeamHtml(team = {}) {
     const dg = (team.gf || 0) - (team.ga || 0);
     const dgHome = (team.gfHome || 0) - (team.gaHome || 0);
-    const dgAway = (team.gaAway || 0) - (team.gfAway || 0);
+    const dgAway = (team.gaAway || 0) - (team.gaAway || 0);
     const winPct = team.pj > 0 ? ((team.g / team.pj) * 100).toFixed(1) : '0.0';
     return `
         <div class="team-details">
