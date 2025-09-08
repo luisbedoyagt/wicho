@@ -361,7 +361,7 @@ async function init() {
                     } else if (document.activeElement === dom.teamAwaySelect) {
                         fillTeamData(tA, 'Away');
                     }
-                    calculateAll(tH, tA, leagueCode);
+                    calculateAll();
                 }
             }
         }
@@ -400,7 +400,7 @@ function restrictSameTeam() {
 function generateTeamHtml(team = {}) {
     const dg = (team.gf || 0) - (team.ga || 0);
     const dgHome = (team.gfHome || 0) - (team.gaHome || 0);
-    const dgAway = (team.gaAway || 0) - (team.gfAway || 0); // Corrección: ga - gf para visitante
+    const dgAway = (team.gaAway || 0) - (team.gfAway || 0);
     return `
         <div class="team-details">
             <div class="stat-section">
@@ -547,7 +547,7 @@ function dixonColesProbabilities(tH, tA, league) {
     let pO25H = 0;
     for (let i = 0; i <= 10; i++) {
         for (let j = 0; j <= 10; j++) {
-            if (i + j > 2.5) {
+            if (i + j >= 3) {
                 pO25H += poissonProbability(expectedHomeGoals, i) * poissonProbability(expectedAwayGoals, j);
             }
         }
