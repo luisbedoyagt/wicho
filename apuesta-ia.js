@@ -77,7 +77,9 @@ function fillTeamData(teamName, leagueCode, type) {
     const typeLower = type.toLowerCase();
     if (!t) {
         const details = $('details');
-        if (details) details.innerHTML = `<div class="error"><strong>Error:</strong> Equipo ${teamName} no encontrado en la liga seleccionada.</div>`;
+        if (details) {
+            details.innerHTML = `<div class="error"><strong>Error:</strong> Equipo ${teamName} no encontrado en la liga seleccionada.</div>`;
+        }
         return;
     }
     $(`pos${type}`).textContent = t.pos || '--';
@@ -137,17 +139,18 @@ function fillTeamData(teamName, leagueCode, type) {
 function clearAll() {
     document.querySelectorAll('.stat-value').forEach(el => el.textContent = '--');
     document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-    ['pHome', 'pDraw', 'pAway', 'pBTTS', 'pO25', 'expHomeGoals', 'expAwayGoals'].forEach(id => {
+    ['pHome', 'pDraw', 'pAway', 'pBTTS', 'pO25'].forEach(id => {
         const el = $(id);
         if (el) el.textContent = '--';
     });
-    const detailedPrediction = $('detailed-prediction');
+    // Se ajustan los IDs para tu HTML
+    const detailedPrediction = $('ia-prediction-content');
     if (detailedPrediction) detailedPrediction.innerHTML = '<p>Esperando pronóstico detallado...</p>';
     const details = $('details');
     if (details) details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
-    const suggestion = $('suggestion');
-    if (suggestion) suggestion.innerHTML = '<p>Esperando datos...</p>';
-    const combinedPrediction = $('combined-prediction');
+    const suggestion = $('suggestion-list');
+    if (suggestion) suggestion.innerHTML = '';
+    const combinedPrediction = $('combined-prediction-content');
     if (combinedPrediction) combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
     clearTeamData('Home');
     clearTeamData('Away');
@@ -239,8 +242,8 @@ function dixonColesProbabilities(tH, tA, league) {
     const finalDraw = adjustedDraw * scale;
     const finalAway = awayWinAdjusted * scale;
 
-    const pBTTSH = 1 - (poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0));
-    const pO25H = 1 - (poissonProbability(expectedHomeGoals, 0) + poissonProbability(expectedHomeGoals, 1)) * (poissonProbability(expectedAwayGoals, 0) + poissonProbability(expectedAwayGoals, 1)) - (poissonProbability(expectedHomeGoals, 2) * poissonProbability(expectedAwayGoals, 0)) - (poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 2)) - (poissonProbability(expectedHomeGoals, 1) * poissonProbability(expectedAwayGoals, 1));
+    const pBTTSH = 1 - (poissonProbability(expectedHomeGoals, 0) + poissonProbability(expectedAwayGoals, 0) - poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0));
+    const pO25H = 1 - (poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 0) + poissonProbability(expectedHomeGoals, 1) * poissonProbability(expectedAwayGoals, 0) + poissonProbability(expectedHomeGoals, 0) * poissonProbability(expectedAwayGoals, 1) + poissonProbability(expectedHomeGoals, 1) * poissonProbability(expectedAwayGoals, 1));
 
     return {
         finalHome,
@@ -308,7 +311,6 @@ function parsePlainText(text, matchData) {
         }
     };
 }
-
 
 // COMBINACIÓN DE PRONÓSTICOS
 function getCombinedPrediction(stats, event, matchData) {
@@ -396,14 +398,17 @@ function calculateAll() {
     }
     const stats = dixonColesProbabilities(tH, tA, leagueCode);
     
-    // Mostrar goles esperados
-    $('expHomeGoals').textContent = formatDec(stats.expHomeGoals);
-    $('expAwayGoals').textContent = formatDec(stats.expAwayGoals);
+    // No hay elementos para goles esperados en el HTML
+    // const expHomeGoalsEl = $('expHomeGoals');
+    // const expAwayGoalsEl = $('expAwayGoals');
+    // if (expHomeGoalsEl) expHomeGoalsEl.textContent = formatDec(stats.expHomeGoals);
+    // if (expAwayGoalsEl) expAwayGoalsEl.textContent = formatDec(stats.expAwayGoals);
 
     const ligaName = leagueCodeToName[leagueCode];
     const event = allData.calendario?.[ligaName]?.find(e => e.local.trim().toLowerCase() === teamHome.trim().toLowerCase() && e.visitante.trim().toLowerCase() === teamAway.trim().toLowerCase());
     const matchData = { local: teamHome, visitante: teamAway };
-
+    
+    // Actualizar probabilidades
     const probabilities = [
         { label: 'Local', value: stats.finalHome, id: 'pHome', type: 'Resultado' },
         { label: 'Empate', value: stats.finalDraw, id: 'pDraw', type: 'Resultado' },
@@ -417,24 +422,23 @@ function calculateAll() {
     });
 
     const recommendations = probabilities.filter(p => p.value >= 0.45).sort((a, b) => b.value - a.value);
-    let suggestionText = '<h3>Recomendaciones de Apuesta</h3>';
-    if (recommendations.length > 0) {
-        suggestionText += '<ul>';
-        recommendations.forEach(r => {
-            suggestionText += `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`;
-        });
-        suggestionText += '</ul>';
-    } else {
-        suggestionText += '<p>No se encontraron apuestas con una probabilidad de al menos 45%. Se recomienda cautela.</p>';
+    const suggestionList = $('suggestion-list');
+    if (suggestionList) {
+        let suggestionHtml = '';
+        if (recommendations.length > 0) {
+            recommendations.forEach(r => {
+                suggestionHtml += `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`;
+            });
+        } else {
+            suggestionHtml = '<li>No se encontraron apuestas con una probabilidad de al menos 45%. Se recomienda cautela.</li>';
+        }
+        suggestionList.innerHTML = suggestionHtml;
     }
-    const suggestion = $('suggestion');
-    if (suggestion) suggestion.innerHTML = suggestionText;
 
-    const detailedPredictionBox = $('detailed-prediction');
+    const detailedPredictionBox = $('ia-prediction-content');
     if (event && (event.pronostico_json || event.pronostico)) {
         const json = event.pronostico_json || parsePlainText(event.pronostico, matchData);
-        let html = `<h3>Análisis de la IA</h3><div class="ia-prediction">`;
-        html += `<h4>Análisis del Partido: ${teamHome} vs. ${teamAway}</h4>`;
+        let html = `<h4>Análisis del Partido: ${teamHome} vs. ${teamAway}</h4>`;
         html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion} (Probabilidad: ${json["1X2"].victoria_local.probabilidad})</p>`;
         html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion} (Probabilidad: ${json["1X2"].empate.probabilidad})</p>`;
         html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion} (Probabilidad: ${json["1X2"].victoria_visitante.probabilidad})</p>`;
@@ -444,13 +448,12 @@ function calculateAll() {
         html += `<h4>Goles Totales (Más/Menos 2.5):</h4>`;
         html += `<p><strong>Más de 2.5:</strong> ${json.Goles.mas_2_5.probabilidad} ${json.Goles.mas_2_5.justificacion ? ` - ${json.Goles.mas_2_5.justificacion}` : ''}</p>`;
         html += `<p><strong>Menos de 2.5:</strong> ${json.Goles.menos_2_5.probabilidad} ${json.Goles.menos_2_5.justificacion ? ` - ${json.Goles.menos_2.5.justificacion}` : ''}</p>`;
-        html += `</div>`;
         if (detailedPredictionBox) detailedPredictionBox.innerHTML = html;
     } else if (detailedPredictionBox) {
         detailedPredictionBox.innerHTML = `<p>No hay un pronóstico de la IA disponible para este partido en la hoja de cálculo.</p>`;
     }
     
     const combined = getCombinedPrediction(stats, event, matchData);
-    const combinedPrediction = $('combined-prediction');
+    const combinedPrediction = $('combined-prediction-content');
     if (combinedPrediction) combinedPrediction.innerHTML = `<h3>${combined.header}</h3>${combined.body}`;
 }
