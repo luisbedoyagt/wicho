@@ -21,6 +21,7 @@ const factorial = n => n <= 1 ? 1 : Array.from({ length: n }, (_, i) => i + 1).r
 
 const normalizeName = name => name ? name.trim().toLowerCase().replace(/\s+/g, ' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
 
+// CENTRALIZAR SELECTORES DEL DOM
 const dom = {
     leagueSelect: getDomElement('leagueSelect'),
     teamHomeSelect: getDomElement('teamHome'),
@@ -42,8 +43,10 @@ const dom = {
     cardAway: getDomElement('card-away'),
 };
 
+// VARIABLES GLOBALES
 let teamsByLeague = {}, allData = {}, eventInterval;
 
+// NORMALIZACIÓN DE DATOS
 const teamFields = {
     home: ['gamesPlayedHome', 'matchesPlayedHome', 'homeGamesPlayed', 'homeMatches', 'playedHome', 'homePlayed', 'gamesHome', 'matchesHome'],
     away: ['gamesPlayedAway', 'matchesPlayedAway', 'awayGamesPlayed', 'awayMatches', 'playedAway', 'awayPlayed', 'gamesAway', 'matchesAway']
@@ -51,7 +54,7 @@ const teamFields = {
 
 function normalizeTeam(raw) {
     if (!raw?.name?.trim()) {
-        console.warn('[normalizeTeam] Nombre de equipo inválido:', raw?.name);
+        console.warn(`[normalizeTeam] Nombre de equipo inválido:`, raw?.name);
         return null;
     }
     console.log('[normalizeTeam] Normalizando:', JSON.stringify(raw, null, 2));
@@ -85,6 +88,7 @@ function normalizeTeam(raw) {
     return r;
 }
 
+// BÚSQUEDA DE EQUIPO
 function findTeam(leagueCode, teamName) {
     if (!teamsByLeague[leagueCode]) {
         console.warn('[findTeam] Liga no encontrada:', leagueCode);
@@ -98,6 +102,7 @@ function findTeam(leagueCode, teamName) {
     return team;
 }
 
+// FETCH DATOS COMPLETOS
 async function fetchAllData() {
     if (dom.leagueSelect) {
         dom.leagueSelect.innerHTML = '<option value="">Cargando datos...</option>';
@@ -134,6 +139,7 @@ async function fetchAllData() {
     }
 }
 
+// MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
 function renderEvent(event, index, leagueCode) {
     const div = document.createElement('div');
     div.className = 'event-item slide-in';
@@ -210,6 +216,7 @@ function displaySelectedLeagueEvents(leagueCode) {
     if (totalPages > 1) eventInterval = setInterval(showCurrentPage, 10000);
 }
 
+// CAMBIO DE LIGA
 function onLeagueChange() {
     const code = dom.leagueSelect.value;
     if (!dom.teamHomeSelect || !dom.teamAwaySelect) return;
@@ -244,6 +251,7 @@ function onLeagueChange() {
     clearProbabilities();
 }
 
+// SELECCIÓN DE EVENTO
 function selectEvent(homeTeamName, awayTeamName) {
     const ligaName = Object.keys(allData.calendario).find(liga =>
         allData.calendario[liga]?.some(e => normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName))
@@ -264,6 +272,7 @@ function selectEvent(homeTeamName, awayTeamName) {
     }, 500);
 }
 
+// INICIALIZACIÓN
 async function init() {
     console.log('[init] Iniciando a las', new Date().toLocaleString('es-ES', { timeZone: 'America/Guatemala' }));
     clearAll();
@@ -280,6 +289,7 @@ async function init() {
         if (dom.details) dom.details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> No se encontraron ligas. Verifica la API.</div>';
         return;
     }
+    dom.leagueSelect.innerHTML = '<option value="">-- Selecciona liga --</option>';
     const regionsMap = {};
     Object.keys(allData.ligas).forEach(code => {
         const region = leagueRegions[code] || 'Otras Ligas';
@@ -291,7 +301,6 @@ async function init() {
         const aIndex = customOrder.indexOf(a), bIndex = customOrder.indexOf(b);
         return aIndex === -1 && bIndex === -1 ? a.localeCompare(b) : aIndex === -1 ? 1 : bIndex === -1 ? -1 : aIndex - bIndex;
     });
-    dom.leagueSelect.innerHTML = '<option value="">-- Selecciona liga --</option>';
     sortedRegions.forEach(regionName => {
         const optgroup = document.createElement('optgroup');
         optgroup.label = regionName;
@@ -314,6 +323,7 @@ async function init() {
     displaySelectedLeagueEvents('');
 }
 
+// ONTEAMCHANGE
 function onTeamChange(event) {
     const leagueCode = dom.leagueSelect.value, teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
     console.log('[onTeamChange] Selección:', { leagueCode, teamHome, teamAway });
@@ -344,6 +354,7 @@ function onTeamChange(event) {
     }
 }
 
+// FUNCIÓN PARA LIMPIAR SOLO LAS PROBABILIDADES
 function clearProbabilities() {
     ['pHome', 'pDraw', 'pAway', 'pBTTS', 'pO25'].forEach(id => dom[id] && (dom[id].textContent = '--'));
     if (dom.suggestion) dom.suggestion.innerHTML = '<p>Esperando datos...</p>';
@@ -351,6 +362,7 @@ function clearProbabilities() {
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
 }
 
+// GENERAR HTML PARA DATOS DE EQUIPO (ENRIQUECIDO)
 function generateTeamHtml(team = {}) {
     const dgTotal = (team.gf || 0) - (team.ga || 0), dgHome = (team.gfHome || 0) - (team.gaHome || 0), dgAway = (team.gfAway || 0) - (team.gaAway || 0);
     const winPct = team.pj ? ((team.g / team.pj) * 100).toFixed(1) : '0.0';
@@ -408,6 +420,7 @@ function generateTeamHtml(team = {}) {
     `;
 }
 
+// LIMPIAR DATOS DE EQUIPO
 function clearTeamData(type) {
     const cardHeader = dom[`card${type}`]?.querySelector('.card-header');
     if (cardHeader) {
@@ -417,6 +430,7 @@ function clearTeamData(type) {
     if (dom[`form${type}Box`]) dom[`form${type}Box`].innerHTML = generateTeamHtml();
 }
 
+// LLENAR DATOS DE EQUIPO
 function fillTeamData(team, type) {
     if (!team?.name) {
         console.warn(`[fillTeamData] Equipo no válido para ${type}`);
@@ -439,6 +453,7 @@ function fillTeamData(team, type) {
     if (dom[`form${type}Box`]) dom[`form${type}Box`].innerHTML = generateTeamHtml(team);
 }
 
+// LIMPIAR TODO
 function clearAll() {
     if (dom.leagueSelect) dom.leagueSelect.selectedIndex = 0;
     if (dom.teamHomeSelect) dom.teamHomeSelect.selectedIndex = 0;
@@ -450,6 +465,7 @@ function clearAll() {
     if (dom.details) dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>';
 }
 
+// PARSEO DE PRONÓSTICO DE TEXTO PLANO
 function parsePlainText(text, matchData) {
     console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
     if (!text?.trim()) {
@@ -506,6 +522,7 @@ function parsePlainText(text, matchData) {
     };
 }
 
+// COMBINACIÓN DE PRONÓSTICOS
 function getCombinedPrediction(finalProbs, stats, event, matchData) {
     const ai = event?.pronostico_json || parsePlainText(event?.pronostico || '', matchData);
     if (!ai?.["1X2"] || Object.values(ai["1X2"]).every(p => !p?.probabilidad)) {
@@ -544,10 +561,12 @@ function getCombinedPrediction(finalProbs, stats, event, matchData) {
     return { header, body };
 }
 
+// FUNCIÓN AUXILIAR PARA VALIDAR PROBABILIDADES
 function validateProbability(value, defaultValue) {
     return isFinite(value) && value >= 0 && value <= 1 ? value : defaultValue;
 }
 
+// CÁLCULO COMPLETO
 function calculateAll() {
     const leagueCode = dom.leagueSelect.value, teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
     if (!leagueCode || !teamHome || !teamAway) {
@@ -620,6 +639,7 @@ function calculateAll() {
     }
 }
 
+// CÁLCULO DE PROBABILIDADES CON DIXON-COLES
 function dixonColesProbabilities(tH, tA, league) {
     if (!tH?.name || !tA?.name || !teamsByLeague[league]?.length) {
         console.warn('[dixonColesProbabilities] Datos insuficientes:', { tH, tA, league });
@@ -710,6 +730,7 @@ function dixonColesProbabilities(tH, tA, league) {
     };
 }
 
+// EVENTOS DEL DOM
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
     if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
