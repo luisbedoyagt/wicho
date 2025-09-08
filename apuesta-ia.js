@@ -80,7 +80,8 @@ function normalizeTeam(raw) {
         tiesAway: parseNumberString(raw.tiesAway),
         lossesHome: parseNumberString(raw.lossesHome),
         lossesAway: parseNumberString(raw.lossesAway),
-        logoUrl: raw.logoUrl || ''
+        logoUrl: raw.logoUrl || '',
+        form: raw.form || '' // Nueva columna para la forma reciente
     };
     if (r.pjHome === 0 && r.pjAway === 0) {
         console.warn(`[normalizeTeam] Equipo ${r.name} tiene pjHome=0 y pjAway=0:`, { rawFields: Object.keys(raw) });
@@ -92,12 +93,12 @@ function normalizeTeam(raw) {
 function findTeam(leagueCode, teamName) {
     if (!teamsByLeague[leagueCode]) {
         console.warn('[findTeam] Liga no encontrada:', leagueCode);
-        return { name: teamName, pjHome: 0, pjAway: 0, gfHome: 0, gaHome: 0, gfAway: 0, gaAway: 0 };
+        return { name: teamName, pjHome: 0, pjAway: 0, gfHome: 0, gaHome: 0, gfAway: 0, gaAway: 0, pos: 0, form: '' };
     }
     const team = teamsByLeague[leagueCode].find(t => normalizeName(t.name) === normalizeName(teamName));
     if (!team) {
         console.warn('[findTeam] Equipo no encontrado:', teamName, 'en liga:', leagueCode);
-        return { name: teamName, pjHome: 0, pjAway: 0, gfHome: 0, gaHome: 0, gfAway: 0, gaAway: 0 };
+        return { name: teamName, pjHome: 0, pjAway: 0, gfHome: 0, gaHome: 0, gfAway: 0, gaAway: 0, pos: 0, form: '' };
     }
     return team;
 }
@@ -413,6 +414,7 @@ function generateTeamHtml(team = {}) {
                     <span>Puntos: ${team.points || 0}</span>
                     <span>Ranking: ${team.pos || ''}</span>
                     <span>% Victorias: ${winPct}%</span>
+                    <span>Forma: ${team.form || '-'}</span>
                 </div>
             </div>
         </div>
@@ -464,7 +466,7 @@ function clearAll() {
     if (dom.details) dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>';
 }
 
-// PARSEO DE PRONÓSTICO DE TEXTO PLANO (USADO SOLO PARA ANÁLISIS DE LA IA)
+// PARSEO DE PRONÓSTICO DE TEXTO PLANO
 function parsePlainText(text, matchData) {
     console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
     if (!text?.trim()) {
@@ -521,7 +523,7 @@ function parsePlainText(text, matchData) {
     };
 }
 
-// COMPARACIÓN DE PRONÓSTICOS (MODIFICADO PARA COMPARAR, NO COMBINAR)
+// COMPARACIÓN DE PRONÓSTICOS
 function getCombinedPrediction(stats, event, matchData) {
     const ai = event?.pronostico_json || parsePlainText(event?.pronostico || '', matchData);
     const statProbs = { home: stats.finalHome, draw: stats.finalDraw, away: stats.finalAway, btts: stats.pBTTSH, over25: stats.pO25H };
@@ -569,7 +571,7 @@ function validateProbability(value, defaultValue) {
     return isFinite(value) && value >= 0 && value <= 1 ? value : defaultValue;
 }
 
-// CÁLCULO COMPLETO (MODIFICADO PARA SEPARAR PROBABILIDADES Y ANÁLISIS DE IA)
+// CÁLCULO COMPLETO
 function calculateAll() {
     const leagueCode = dom.leagueSelect.value, teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
     if (!leagueCode || !teamHome || !teamAway) {
@@ -585,7 +587,7 @@ function calculateAll() {
     }
     // Calcular probabilidades solo con Dixon-Coles
     const stats = dixonColesProbabilities(tH, tA, leagueCode);
-    const isLimitedData = tH.pjHome < 1 || tA.pjAway < 1;
+    const isLimitedData = tH.pjHome < 3 || tA.pjAway < 3; // Reduje minGames a 3
     const probabilities = [
         { label: 'Local', value: stats.finalHome, id: 'pHome', type: 'Resultado' },
         { label: 'Empate', value: stats.finalDraw, id: 'pDraw', type: 'Resultado' },
@@ -650,45 +652,93 @@ function calculateAll() {
     }
 }
 
-// CÁLCULO DE PROBABILIDADES CON DIXON-COLES
+// CÁLCULO DE LA FORMA RECIENTE
+function calculateFormFactor(form) {
+    if (!form || typeof form !== 'string') return 1.0;
+    const recentMatches = form.trim().split('').slice(0, 5); // Últimos 5 partidos
+    const points = recentMatches.reduce((acc, result) => {
+        if (result.toUpperCase() === 'V') return acc + 3;
+        if (result.toUpperCase() === 'E') return acc + 1;
+        if (result.toUpperCase() === 'D') return acc + 0;
+        return acc;
+    }, 0);
+    // Normalizar puntos (máximo 15 puntos por 5 victorias)
+    const formFactor = 0.8 + (points / 15) * 0.4; // Rango: 0.8 (mala forma) a 1.2 (buena forma)
+    return isFinite(formFactor) ? formFactor : 1.0;
+}
+
+// CÁLCULO DE PROBABILIDADES CON DIXON-COLES (MEJORADO)
 function dixonColesProbabilities(tH, tA, league) {
     if (!tH?.name || !tA?.name || !teamsByLeague[league]?.length) {
         console.warn('[dixonColesProbabilities] Datos insuficientes:', { tH, tA, league });
         return { finalHome: 1/3, finalDraw: 1/3, finalAway: 1/3, pBTTSH: 0.5, pO25H: 0.5 };
     }
-    const rho = -0.15, shrinkageFactor = 1.0, teams = teamsByLeague[league];
+    const rho = -0.15, shrinkageFactor = 0.9; // Reduje shrinkageFactor para menos peso en datos crudos
+    const minGames = 3; // Reduje a 3 para mayor sensibilidad a datos iniciales
+    const teams = teamsByLeague[league];
+
+    // Calcular promedios de la liga
     const totals = teams.reduce((acc, t) => ({
         games: acc.games + (t.pj || 0) / 2,
         gfHome: acc.gfHome + (t.gfHome || 0),
         gaHome: acc.gaHome + (t.gaHome || 0),
         gfAway: acc.gfAway + (t.gfAway || 0),
-        gaAway: acc.gaAway + (t.gaAway || 0)
-    }), { games: 0, gfHome: 0, gaHome: 0, gfAway: 0, gaAway: 0 });
+        gaAway: acc.gaAway + (t.gaAway || 0),
+        gd: acc.gd + ((t.gf || 0) - (t.ga || 0))
+    }), { games: 0, gfHome: 0, gaHome: 0, gfAway: 0, gaAway: 0, gd: 0 });
     const leagueAvg = {
         gfHome: totals.gfHome / (totals.games || 1),
         gaHome: totals.gaHome / (totals.games || 1),
         gfAway: totals.gfAway / (totals.games || 1),
-        gaAway: totals.gaAway / (totals.games || 1)
+        gaAway: totals.gaAway / (totals.games || 1),
+        gd: totals.gd / (totals.games || 1)
     };
     if (Object.values(leagueAvg).some(v => !isFinite(v))) {
         console.warn('[dixonColesProbabilities] Promedios de liga no válidos:', leagueAvg);
         return { finalHome: 1/3, finalDraw: 1/3, finalAway: 1/3, pBTTSH: 0.5, pO25H: 0.5 };
     }
-    const minGames = 5;
-    const homeAttack = ((tH.gfHome || 0) / Math.max(tH.pjHome || 0, minGames) / (leagueAvg.gfHome || 1)) * shrinkageFactor;
-    const homeDefense = Math.max((tH.gaHome || 0) / Math.max(tH.pjHome || 0, minGames), 0.1) / (leagueAvg.gaHome || 1) * shrinkageFactor;
-    const awayAttack = ((tA.gfAway || 0) / Math.max(tA.pjAway || 0, minGames) / (leagueAvg.gfAway || 1)) * shrinkageFactor * 1.2;
-    const awayDefense = Math.max((tA.gaAway || 0) / Math.max(tA.pjAway || 0, minGames), 0.1) / (leagueAvg.gaHome || 1) * shrinkageFactor;
+
+    // Ajuste por forma reciente
+    const formFactorHome = calculateFormFactor(tH.form);
+    const formFactorAway = calculateFormFactor(tA.form);
+
+    // Ajuste por ranking
+    const rankFactorHome = tH.pos ? 1 + (1 - tH.pos / teams.length) * 0.2 : 1.0; // Top rank = 1.2, último = 1.0
+    const rankFactorAway = tA.pos ? 1 + (1 - tA.pos / teams.length) * 0.2 : 1.0;
+
+    // Ajuste por diferencia de goles
+    const gdFactorHome = (tH.gf - tH.ga) / (leagueAvg.gd || 1);
+    const gdFactorAway = (tA.gf - tA.ga) / (leagueAvg.gd || 1);
+    const gdAdjustmentHome = 1 + Math.min(Math.max(gdFactorHome * 0.1, -0.1), 0.1); // Límite ±10%
+    const gdAdjustmentAway = 1 + Math.min(Math.max(gdFactorAway * 0.1, -0.1), 0.1);
+
+    // Calcular tasas de ataque y defensa
+    const homeAttackRaw = (tH.gfHome || 0) / Math.max(tH.pjHome || 0, minGames) / (leagueAvg.gfHome || 1);
+    const homeDefenseRaw = Math.max((tH.gaHome || 0) / Math.max(tH.pjHome || 0, minGames), 0.1) / (leagueAvg.gaHome || 1);
+    const awayAttackRaw = (tA.gfAway || 0) / Math.max(tA.pjAway || 0, minGames) / (leagueAvg.gfAway || 1);
+    const awayDefenseRaw = Math.max((tA.gaAway || 0) / Math.max(tA.pjAway || 0, minGames), 0.1) / (leagueAvg.gaHome || 1);
+
+    // Mezclar con promedios de liga si hay pocos partidos
+    const weight = Math.min(Math.max((tH.pjHome + tA.pjAway) / (2 * minGames), 0), 1); // Peso basado en partidos jugados
+    const homeAttack = (weight * homeAttackRaw + (1 - weight) * 1.0) * formFactorHome * rankFactorHome * gdAdjustmentHome * shrinkageFactor;
+    const homeDefense = (weight * homeDefenseRaw + (1 - weight) * 1.0) * formFactorHome * rankFactorHome * gdAdjustmentHome * shrinkageFactor;
+    const awayAttack = (weight * awayAttackRaw + (1 - weight) * 1.0) * formFactorAway * rankFactorAway * gdAdjustmentAway * shrinkageFactor * 1.2; // Ventaja de local
+    const awayDefense = (weight * awayDefenseRaw + (1 - weight) * 1.0) * formFactorAway * rankFactorAway * gdAdjustmentAway * shrinkageFactor;
+
     if ([homeAttack, homeDefense, awayAttack, awayDefense].some(v => !isFinite(v))) {
         console.warn('[dixonColesProbabilities] Tasas no válidas:', { homeAttack, homeDefense, awayAttack, awayDefense });
         return { finalHome: 1/3, finalDraw: 1/3, finalAway: 1/3, pBTTSH: 0.5, pO25H: 0.5 };
     }
+
+    // Calcular goles esperados
     let expectedHomeGoals = homeAttack * awayDefense * leagueAvg.gfHome;
     let expectedAwayGoals = awayAttack * homeDefense * leagueAvg.gaAway;
     if (!isFinite(expectedHomeGoals) || !isFinite(expectedAwayGoals)) {
         console.warn('[dixonColesProbabilities] Goles esperados no válidos:', { expectedHomeGoals, expectedAwayGoals });
         return { finalHome: 1/3, finalDraw: 1/3, finalAway: 1/3, pBTTSH: 0.5, pO25H: 0.5 };
     }
+
+    // Calcular probabilidades
     let homeWin = 0, draw = 0, awayWin = 0;
     for (let i = 0; i <= 10; i++) {
         for (let j = 0; j <= 10; j++) {
@@ -698,6 +748,8 @@ function dixonColesProbabilities(tH, tA, league) {
             else awayWin += prob;
         }
     }
+
+    // Ajuste Dixon-Coles para correlación
     const tau = (scoreH, scoreA) => {
         if (scoreH === 0 && scoreA === 0) return 1 - (homeAttack * awayDefense * rho);
         if (scoreH === 0 && scoreA === 1) return 1 + (homeAttack * rho);
