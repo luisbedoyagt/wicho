@@ -289,7 +289,7 @@ function selectEvent(homeTeamName, awayTeamName) {
             const tA = findTeam(eventLeagueCode, awayTeamName);
             fillTeamData(tH, 'Home');
             fillTeamData(tA, 'Away');
-            calculateAll(tH, tA, eventLeagueCode);
+            calculateAll();
         } else {
             if (dom.details) dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudo encontrar uno o ambos equipos en la lista de la liga.</div>';
         }
@@ -356,13 +356,15 @@ async function init() {
                 const tH = findTeam(leagueCode, teamHome);
                 const tA = findTeam(leagueCode, teamAway);
                 if (tH && tA) {
-                    if (document.activeElement === dom.teamHomeSelect) {
-                        fillTeamData(tH, 'Home');
-                    } else if (document.activeElement === dom.teamAwaySelect) {
-                        fillTeamData(tA, 'Away');
-                    }
+                    fillTeamData(tH, 'Home');
+                    fillTeamData(tA, 'Away');
                     calculateAll();
                 }
+            } else {
+                // Si no se han seleccionado ambos equipos, se limpian los datos y los pronósticos.
+                clearTeamData('Home');
+                clearTeamData('Away');
+                clearProbabilities();
             }
         }
     };
@@ -370,6 +372,17 @@ async function init() {
     dom.teamAwaySelect.addEventListener('change', onTeamChange);
     if (dom.resetButton) dom.resetButton.addEventListener('click', clearAll);
     displaySelectedLeagueEvents('');
+}
+
+// FUNCIÓN PARA LIMPIAR SOLO LAS PROBABILIDADES
+function clearProbabilities() {
+    ['pHome', 'pDraw', 'pAway', 'pBTTS', 'pO25'].forEach(id => {
+        const el = dom[id];
+        if (el) el.textContent = '--';
+    });
+    if (dom.suggestion) dom.suggestion.innerHTML = '<p>Esperando datos...</p>';
+    if (dom.detailedPrediction) dom.detailedPrediction.innerHTML = '<p>Esperando pronóstico detallado...</p>';
+    if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
 }
 
 // RESTRINGIR SELECCIÓN DEL MISMO EQUIPO
@@ -391,6 +404,7 @@ function restrictSameTeam() {
             dom.teamAwaySelect.value = '';
             clearTeamData('Away');
         }
+        clearProbabilities();
         return false;
     }
     return true;
@@ -466,14 +480,8 @@ function clearAll() {
     if (dom.leagueSelect) dom.leagueSelect.selectedIndex = 0;
     if (dom.teamHomeSelect) dom.teamHomeSelect.selectedIndex = 0;
     if (dom.teamAwaySelect) dom.teamAwaySelect.selectedIndex = 0;
-    ['pHome', 'pDraw', 'pAway', 'pBTTS', 'pO25'].forEach(id => {
-        const el = dom[id];
-        if (el) el.textContent = '--';
-    });
-    if (dom.detailedPrediction) dom.detailedPrediction.innerHTML = '<p>Esperando pronóstico detallado...</p>';
+    clearProbabilities();
     if (dom.details) dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>';
-    if (dom.suggestion) dom.suggestion.innerHTML = '<p>Esperando datos...</p>';
-    if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
     clearTeamData('Home');
     clearTeamData('Away');
     displaySelectedLeagueEvents('');
@@ -661,12 +669,14 @@ function calculateAll() {
     const teamAway = dom.teamAwaySelect.value;
     if (!leagueCode || !teamHome || !teamAway) {
         if (dom.details) dom.details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> Selecciona una liga y ambos equipos para calcular el pronóstico.</div>';
+        clearProbabilities();
         return;
     }
     const tH = findTeam(leagueCode, teamHome);
     const tA = findTeam(leagueCode, teamAway);
     if (!tH || !tA) {
         if (dom.details) dom.details.innerHTML = `<div class="error"><strong>Error:</strong> Uno o ambos equipos no encontrados en la liga seleccionada.</div>`;
+        clearProbabilities();
         return;
     }
     const stats = dixonColesProbabilities(tH, tA, leagueCode);
