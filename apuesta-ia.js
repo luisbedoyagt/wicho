@@ -602,32 +602,30 @@ function dixonColesProbabilities(tH, tA, league) {
     }
 
     const rho = -0.03;
-    const shrinkageFactor = 0.7; // Mantenemos el factor de suavizado para no alterar tu lógica, aunque se recomienda revisar su impacto.
+    const shrinkageFactor = 0.7; // Recomiendo probar con valores más altos, como 0.9, si los resultados siguen siendo bajos.
     const teams = teamsByLeague[league];
 
     // Calcular promedios de la liga
-    let totalGames = 0, totalGfHome = 0, totalGaHome = 0, totalGfAway = 0, totalGaAway = 0;
-    teams.forEach(t => {
-        totalGames += t.pj || 0;
-        totalGfHome += t.gfHome || 0;
-        totalGaHome += t.gaHome || 0;
-        totalGfAway += t.gfAway || 0;
-        totalGaAway += t.gaAway || 0;
-    });
-
     const totalHomeGames = teams.reduce((sum, t) => sum + (t.pjHome || 0), 0);
     const totalAwayGames = teams.reduce((sum, t) => sum + (t.pjAway || 0), 0);
-    const leagueAvgGfHome = totalGfHome / (totalHomeGames || 1);
-    const leagueAvgGaHome = totalGaHome / (totalHomeGames || 1);
-    const leagueAvgGfAway = totalGfAway / (totalAwayGames || 1);
-    const leagueAvgGaAway = totalGaAway / (totalAwayGames || 1);
-    console.log('[dixonColesProbabilities] Promedios de liga:', { leagueAvgGfHome, leagueAvgGaHome, leagueAvgGfAway, leagueAvgGaAway });
+    const totalGfHomeLeague = teams.reduce((sum, t) => sum + (t.gfHome || 0), 0);
+    const totalGaHomeLeague = teams.reduce((sum, t) => sum + (t.gaHome || 0), 0);
+    const totalGfAwayLeague = teams.reduce((sum, t) => sum + (t.gfAway || 0), 0);
+    const totalGaAwayLeague = teams.reduce((sum, t) => sum + (t.gaAway || 0), 0);
+    
+    // CORRECCIÓN: Los promedios se calculan por partidos jugados, no por equipos
+    const leagueAvgGfHome = totalGfHomeLeague / (totalHomeGames || 1);
+    const leagueAvgGaHome = totalGaHomeLeague / (totalHomeGames || 1);
+    const leagueAvgGfAway = totalGfAwayLeague / (totalAwayGames || 1);
+    const leagueAvgGaAway = totalGaAwayLeague / (totalAwayGames || 1);
+
+    console.log('[dixonColesProbabilities] Promedios de liga corregidos:', { leagueAvgGfHome, leagueAvgGaHome, leagueAvgGfAway, leagueAvgGaAway });
 
     // Calcular tasas de ataque y defensa con suavizado
-    const homeAttack = (tH.gfHome || 0) / (tH.pjHome || 1) / (leagueAvgGfHome || 1) * shrinkageFactor;
-    const homeDefense = (tH.gaHome || 0) / (tH.pjHome || 1) / (leagueAvgGaHome || 1) * shrinkageFactor;
-    const awayAttack = (tA.gfAway || 0) / (tA.pjAway || 1) / (leagueAvgGfAway || 1) * shrinkageFactor;
-    const awayDefense = (tA.gaAway || 0) / (tA.pjAway || 1) / (leagueAvgGaAway || 1) * shrinkageFactor;
+    const homeAttack = ((tH.gfHome || 0) / (tH.pjHome || 1)) / (leagueAvgGfHome || 1) * shrinkageFactor;
+    const homeDefense = ((tH.gaHome || 0) / (tH.pjHome || 1)) / (leagueAvgGaHome || 1) * shrinkageFactor;
+    const awayAttack = ((tA.gfAway || 0) / (tA.pjAway || 1)) / (leagueAvgGfAway || 1) * shrinkageFactor;
+    const awayDefense = ((tA.gaAway || 0) / (tA.pjAway || 1)) / (leagueAvgGaAway || 1) * shrinkageFactor;
 
     console.log('[dixonColesProbabilities] Tasas calculadas:', { homeAttack, homeDefense, awayAttack, awayDefense });
 
@@ -636,9 +634,12 @@ function dixonColesProbabilities(tH, tA, league) {
         return { finalHome: 1/3, finalDraw: 1/3, finalAway: 1/3, pBTTSH: 0.5, pO25H: 0.5 };
     }
 
+    // Goles esperados: Ataque Local * Defensa Visitante * Promedio Goles Local Liga
     const expectedHomeGoals = homeAttack * awayDefense * (leagueAvgGfHome || 1);
-    const expectedAwayGoals = awayAttack * homeDefense * (leagueAvgGaAway || 1);
-    console.log('[dixonColesProbabilities] Goles esperados:', { expectedHomeGoals, expectedAwayGoals });
+    // Goles esperados: Ataque Visitante * Defensa Local * Promedio Goles Visitante Liga
+    const expectedAwayGoals = awayAttack * homeDefense * (leagueAvgGfAway || 1); 
+
+    console.log('[dixonColesProbabilities] Goles esperados corregidos:', { expectedHomeGoals, expectedAwayGoals });
 
     if (!isFinite(expectedHomeGoals) || !isFinite(expectedAwayGoals)) {
         console.warn('[dixonColesProbabilities] Goles esperados no válidos:', { expectedHomeGoals, expectedAwayGoals });
@@ -663,15 +664,11 @@ function dixonColesProbabilities(tH, tA, league) {
             else if (i === j) draw += prob;
             else awayWin += prob;
 
-            // Calcular BTTS
             if (i > 0 && j > 0) pBTTS += prob;
-
-            // Calcular Más de 2.5 Goles
-            if (i + j > 2.5) pO25 += prob;
+            if (i + j >= 3) pO25 += prob;
         }
     }
 
-    // Normalizar las probabilidades finales
     const total = homeWin + draw + awayWin;
     const finalHome = homeWin / total;
     const finalDraw = draw / total;
