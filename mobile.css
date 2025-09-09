@@ -256,6 +256,7 @@
     background-color: #f9f9f9;
     border-radius: 8px;
     margin-top: 20px;
+    font-family: Arial, sans-serif;
 }
 
 .prediction-container h3 {
@@ -267,7 +268,7 @@
 .prediction-container p {
     margin: 10px 0;
     font-size: 1em;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 .prediction-container strong {
