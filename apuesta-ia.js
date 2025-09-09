@@ -655,7 +655,8 @@ function calculateAll() {
     const detailedPredictionBox = dom.detailedPrediction;
     if (event && event.pronostico_json) {
         const json = event.pronostico_json;
-        let html = '<h3>Análisis de la IA</h3><div class="ia-prediction">';
+
+        
         html += `<div class="stat-section"><span class="section-title">Análisis del Partido: ${teamHome} vs. ${teamAway}</span>`;
         html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion} <span class="stat-metrics"><span>(Prob: ${json["1X2"].victoria_local.probabilidad})</span></span></p>`;
         html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion} <span class="stat-metrics"><span>(Prob: ${json["1X2"].empate.probabilidad})</span></span></p>`;
