@@ -657,7 +657,7 @@ function calculateAll() {
         const json = event.pronostico_json;
 
         
-// Dentro de la función calculateAll, reemplaza la sección de generación de HTML para detailedPredictionBox
+// Dentro de la función calculateAll, en la sección donde se genera el HTML para detailedPredictionBox
 let html = '<div class="prediction-container">';
 html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
 html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion}</p>`;
@@ -670,6 +670,11 @@ html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.proba
 html += `<p><strong>Ambos Anotan (BTTS):</strong> Sí: ${json.BTTS.si.probabilidad} No: ${json.BTTS.no.probabilidad}</p>`;
 html += `<p><strong>Goles Totales (Más/Menos 2.5):</strong> Más de 2.5: ${json.Goles.mas_2_5.probabilidad} Menos de 2.5: ${json.Goles.menos_2_5.probabilidad}</p>`;
 html += `</div>`;
+
+if (detailedPredictionBox) {
+    detailedPredictionBox.innerHTML = html;
+    console.log('[calculateAll] Mostrando pronóstico JSON:', JSON.stringify(json, null, 2));
+}
 
 if (detailedPredictionBox) {
     detailedPredictionBox.innerHTML = html;
