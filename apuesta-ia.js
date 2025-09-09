@@ -80,10 +80,15 @@ function normalizeTeam(raw) {
         tiesAway: parseNumberString(raw.tiesAway),
         lossesHome: parseNumberString(raw.lossesHome),
         lossesAway: parseNumberString(raw.lossesAway),
-        logoUrl: raw.logoUrl || ''
+        logoUrl: raw.logoUrl || '',
+        form: raw.form ? raw.form.trim().toUpperCase() : '' // Nueva columna 'form'
     };
     if (r.pjHome === 0 && r.pjAway === 0) {
         console.warn(`[normalizeTeam] Equipo ${r.name} tiene pjHome=0 y pjAway=0:`, { rawFields: Object.keys(raw) });
+    }
+    if (r.form && !r.form.match(/^[WDL]*$/)) {
+        console.warn(`[normalizeTeam] Forma inválida para ${r.name}:`, r.form);
+        r.form = ''; // Fallback si la forma es inválida
     }
     return r;
 }
@@ -100,6 +105,21 @@ function findTeam(leagueCode, teamName) {
         return { name: teamName, pjHome: 0, pjAway: 0, gfHome: 0, gaHome: 0, gfAway: 0, gaAway: 0, pos: 0, gf: 0, ga: 0 };
     }
     return team;
+}
+
+// FUNCIÓN PARA CALCULAR FACTOR DE FORMA
+function calculateFormFactor(form) {
+    if (!form || form.length < 3) return 1.0; // Sin datos suficientes, no ajustar
+    const formWeight = 0.3; // Peso máximo del ajuste (30%)
+    const recentGames = form.slice(-5).split(''); // Últimos 5 partidos
+    const formScore = recentGames.reduce((score, result) => {
+        if (result === 'W') return score + 1;
+        if (result === 'D') return score + 0.5;
+        return score; // 'L' suma 0
+    }, 0);
+    // Normalizar: 5 victorias = 5 puntos, 5 empates = 2.5 puntos, 5 derrotas = 0 puntos
+    const formFactor = 1 + formWeight * (formScore / 5 - 0.5); // Rango: 0.85 a 1.15
+    return Math.min(Math.max(formFactor, 0.85), 1.15); // Limitar ajuste a ±15%
 }
 
 // FETCH DATOS COMPLETOS
@@ -410,6 +430,7 @@ function generateTeamHtml(team = {}) {
             <div class="stat-section">
                 <span class="section-title">Datos</span>
                 <div class="stat-metrics">
+                    <span>Forma de Equipo: ${team.form || 0}</span>
                     <span>Puntos: ${team.points || 0}</span>
                     <span>Ranking: ${team.pos || ''}</span>
                     <span>% Victorias: ${winPct}%</span>
@@ -579,6 +600,10 @@ function dixonColesProbabilities(tH, tA, league) {
     const gdAdjustmentHome = 1 + Math.min(Math.max(gdFactorHome * 0.1, -0.1), 0.1); // Límite ±10%
     const gdAdjustmentAway = 1 + Math.min(Math.max(gdFactorAway * 0.1, -0.1), 0.1);
 
+    // Ajuste por forma reciente
+    const formFactorHome = calculateFormFactor(tH.form);
+    const formFactorAway = calculateFormFactor(tA.form);
+
     // Calcular tasas de ataque y defensa
     const homeAttackRaw = (tH.gfHome || 0) / Math.max(tH.pjHome || 0, minGames) / (leagueAvg.gfHome || 1);
     const homeDefenseRaw = Math.max((tH.gaHome || 0) / Math.max(tH.pjHome || 0, minGames), 0.1) / (leagueAvg.gaHome || 1);
@@ -587,10 +612,10 @@ function dixonColesProbabilities(tH, tA, league) {
 
     // Mezclar con promedios de liga si hay pocos partidos
     const weight = Math.min(Math.max((tH.pjHome + tA.pjAway) / (2 * minGames), 0), 0.8); // Máximo 80% de peso a datos del equipo
-    const homeAttack = (weight * homeAttackRaw + (1 - weight) * 1.0) * rankFactorHome * gdAdjustmentHome * shrinkageFactor;
-    const homeDefense = (weight * homeDefenseRaw + (1 - weight) * 1.0) * rankFactorHome * gdAdjustmentHome * shrinkageFactor;
-    const awayAttack = (weight * awayAttackRaw + (1 - weight) * 1.0) * rankFactorAway * gdAdjustmentAway * shrinkageFactor * 1.2; // Ventaja de local
-    const awayDefense = (weight * awayDefenseRaw + (1 - weight) * 1.0) * rankFactorAway * gdAdjustmentAway * shrinkageFactor;
+    const homeAttack = (weight * homeAttackRaw + (1 - weight) * 1.0) * rankFactorHome * gdAdjustmentHome * formFactorHome * shrinkageFactor;
+    const homeDefense = (weight * homeDefenseRaw + (1 - weight) * 1.0) * rankFactorHome * gdAdjustmentHome * formFactorHome * shrinkageFactor;
+    const awayAttack = (weight * awayAttackRaw + (1 - weight) * 1.0) * rankFactorAway * gdAdjustmentAway * formFactorAway * shrinkageFactor * 1.2; // Ventaja de local
+    const awayDefense = (weight * awayDefenseRaw + (1 - weight) * 1.0) * rankFactorAway * gdAdjustmentAway * formFactorAway * shrinkageFactor;
 
     if ([homeAttack, homeDefense, awayAttack, awayDefense].some(v => !isFinite(v))) {
         console.warn('[dixonColesProbabilities] Tasas no válidas:', { homeAttack, homeDefense, awayAttack, awayDefense });
