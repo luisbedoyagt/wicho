@@ -251,4 +251,45 @@
         font-size: 0.8em;
         padding-left: 8px;
     }
+        .ia-prediction {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.6rem;
+        font-size: 0.75rem;
+        line-height: 1.4;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .ia-prediction p {
+        margin: 0;
+        padding: 0.2rem 0;
+        word-break: break-word;
+    }
+    .ia-prediction .stat-section {
+        padding: 0.4rem 0.6rem;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+    }
+    .ia-prediction .section-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+    }
+    .ia-prediction .stat-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.2rem;
+    }
+    .ia-prediction .stat-metrics span {
+        font-size: 0.6rem;
+        padding: 0.1rem 0.3rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+    #detailed-prediction h3 {
+        font-size: 1.15rem;
+        margin-bottom: 0.6rem;
+        padding-left: 0.6rem;
+    }
 }
