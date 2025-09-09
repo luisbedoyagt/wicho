@@ -104,6 +104,7 @@
     .stat-section {
         padding: 0.4rem 0.6rem;
         margin-top: 0;
+        margin-bottom: 0.8rem; /* Aumentado para mejor separación en Análisis de IA */
     }
     .stat-section .section-title {
         font-size: 0.8rem;
@@ -116,44 +117,64 @@
         font-size: 0.6rem;
     }
 
-    /* Estilos para la sección de Análisis de la IA */
+    /* Estilos para la sección de Análisis de la IA - Refinado para orden */
+    .ia-card .card-body {
+        padding: 0.8rem;
+        overflow: visible; /* Asegura que el contenido no se corte */
+    }
+    #detailed-prediction {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
+    }
     .ia-prediction {
         display: flex;
         flex-direction: column;
-        gap: 1rem; /* Más separación entre secciones */
-        padding: 0.8rem; /* Más espacio interno */
-        font-size: 0.75rem; /* Consistente con otros textos */
-        line-height: 1.5; /* Mejor legibilidad */
-        overflow-x: auto;
+        gap: 1.2rem; /* Aumentado para más separación entre secciones */
+        padding: 0.8rem 0;
+        font-size: 0.8rem; /* Ligeramente mayor para legibilidad */
+        line-height: 1.6; /* Mejor para texto largo */
+        overflow-x: hidden;
+        overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        text-align: left; /* Alineación izquierda para orden */
     }
     .ia-prediction p {
-        margin: 0;
-        padding: 0.4rem 0; /* Espaciado vertical para simular saltos de línea */
-        word-break: break-word; /* Evita desbordamiento */
+        margin: 0.5rem 0;
+        padding: 0.3rem 0.5rem; /* Espaciado interno para cada línea */
+        word-break: break-word;
+        border-left: 2px solid #ddd; /* Límite sutil para cada párrafo */
+        background: rgba(255, 255, 255, 0.5); /* Fondo sutil para destacar */
+        border-radius: 4px;
     }
     .ia-prediction .stat-section {
-        padding: 0.6rem; /* Más espacio interno */
-        background: rgba(0, 0, 0, 0.05); /* Fondo sutil */
-        border-radius: 4px;
-        margin-bottom: 0.6rem; /* Separación entre secciones */
+        padding: 0.6rem;
+        background: rgba(0, 0, 0, 0.03); /* Fondo más sutil */
+        border-radius: 6px;
+        margin-bottom: 0.8rem; /* Separación mayor entre secciones */
+        border: 1px solid rgba(0, 0, 0, 0.1); /* Borde para delimitar */
     }
     .ia-prediction .section-title {
-        font-size: 0.85rem; /* Ligeramente más grande */
-        font-weight: 600;
-        margin-bottom: 0.5rem; /* Espacio debajo del título */
+        font-size: 0.9rem; /* Mayor para jerarquía */
+        font-weight: 700;
+        margin-bottom: 0.6rem;
+        text-align: center;
+        color: #333;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .ia-prediction p strong {
-        font-weight: 700; /* Negritas más marcadas */
-        color: #333; /* Color oscuro para destacar */
+        font-weight: 800;
+        color: #007bff; /* Color azul para destacar títulos */
+        margin-right: 0.5rem;
     }
-    #detailed-prediction h3 {
-        font-size: 1.2rem; /* Consistente con otros títulos */
-        margin-bottom: 0.8rem;
-        padding-left: 0.6rem;
+    .ia-card h3 {
+        font-size: 1.1rem; /* Ajuste para header de la tarjeta */
+        margin-bottom: 0.5rem;
     }
 
-    /* Resto de las secciones */
+    /* Resto de las secciones (sin cambios) */
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
         gap: 0.6rem;
