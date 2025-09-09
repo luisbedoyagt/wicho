@@ -1,3 +1,4 @@
+// apuesta-ia.js
 // UTILIDADES Y CONSTANTES
 const getDomElement = id => {
     const element = document.getElementById(id);
@@ -143,7 +144,7 @@ function calculateFormFactor(form, isHome = false) {
     return Math.min(Math.max(formFactor, 0.8), 1.2);
 }
 
-// PARSEO DE PRONÓSTICO DE TEXTO PLANO (RESPALDO) - Adaptado de código 01
+// PARSEO DE PRONÓSTICO DE TEXTO PLANO (RESPALDO)
 function parsePlainText(text, matchData) {
     console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
     const aiProbs = {};
@@ -482,7 +483,7 @@ function onTeamChange(event) {
 function clearProbabilities() {
     ['pHome', 'pDraw', 'pAway', 'pBTTS', 'pO25'].forEach(id => dom[id] && (dom[id].textContent = '--'));
     if (dom.suggestion) dom.suggestion.innerHTML = '<p>Esperando datos...</p>';
-    if (dom.detailedPrediction) dom.detailedPrediction.innerHTML = '<p>Esperando pronóstico detallado...</p>';
+    if (dom.detailedPrediction) dom.detailedPrediction.querySelector('#ia-prediction-content').innerHTML = '<p>Esperando pronóstico detallado...</p>';
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = '<p>Esperando pronóstico combinado...</p>';
 }
 
@@ -642,7 +643,7 @@ function calculateAll() {
     const recommendations = probabilities.filter(p => p.value >= 0.3).sort((a, b) => b.value - a.value).slice(0, 3);
     if (dom.suggestion) dom.suggestion.innerHTML = `<h3>Recomendaciones de Apuesta</h3><ul>${recommendations.map(r => `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`).join('')}</ul>`;
 
-    // Buscar pronóstico IA para Análisis de la IA - Adaptado directamente del código 01
+    // Buscar pronóstico IA para Análisis de la IA - Versión mejorada con clases CSS
     let event = null;
     const ligaName = leagueCodeToName[leagueCode] || leagueCode;
     if (allData.calendario && allData.calendario[ligaName]) {
@@ -655,30 +656,43 @@ function calculateAll() {
     const detailedPredictionBox = dom.detailedPrediction;
     if (event && event.pronostico_json) {
         const json = event.pronostico_json;
-        let html = `<h3>Análisis de la IA</h3><div class="ia-prediction">`;
+        let html = ''; // No duplicamos <h3> ya que está en HTML
+        html += `<div class="ia-prediction">`;
         html += `<h4>Análisis del Partido: ${teamHome} vs. ${teamAway}</h4>`;
-        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion} (Probabilidad: ${json["1X2"].victoria_local.probabilidad})</p>`;
-        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion} (Probabilidad: ${json["1X2"].empate.probabilidad})</p>`;
-        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion} (Probabilidad: ${json["1X2"].victoria_visitante.probabilidad})</p>`;
+        html += `<p class="team-analysis"><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion}</p>`;
+        html += `<p class="team-analysis"><strong>Empate:</strong> ${json["1X2"].empate.justificacion}</p>`;
+        html += `<p class="team-analysis"><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion}</p>`;
+        html += `<h4>Probabilidades:</h4>`;
+        html += `<p class="prob-section">Victoria ${teamHome}: ${json["1X2"].victoria_local.probabilidad}</p>`;
+        html += `<p class="prob-section">Empate: ${json["1X2"].empate.probabilidad}</p>`;
+        html += `<p class="prob-section">Victoria ${teamAway}: ${json["1X2"].victoria_visitante.probabilidad}</p>`;
         html += `<h4>Ambos Anotan (BTTS):</h4>`;
-        html += `<p><strong>Sí:</strong> ${json.BTTS.si.probabilidad} ${json.BTTS.si.justificacion ? ` - ${json.BTTS.si.justificacion}` : ''}</p>`;
-        html += `<p><strong>No:</strong> ${json.BTTS.no.probabilidad} ${json.BTTS.no.justificacion ? ` - ${json.BTTS.no.justificacion}` : ''}</p>`;
+        html += `<p class="prob-section"><strong>Sí:</strong> ${json.BTTS.si.probabilidad}${json.BTTS.si.justificacion ? ` - ${json.BTTS.si.justificacion}` : ''}</p>`;
+        html += `<p class="prob-section"><strong>No:</strong> ${json.BTTS.no.probabilidad}${json.BTTS.no.justificacion ? ` - ${json.BTTS.no.justificacion}` : ''}</p>`;
         html += `<h4>Goles Totales (Más/Menos 2.5):</h4>`;
-        html += `<p><strong>Más de 2.5:</strong> ${json.Goles.mas_2_5.probabilidad} ${json.Goles.mas_2_5.justificacion ? ` - ${json.Goles.mas_2_5.justificacion}` : ''}</p>`;
-        html += `<p><strong>Menos de 2.5:</strong> ${json.Goles.menos_2_5.probabilidad} ${json.Goles.menos_2_5.justificacion ? ` - ${json.Goles.menos_2_5.justificacion}` : ''}</p>`;
+        html += `<p class="prob-section"><strong>Más de 2.5:</strong> ${json.Goles.mas_2_5.probabilidad}${json.Goles.mas_2_5.justificacion ? ` - ${json.Goles.mas_2_5.justificacion}` : ''}</p>`;
+        html += `<p class="prob-section"><strong>Menos de 2.5:</strong> ${json.Goles.menos_2_5.probabilidad}${json.Goles.menos_2_5.justificacion ? ` - ${json.Goles.menos_2_5.justificacion}` : ''}</p>`;
         html += `</div>`;
         if (detailedPredictionBox) {
-            detailedPredictionBox.innerHTML = html;
+            detailedPredictionBox.querySelector('#ia-prediction-content').innerHTML = html;
             console.log('[calculateAll] Mostrando pronóstico JSON:', json);
         }
     } else if (event && event.pronostico) {
-        const formattedPrediction = event.pronostico.replace(/\n/g, '<br>').replace(/###\s*(.*)/g, '<h4>$1</h4>');
+        // Mejora para texto plano: regex para clasificar y agregar clases
+        let formattedPrediction = event.pronostico
+            .replace(/\n/g, ' ') // Normalizamos espacios
+            .replace(/###\s*(.*)/g, '<h4>$1</h4>') // Títulos a h4
+            .replace(/Análisis del Partido:\s*([^\.]+)\./g, '<h4>Análisis del Partido: $1</h4>') // Título principal
+            .replace(/([A-Z][a-z]+):([^\.]+)\./g, '<p class="team-analysis"><strong>$1:</strong> $2</p>') // Detalles de equipos (Ecuador:, etc.)
+            .replace(/Probabilidades:\s*([^\.]+)\./g, '<h4>Probabilidades:</h4><p class="prob-section">$1</p>') // Probabilidades 1X2
+            .replace(/Ambos Anotan \(BTTS\):\s*Sí:\s*(\d+)%\s*No:\s*(\d+)%/g, '<h4>Ambos Anotan (BTTS):</h4><p class="prob-section"><strong>Sí:</strong> $1% <strong>No:</strong> $2%</p>')
+            .replace(/Goles Totales \(Más\/Menos 2\.5\):\s*Más de 2\.5:\s*(\d+)%\s*Menos de 2\.5:\s*(\d+)%/g, '<h4>Goles Totales (Más/Menos 2.5):</h4><p class="prob-section"><strong>Más de 2.5:</strong> $1% <strong>Menos de 2.5:</strong> $2%</p>');
         if (detailedPredictionBox) {
-            detailedPredictionBox.innerHTML = `<h3>Análisis de la IA</h3><div class="ia-prediction">${formattedPrediction}</div>`;
+            detailedPredictionBox.querySelector('#ia-prediction-content').innerHTML = formattedPrediction;
             console.log('[calculateAll] Mostrando pronóstico de texto plano:', event.pronostico);
         }
     } else if (detailedPredictionBox) {
-        detailedPredictionBox.innerHTML = `<p>No hay un pronóstico de la IA disponible para este partido en la hoja de cálculo.</p>`;
+        detailedPredictionBox.querySelector('#ia-prediction-content').innerHTML = '<p>No hay un pronóstico de la IA disponible para este partido en la hoja de cálculo.</p>';
         console.log('[calculateAll] Sin pronóstico disponible para', teamHome, 'vs', teamAway);
     }
 
