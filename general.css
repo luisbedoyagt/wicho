@@ -755,17 +755,18 @@ select:focus {
 }
 
 /* Diseño del texto de pronóstico detallado */
-#detailed-prediction {
+.prediction-container {
     padding: 1.5rem;
     background: var(--secondary-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.4);
+    margin-top: 1.5rem;
     position: relative;
     overflow: hidden;
 }
 
-#detailed-prediction::before {
+.prediction-container::before {
     content: '';
     position: absolute;
     top: 0;
@@ -776,14 +777,27 @@ select:focus {
     pointer-events: none;
 }
 
-#detailed-prediction p {
-    font-size: 1rem;
-    line-height: 1.8;
+.prediction-container h3 {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    margin: 0 0 0.8rem;
+    color: var(--highlight-blue);
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(0, 224, 255, 0.7);
+}
+
+.prediction-container p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
     color: var(--text-color);
     text-align: justify;
-    padding: 0;
-    margin: 0;
-    font-style: normal;
+}
+
+.prediction-container strong {
+    color: var(--highlight-blue);
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0, 224, 255, 0.5);
 }
 
 /* Estilo para la ficha de Pronóstico Combinado */
