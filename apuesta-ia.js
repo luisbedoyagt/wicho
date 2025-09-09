@@ -8,7 +8,7 @@ const getDomElement = id => {
 const formatPct = x => (100 * (isFinite(x) ? x : 0)).toFixed(1) + '%';
 const formatDec = x => (isFinite(x) ? x.toFixed(2) : '0.00');
 const parseNumberString = val => {
-    const n = Number(String(val).replace(/,/g, '.').trim());
+    const n = Number(String(val).replace(/,/g, '.').replace(/%/g, '').trim());
     if (!isFinite(n) || n < 0) {
         console.warn(`[parseNumberString] Valor no válido: "${val}" -> 0`);
         return 0;
@@ -154,35 +154,46 @@ function parsePronosticoIA(pronostico, teamHome, teamAway) {
         local: 1/3,
         empate: 1/3,
         visitante: 1/3,
-        btts: 0.5,
+        bttsSi: 0.5,
+        bttsNo: 0.5,
         o25: 0.5,
-        analisis: '',
-        metricas: {}
+        u25: 0.5,
+        analisis: { local: '', empate: '', visitante: '' }
     };
 
     try {
         if (typeof pronostico === 'object') {
             result = {
-                local: parseNumberString(pronostico.Local || pronostico.local || pronostico.home || 1/3),
-                empate: parseNumberString(pronostico.Empate || pronostico.empate || pronostico.draw || 1/3),
-                visitante: parseNumberString(pronostico.Visitante || pronostico.visitante || pronostico.away || 1/3),
-                btts: parseNumberString(pronostico.BTTS || pronostico.btts || pronostico.ambosAnotan || 0.5),
-                o25: parseNumberString(pronostico.O25 || pronostico.o25 || pronostico.over25 || 0.5),
-                analisis: pronostico.analisis || pronostico.comentario || pronostico.texto || '',
-                metricas: pronostico.metricas || pronostico.stats || {}
+                local: parseNumberString(pronostico.Local || pronostico.local || pronostico.home || 1/3) / 100,
+                empate: parseNumberString(pronostico.Empate || pronostico.empate || pronostico.draw || 1/3) / 100,
+                visitante: parseNumberString(pronostico.Visitante || pronostico.visitante || pronostico.away || 1/3) / 100,
+                bttsSi: parseNumberString(pronostico.BTTS?.Sí || pronostico.btts?.si || pronostico.ambosAnotan?.si || 0.5) / 100,
+                bttsNo: parseNumberString(pronostico.BTTS?.No || pronostico.btts?.no || pronostico.ambosAnotan?.no || 0.5) / 100,
+                o25: parseNumberString(pronostico['Más de 2.5'] || pronostico.o25 || pronostico.over25 || 0.5) / 100,
+                u25: parseNumberString(pronostico['Menos de 2.5'] || pronostico.u25 || pronostico.under25 || 0.5) / 100,
+                analisis: {
+                    local: pronostico.analisis?.local || pronostico.analisis?.Ecuador || pronostico.comentario?.local || '',
+                    empate: pronostico.analisis?.empate || pronostico.comentario?.empate || '',
+                    visitante: pronostico.analisis?.visitante || pronostico.analisis?.Argentina || pronostico.comentario?.visitante || ''
+                }
             };
         } else if (typeof pronostico === 'string') {
-            const regex = /Local:?\s*(\d+\.?\d*)%\s*,?\s*Empate:?\s*(\d+\.?\d*)%\s*,?\s*Visitante:?\s*(\d+\.?\d*)%\s*,?\s*(?:BTTS|Ambos Anotan):?\s*(\d+\.?\d*)%\s*,?\s*(?:Más de 2\.5|O25|Over 2\.5):?\s*(\d+\.?\d*)%(?:(?:\s*,\s*|\s+)(?:Análisis|Comentario|Texto):?\s*([^;]*))?$/i;
+            const regex = /Análisis del Partido:.*?\n\n(.+?):\s*([^\n]*)\n(.+?):\s*([^\n]*)\n(.+?):\s*([^\n]*)\n\nProbabilidades:\s*(\d+\.?\d*)%\s*para\s*.+?\n(\d+\.?\d*)%\s*para\s*el\s*Empate\n(\d+\.?\d*)%\s*para\s*.+?\n\nAmbos Anotan \(BTTS\):\s*Sí:\s*(\d+\.?\d*)%\s*No:\s*(\d+\.?\d*)%\s*\n\nGoles Totales \(Más\/Menos 2\.5\):\s*Más de 2\.5:\s*(\d+\.?\d*)%\s*Menos de 2\.5:\s*(\d+\.?\d*)%/is;
             const match = pronostico.match(regex);
             if (match) {
                 result = {
-                    local: parseNumberString(match[1]) / 100,
-                    empate: parseNumberString(match[2]) / 100,
-                    visitante: parseNumberString(match[3]) / 100,
-                    btts: parseNumberString(match[4]) / 100,
-                    o25: parseNumberString(match[5]) / 100,
-                    analisis: match[6]?.trim() || '',
-                    metricas: {}
+                    local: parseNumberString(match[7]) / 100,
+                    empate: parseNumberString(match[8]) / 100,
+                    visitante: parseNumberString(match[9]) / 100,
+                    bttsSi: parseNumberString(match[10]) / 100,
+                    bttsNo: parseNumberString(match[11]) / 100,
+                    o25: parseNumberString(match[12]) / 100,
+                    u25: parseNumberString(match[13]) / 100,
+                    analisis: {
+                        local: match[2].trim(),
+                        empate: match[4].trim(),
+                        visitante: match[6].trim()
+                    }
                 };
             } else {
                 console.warn('[parsePronosticoIA] Formato de string no reconocido:', pronostico);
@@ -202,8 +213,10 @@ function parsePronosticoIA(pronostico, teamHome, teamAway) {
         result.local = validateProbability(result.local, 1/3);
         result.empate = validateProbability(result.empate, 1/3);
         result.visitante = validateProbability(result.visitante, 1/3);
-        result.btts = validateProbability(result.btts, 0.5);
+        result.bttsSi = validateProbability(result.bttsSi, 0.5);
+        result.bttsNo = validateProbability(result.bttsNo, 0.5);
         result.o25 = validateProbability(result.o25, 0.5);
+        result.u25 = validateProbability(result.u25, 0.5);
 
         return result;
     } catch (err) {
@@ -495,7 +508,6 @@ function generateTeamHtml(team = {}) {
                     <span>GF: ${team.gf || 0}</span>
                     <span>GC: ${team.ga || 0}</span>
                     <span>DG: ${dgTotal >= 0 ? '+' + dgTotal : dgTotal || 0}</span>
-          
                 </div>
             </div>
             <div class="stat-section">
@@ -509,7 +521,6 @@ function generateTeamHtml(team = {}) {
                     <span>GC: ${team.gaHome || 0}</span>
                     <span>DG: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
                     <span>% V: ${winPctHome}%</span>
-             
                 </div>
             </div>
             <div class="stat-section">
@@ -523,14 +534,13 @@ function generateTeamHtml(team = {}) {
                     <span>GC: ${team.gaAway || 0}</span>
                     <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
                     <span>% V: ${winPctAway}%</span>
-        
                 </div>
             </div>
             <div class="stat-section">
                 <span class="section-title">Datos</span>
                 <div class="stat-metrics">
                     <span>Ranking: ${team.pos || ''}</span>
-                   <span>Puntos: ${team.points || ''}</span>
+                    <span>Puntos: ${team.points || ''}</span>
                     <span>Forma: ${team.form || ''}</span>
                     <span>% Victorias: ${winPct}%</span>
                 </div>
@@ -689,28 +699,30 @@ function calculateAll() {
                     </div>
                 `;
             } else {
-                let metricasHtml = '';
-                if (Object.keys(statsIA.metricas).length > 0) {
-                    metricasHtml = '<div class="additional-metrics"><h5>Métricas Avanzadas</h5><ul>';
-                    for (const [key, value] of Object.entries(statsIA.metricas)) {
-                        metricasHtml += `<li><strong>${key.replace(/([A-Z])/g, ' $1').trim()}:</strong> ${formatDec(value)}</li>`;
-                    }
-                    metricasHtml += '</ul></div>';
-                }
-                const analisisHtml = statsIA.analisis ? `<p><strong>Análisis:</strong> ${statsIA.analisis}</p>` : '';
+                const analisisHtml = `
+                    <div class="analysis-text" style="font-size: 0.9em;">
+                        <p><strong>${teamHome}:</strong> ${statsIA.analisis.local || 'No disponible'}</p>
+                        <p><strong>Empate:</strong> ${statsIA.analisis.empate || 'No disponible'}</p>
+                        <p><strong>${teamAway}:</strong> ${statsIA.analisis.visitante || 'No disponible'}</p>
+                    </div>
+                `;
                 dom.detailedPrediction.innerHTML = `
                     <h3>Análisis de la IA</h3>
                     <div class="stat-prediction">
                         <h4>${teamHome} vs. ${teamAway}</h4>
                         <p><strong>Fecha:</strong> ${eventDateTime}</p>
                         <p><strong>Estadio:</strong> ${estadio}</p>
+                        ${analisisHtml}
+                        <h5>Probabilidades</h5>
                         <p><strong>Victoria ${teamHome}:</strong> ${formatPct(statsIA.local)}</p>
                         <p><strong>Empate:</strong> ${formatPct(statsIA.empate)}</p>
                         <p><strong>Victoria ${teamAway}:</strong> ${formatPct(statsIA.visitante)}</p>
-                        <p><strong>Ambos Anotan:</strong> ${formatPct(statsIA.btts)}</p>
-                        <p><strong>Más de 2.5 Goles:</strong> ${formatPct(statsIA.o25)}</p>
-                        ${analisisHtml}
-                        ${metricasHtml}
+                        <h5>Ambos Anotan (BTTS)</h5>
+                        <p><strong>Sí:</strong> ${formatPct(statsIA.bttsSi)}</p>
+                        <p><strong>No:</strong> ${formatPct(statsIA.bttsNo)}</p>
+                        <h5>Goles Totales (Más/Menos 2.5)</h5>
+                        <p><strong>Más de 2.5:</strong> ${formatPct(statsIA.o25)}</p>
+                        <p><strong>Menos de 2.5:</strong> ${formatPct(statsIA.u25)}</p>
                         <p><strong>Fuente:</strong> Pronóstico IA (Calendario)</p>
                     </div>
                 `;
