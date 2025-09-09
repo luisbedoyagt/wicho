@@ -655,17 +655,20 @@ function calculateAll() {
     const detailedPredictionBox = dom.detailedPrediction;
     if (event && event.pronostico_json) {
         const json = event.pronostico_json;
-        let html = `<h3>Análisis de la IA</h3><div class="ia-prediction">`;
-        html += `<h4>Análisis del Partido: ${teamHome} vs. ${teamAway}</h4>`;
-        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion} (Probabilidad: ${json["1X2"].victoria_local.probabilidad})</p>`;
-        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion} (Probabilidad: ${json["1X2"].empate.probabilidad})</p>`;
-        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion} (Probabilidad: ${json["1X2"].victoria_visitante.probabilidad})</p>`;
-        html += `<h4>Ambos Anotan (BTTS):</h4>`;
-        html += `<p><strong>Sí:</strong> ${json.BTTS.si.probabilidad} ${json.BTTS.si.justificacion ? ` - ${json.BTTS.si.justificacion}` : ''}</p>`;
-        html += `<p><strong>No:</strong> ${json.BTTS.no.probabilidad} ${json.BTTS.no.justificacion ? ` - ${json.BTTS.no.justificacion}` : ''}</p>`;
-        html += `<h4>Goles Totales (Más/Menos 2.5):</h4>`;
-        html += `<p><strong>Más de 2.5:</strong> ${json.Goles.mas_2_5.probabilidad} ${json.Goles.mas_2_5.justificacion ? ` - ${json.Goles.mas_2_5.justificacion}` : ''}</p>`;
-        html += `<p><strong>Menos de 2.5:</strong> ${json.Goles.menos_2_5.probabilidad} ${json.Goles.menos_2_5.justificacion ? ` - ${json.Goles.menos_2_5.justificacion}` : ''}</p>`;
+        let html = '<h3>Análisis de la IA</h3><div class="ia-prediction">';
+        html += `<div class="stat-section"><span class="section-title">Análisis del Partido: ${teamHome} vs. ${teamAway}</span>`;
+        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion} <span class="stat-metrics"><span>(Prob: ${json["1X2"].victoria_local.probabilidad})</span></span></p>`;
+        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion} <span class="stat-metrics"><span>(Prob: ${json["1X2"].empate.probabilidad})</span></span></p>`;
+        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion} <span class="stat-metrics"><span>(Prob: ${json["1X2"].victoria_visitante.probabilidad})</span></span></p>`;
+        html += `</div>`;
+        html += `<div class="stat-section"><span class="section-title">Ambos Anotan (BTTS)</span>`;
+        html += `<p><strong>Sí:</strong> ${json.BTTS.si.probabilidad} ${json.BTTS.si.justificacion ? `<span class="stat-metrics"><span>(${json.BTTS.si.justificacion})</span></span>` : ''}</p>`;
+        html += `<p><strong>No:</strong> ${json.BTTS.no.probabilidad} ${json.BTTS.no.justificacion ? `<span class="stat-metrics"><span>(${json.BTTS.no.justificacion})</span></span>` : ''}</p>`;
+        html += `</div>`;
+        html += `<div class="stat-section"><span class="section-title">Goles Totales (Más/Menos 2.5)</span>`;
+        html += `<p><strong>Más de 2.5:</strong> ${json.Goles.mas_2_5.probabilidad} ${json.Goles.mas_2_5.justificacion ? `<span class="stat-metrics"><span>(${json.Goles.mas_2_5.justificacion})</span></span>` : ''}</p>`;
+        html += `<p><strong>Menos de 2.5:</strong> ${json.Goles.menos_2_5.probabilidad} ${json.Goles.menos_2_5.justificacion ? `<span class="stat-metrics"><span>(${json.Goles.menos_2_5.justificacion})</span></span>` : ''}</p>`;
+        html += `</div>`;
         html += `</div>`;
         if (detailedPredictionBox) {
             detailedPredictionBox.innerHTML = html;
