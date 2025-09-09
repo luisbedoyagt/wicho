@@ -251,4 +251,27 @@
         font-size: 0.8em;
         padding-left: 8px;
     }
+.prediction-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.prediction-container h3 {
+    font-size: 1.5em;
+    margin: 20px 0 10px;
+    color: #333;
+}
+
+.prediction-container p {
+    margin: 10px 0;
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+.prediction-container strong {
+    color: #000;
+    font-weight: 600;
+}
 }
