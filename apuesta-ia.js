@@ -422,7 +422,7 @@ function generateTeamHtml(team = {}) {
                     <span>GF: ${team.gf || 0}</span>
                     <span>GC: ${team.ga || 0}</span>
                     <span>DG: ${dgTotal >= 0 ? '+' + dgTotal : dgTotal || 0}</span>
-                    <span>Forma: ${formatForm(team.form)}</span>
+          
                 </div>
             </div>
             <div class="stat-section">
@@ -436,7 +436,7 @@ function generateTeamHtml(team = {}) {
                     <span>GC: ${team.gaHome || 0}</span>
                     <span>DG: ${dgHome >= 0 ? '+' + dgHome : dgHome || 0}</span>
                     <span>% V: ${winPctHome}%</span>
-                    <span>Forma Local: ${formatForm(team.formHome)}</span>
+             
                 </div>
             </div>
             <div class="stat-section">
@@ -450,7 +450,7 @@ function generateTeamHtml(team = {}) {
                     <span>GC: ${team.gaAway || 0}</span>
                     <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
                     <span>% V: ${winPctAway}%</span>
-                    <span>Forma Visitante: ${formatForm(team.formAway)}</span>
+        
                 </div>
             </div>
             <div class="stat-section">
