@@ -678,7 +678,7 @@ function calculateAll() {
     } else if (event && event.pronostico) {
         const formattedPrediction = event.pronostico.replace(/\n/g, '<br>').replace(/###\s*(.*)/g, '<h4>$1</h4>');
         if (detailedPredictionBox) {
-            detailedPredictionBox.innerHTML = `<h3>Análisis de la IA</h3><div class="ia-prediction">${formattedPrediction}</div>`;
+            detailedPredictionBox.innerHTML = `<h3></h3><div class="ia-prediction">${formattedPrediction}</div>`;
             console.log('[calculateAll] Mostrando pronóstico de texto plano:', event.pronostico);
         }
     } else if (detailedPredictionBox) {
