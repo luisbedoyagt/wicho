@@ -116,6 +116,43 @@
         font-size: 0.6rem;
     }
 
+    /* Estilos para la sección de Análisis de la IA */
+    .ia-prediction {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem; /* Más separación entre secciones */
+        padding: 0.8rem; /* Más espacio interno */
+        font-size: 0.75rem; /* Consistente con otros textos */
+        line-height: 1.5; /* Mejor legibilidad */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .ia-prediction p {
+        margin: 0;
+        padding: 0.4rem 0; /* Espaciado vertical para simular saltos de línea */
+        word-break: break-word; /* Evita desbordamiento */
+    }
+    .ia-prediction .stat-section {
+        padding: 0.6rem; /* Más espacio interno */
+        background: rgba(0, 0, 0, 0.05); /* Fondo sutil */
+        border-radius: 4px;
+        margin-bottom: 0.6rem; /* Separación entre secciones */
+    }
+    .ia-prediction .section-title {
+        font-size: 0.85rem; /* Ligeramente más grande */
+        font-weight: 600;
+        margin-bottom: 0.5rem; /* Espacio debajo del título */
+    }
+    .ia-prediction p strong {
+        font-weight: 700; /* Negritas más marcadas */
+        color: #333; /* Color oscuro para destacar */
+    }
+    #detailed-prediction h3 {
+        font-size: 1.2rem; /* Consistente con otros títulos */
+        margin-bottom: 0.8rem;
+        padding-left: 0.6rem;
+    }
+
     /* Resto de las secciones */
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
@@ -250,46 +287,5 @@
     select option {
         font-size: 0.8em;
         padding-left: 8px;
-    }
-        .ia-prediction {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        padding: 0.6rem;
-        font-size: 0.75rem;
-        line-height: 1.4;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    .ia-prediction p {
-        margin: 0;
-        padding: 0.2rem 0;
-        word-break: break-word;
-    }
-    .ia-prediction .stat-section {
-        padding: 0.4rem 0.6rem;
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 4px;
-    }
-    .ia-prediction .section-title {
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-bottom: 0.3rem;
-    }
-    .ia-prediction .stat-metrics {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.2rem;
-    }
-    .ia-prediction .stat-metrics span {
-        font-size: 0.6rem;
-        padding: 0.1rem 0.3rem;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-    }
-    #detailed-prediction h3 {
-        font-size: 1.15rem;
-        margin-bottom: 0.6rem;
-        padding-left: 0.6rem;
     }
 }
