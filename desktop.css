@@ -106,7 +106,7 @@
 
     .control-group {
         margin: 0 !important; /* Sobrescribir margin-bottom: 1.5rem de general.css */
-        margin-bottom: 1.8rem !important; /* Añadir ~1.5 líneas de separación */
+        margin-bottom: 2.7rem !important; /* ~2.25 líneas (1.5 * 1.8rem) */
         padding: 0 !important; /* Eliminar padding */
     }
 
