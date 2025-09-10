@@ -262,12 +262,12 @@
         font-size: 0.9em;
     }
     .reset-container {
-        padding: 1.5rem 0;
+        padding: 0.9rem 0 !important; /* Reducido 40% de 1.5rem */
+        margin: 0 auto !important; /* Centrar */
+        width: fit-content !important; /* Acoplar al botón */
     }
     .control-group {
         margin-bottom: 0.24rem !important; /* Reducido 40% de 0.4rem */
-        width: fit-content !important; /* Acoplar al contenido */
-        max-width: 200px !important; /* Límite para consistencia */
         margin-left: auto !important; /* Centrar */
         margin-right: auto !important; /* Centrar */
     }
@@ -286,12 +286,18 @@
         line-height: 1 !important; /* Acoplar texto verticalmente */
         background-position: right 0.48rem top 50% !important; /* Reducido 40% de 0.8rem */
         background-size: 0.9rem auto !important; /* Reducido 40% de 1.5rem */
-        width: fit-content !important; /* Acoplar al texto */
-        max-width: 200px !important; /* Límite para consistencia */
         margin-left: auto !important; /* Centrar */
         margin-right: auto !important; /* Centrar */
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
         border-radius: 4px !important; /* Suavizar esquinas */
+    }
+    .btn {
+        padding: 0.6rem 1.2rem !important; /* Reducido 40% en vertical (de 1rem a 0.6rem), 40% en horizontal (de 2rem a 1.2rem) */
+        font-size: 0.66rem !important; /* Reducido 40% de 1.1rem */
+        line-height: 1 !important; /* Acoplar texto verticalmente */
+    }
+    .btn-secondary {
+        max-width: 150px !important; /* Reducido de 220px */
     }
     .event-list {
         gap: 0.8rem;
