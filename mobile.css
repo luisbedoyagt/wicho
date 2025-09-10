@@ -29,7 +29,7 @@
 
     .app-header {
         padding: 0.8rem 0; /* Mantenido para acoplar el título */
-        margin-bottom: 0.1rem; /* Reducido en un 75% (de 0.4rem a 0.1rem) */
+        margin-bottom: 0.1rem; /* Mantenido: reducido en un 75% */
         border-radius: 6px;
         background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg));
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
@@ -50,17 +50,17 @@
 
     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(0.6rem, 2vw, 0.75rem); /* Mantenido: reducido en 50% */
+        font-size: clamp(0.3rem, 1vw, 0.375rem); /* Reducido en un 50% adicional */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
-        letter-spacing: 0.5px; /* Mantenido para acoplar el texto */
-        text-shadow: 0 0 6px var(--highlight-blue), 0 0 8px rgba(0, 224, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.4); /* Mantenido */
+        letter-spacing: 0.3px; /* Reducido para legibilidad en tamaño pequeño */
+        text-shadow: 0 0 4px var(--highlight-blue), 0 0 6px rgba(0, 224, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.4); /* Ajustado para nuevo tamaño */
         background: linear-gradient(90deg, var(--highlight-blue), #00a0e0);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.2rem 0.4rem; /* Mantenido para acoplar el texto */
+        padding: 0.15rem 0.3rem; /* Reducido ligeramente para acoplar aún más */
         display: inline-block;
         transition: transform 0.3s ease, text-shadow 0.3s ease;
         animation: auto-glow-mobile 5s ease-in-out infinite; /* Animación automática mantenida */
@@ -71,7 +71,7 @@
 
     .app-header h1:hover {
         transform: scale(1.02);
-        text-shadow: 0 0 8px var(--highlight-blue), 0 0 10px rgba(0, 224, 255, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
+        text-shadow: 0 0 5px var(--highlight-blue), 0 0 7px rgba(0, 224, 255, 0.6), 0 1px 1px rgba(0, 0, 0, 0.4);
     }
 
     .app-header h1::after {
@@ -90,11 +90,11 @@
     @keyframes auto-glow-mobile {
         0%, 100% {
             transform: scale(1);
-            text-shadow: 0 0 6px var(--highlight-blue), 0 0 8px rgba(0, 224, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 0 4px var(--highlight-blue), 0 0 6px rgba(0, 224, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.4);
         }
         50% {
             transform: scale(1.02);
-            text-shadow: 0 0 8px var(--highlight-blue), 0 0 10px rgba(0, 224, 255, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 0 5px var(--highlight-blue), 0 0 7px rgba(0, 224, 255, 0.6), 0 1px 1px rgba(0, 0, 0, 0.4);
         }
     }
 
