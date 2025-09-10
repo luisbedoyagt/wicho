@@ -29,7 +29,8 @@
         grid-auto-rows: minmax(250px, auto);
         max-width: 1200px;
         margin: 0 auto;
-        min-width: 0; /* Evitar que las columnas se encojan */
+        min-width: 0;
+        width: 100%; /* Fijar ancho del grid */
     }
 
     .event-card {
@@ -61,6 +62,7 @@
             "combined";
         gap: 2rem;
         min-height: 650px;
+        width: 100%; /* Fijar ancho */
     }
 
     .ia-card {
@@ -77,7 +79,8 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        width: 100%; /* Fijar ancho para llenar la columna */
+        width: 100%; /* Fijar ancho para todas las tarjetas */
+        box-sizing: border-box;
         overflow: hidden;
         margin-bottom: 0;
         border-radius: 8px;
@@ -94,9 +97,10 @@
     .card-body {
         flex: 1;
         overflow-y: auto;
-        padding: 1rem;
-        width: 100%; /* Fijar ancho */
+        padding: 0.8rem; /* Reducido de 1rem para más espacio */
+        width: 100%;
         max-width: 100%;
+        box-sizing: border-box;
     }
 
     .event-list {
@@ -132,38 +136,38 @@
     .team-details {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 0.3rem; /* Reducido de 0.4rem */
+        gap: 0.2rem; /* Reducido de 0.3rem */
+        width: 100%;
         max-width: 100%;
-        width: 100%; /* Fijar ancho */
     }
 
     .stat-section {
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 0.2rem; /* Reducido de 0.3rem */
+        gap: 0.15rem; /* Reducido de 0.2rem */
     }
 
     .section-title {
         font-weight: bold;
-        font-size: 0.8rem; /* Reducido de 0.85rem */
-        min-width: 45px; /* Reducido de 50px */
+        font-size: 0.75rem; /* Reducido de 0.8rem */
+        min-width: 40px; /* Reducido de 45px */
     }
 
     .stat-metrics {
         display: flex;
         flex-wrap: nowrap;
-        gap: 0.15rem; /* Reducido de 0.2rem */
+        gap: 0.1rem; /* Reducido de 0.15rem */
         flex: 1;
     }
 
     .stat-metrics span {
-        width: 32px; /* Cuadros más pequeños */
-        padding: 0.05rem; /* Reducido de 0.1rem */
+        width: 30px; /* Cuadros más pequeños */
+        padding: 0.05rem;
         text-align: center;
         border: 1px solid #e0e0e0;
         border-radius: 4px;
-        font-size: 0.6rem; /* Reducido de 0.65rem */
+        font-size: 0.55rem; /* Reducido de 0.6rem */
         box-sizing: border-box;
         text-overflow: ellipsis;
         overflow: hidden;
