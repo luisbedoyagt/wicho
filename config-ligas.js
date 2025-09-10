@@ -28,9 +28,13 @@ const leagueNames = {
     "conmebol.sudamericana": "CONMEBOL Sudamericana",
     "conmebol.libertadores": "CONMEBOL Libertadores",
     "chn.1": "Superliga China",
-    "fifa.worldq.conmebol": "Eliminatorias CONMEBOL",
-    "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
-    "fifa.worldq.uefa": "Eliminatorias UEFA"
+     "uefa.champions": "UEFA Champions League",
+    "uefa.wchampions": "UEFA Champions League femenina",
+    "uefa.europa": "UEFA Europa League",
+    "uefa.europa.conf": "UEFA Conference League",
+    "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
+    "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
+    "fifa.worldq.uefa": "Eliminatorias_UEFA"
 };
 
 // Mapeos de códigos de liga a nombres de hoja de cálculo
@@ -60,6 +64,10 @@ const leagueCodeToName = {
     "conmebol.sudamericana": "CONMEBOL_Sudamericana",
     "conmebol.libertadores": "CONMEBOL_Libertadores",
     "chn.1": "China_Superliga",
+    "uefa.champions": "UEFA Champions League",
+    "uefa.wchampions": "UEFA Champions League femenina",
+    "uefa.europa": "UEFA Europa League",
+    "uefa.europa.conf": "UEFA Conference League",
     "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
     "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
     "fifa.worldq.uefa": "Eliminatorias_UEFA"
@@ -92,6 +100,10 @@ const leagueRegions = {
     "chn.1": "Asia",
     "conmebol.sudamericana": "Copas Internacionales",
     "conmebol.libertadores": "Copas Internacionales",
+    "uefa.champions": "Copas Internacionales",
+    "uefa.wchampions": "Copas Internacionales",
+    "uefa.europa": "Copas Internacionales",
+    "uefa.europa.conf": "Copas Internacionales",
     "fifa.worldq.conmebol": "Eliminatorias Mundiales",
     "fifa.worldq.concacaf": "Eliminatorias Mundiales",
     "fifa.worldq.uefa": "Eliminatorias Mundiales"
