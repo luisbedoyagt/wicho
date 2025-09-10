@@ -1,7 +1,7 @@
 /* Estilos para pantallas grandes */
 .app-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem; /* Reducido para acercar a eventos */
     padding: 2.5rem 0;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg));
@@ -24,7 +24,7 @@
     display: inline-block;
     position: relative;
     transition: transform 0.3s ease, text-shadow 0.3s ease;
-    animation: fadeIn 1s ease-in-out;
+    animation: auto-glow-desktop 5s ease-in-out infinite; /* Animación automática */
 }
 
 .app-header h1:hover {
@@ -57,6 +57,18 @@
     height: 2px;
     background: linear-gradient(to right, transparent, var(--highlight-blue), transparent);
     opacity: 0.7;
+}
+
+/* Animación automática para desktop */
+@keyframes auto-glow-desktop {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 12px var(--highlight-blue), 0 0 20px rgba(0, 224, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    50% {
+        transform: scale(1.03);
+        text-shadow: 0 0 15px var(--highlight-blue), 0 0 25px rgba(0, 224, 255, 0.7), 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
 }
 
 /* Animación de entrada */
@@ -117,7 +129,7 @@
         grid-template-columns: 1fr;
         grid-template-areas: "ia";
         gap: 0;
-        min-height: 120px; /* Reducido para acoplarse al título */
+        min-height: 120px;
         width: 100%;
         padding: 0;
         overflow: visible;
@@ -125,14 +137,14 @@
 
     .ia-card {
         grid-area: ia;
-        min-height: 120px; /* Reducido para acoplarse al título */
+        min-height: 120px;
         width: 100%;
         margin: 0;
         overflow: visible;
-        background: linear-gradient(135deg, rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.1), rgba(var(--secondary-bg-rgb, 32, 35, 42), 0.1)); /* Fondo vistoso */
-        border: 1px solid var(--highlight-blue, #61dafb); /* Borde que combina con el título */
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
-        border-radius: 10px; /* Bordes más redondeados */
+        background: linear-gradient(135deg, rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.1), rgba(var(--secondary-bg-rgb, 32, 35, 42), 0.1));
+        border: 1px solid var(--highlight-blue, #61dafb);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
     }
 
     .combined-card {
@@ -307,12 +319,12 @@
     #detailed-prediction {
         padding: 1.5rem;
         background: var(--secondary-bg, #20232a);
-        border: 1px solid var(--highlight-blue, #61dafb); /* Borde vistoso */
-        border-radius: 10px; /* Bordes más redondeados */
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 2px 8px rgba(0, 0, 0, 0.2); /* Sombra combinada */
+        border: 1px solid var(--highlight-blue, #61dafb);
+        border-radius: 10px;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 2px 8px rgba(0, 0, 0, 0.2);
         position: relative;
         height: auto;
-        min-height: 120px; /* Reducido para acoplarse al título */
+        min-height: 120px;
         width: 100%;
         overflow-y: visible;
         overflow-wrap: break-word;
@@ -327,7 +339,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.1), transparent); /* Fondo vistoso */
+        background: linear-gradient(135deg, rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.1), transparent);
         pointer-events: none;
     }
 
@@ -343,7 +355,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(90deg, rgba(var(--secondary-bg-rgb, 32, 35, 42), 0.8), rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.2)); /* Fondo vistoso */
+        background: linear-gradient(90deg, rgba(var(--secondary-bg-rgb, 32, 35, 42), 0.8), rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.2));
         padding: 0.8rem 1.2rem;
         border-radius: 8px;
         border: 1px solid var(--highlight-blue, #61dafb);
