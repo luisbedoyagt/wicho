@@ -145,37 +145,37 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 1.5rem; /* Aumentado de 0.1rem a ~2 tabulaciones (1.5rem ≈ 24px) */
+        gap: 1.5rem; /* Mantiene ~2 tabulaciones entre título y cuadros */
     }
 
     .section-title {
         font-weight: bold;
         font-size: 0.8rem;
-        min-width: 60px; /* Aumentado de 40px para mejor espaciado */
-        width: 60px; /* Ancho fijo para consistencia */
-        text-align: left; /* Alinea el título a la izquierda */
+        min-width: 60px; /* Ancho fijo para alineación */
+        width: 60px;
+        text-align: left;
     }
 
     .stat-metrics {
         display: flex;
-        flex-wrap: nowrap;
-        gap: 0.05rem; /* Sin cambios, mantiene cuadros compactos */
+        flex-wrap: wrap; /* Permite que los cuadros se distribuyan en varias filas */
+        gap: 0.5rem; /* Aumentado de 0.05rem para mayor separación entre cuadros */
         flex: 1;
     }
 
     .stat-metrics span {
-        width: 48px; /* Sin cambios */
-        padding: 0.1rem;
+        width: 60px; /* Aumentado de 48px para cuadros más grandes */
+        padding: 0.2rem; /* Aumentado de 0.1rem para mejor legibilidad */
         text-align: center;
         border: 1px solid #e0e0e0;
         border-radius: 4px;
-        font-size: 0.6rem;
-        line-height: 1rem;
+        font-size: 0.7rem; /* Aumentado de 0.6rem para datos más legibles */
+        line-height: 1.2rem; /* Ajustado para altura proporcional */
         box-sizing: border-box;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
-        flex-shrink: 1;
+        flex: 0 0 calc(25% - 0.375rem); /* 4 cuadros por fila, ajustado por gap */
     }
 
     .probabilities-grid {
