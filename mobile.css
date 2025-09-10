@@ -269,7 +269,7 @@
     .control-group {
         margin-bottom: 0.24rem !important; /* Reducido 40% de 0.4rem */
         margin-left: 0 !important; /* Alinear a la izquierda */
-        width: 400px !important; /* Duplicar ancho estimado (~200px a ~400px) */
+        width: 400px !important; /* Mantenido */
         max-width: 100% !important; /* Evitar desbordes */
         box-sizing: border-box !important; /* Incluir padding y border */
     }
@@ -282,13 +282,13 @@
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
     }
     select {
-        padding: 0.51rem 0.6rem !important; /* Reducido 40% en vertical (de 0.85rem a 0.51rem) */
-        font-size: 0.6rem !important; /* Reducido 40% de 1rem */
+        padding: 0.561rem 0.6rem !important; /* Aumentado 10% en vertical (de 0.51rem a 0.561rem) */
+        font-size: 0.66rem !important; /* Aumentado 10% (de 0.6rem a 0.66rem) */
         line-height: 1 !important; /* Acoplar texto verticalmente */
-        background-position: right 0.48rem top 50% !important; /* Reducido 40% de 0.8rem */
-        background-size: 0.9rem auto !important; /* Reducido 40% de 1.5rem */
+        background-position: right 0.528rem top 50% !important; /* Aumentado 10% (de 0.48rem a 0.528rem) */
+        background-size: 0.99rem auto !important; /* Aumentado 10% (de 0.9rem a 0.99rem) */
         margin-left: 0 !important; /* Alinear a la izquierda */
-        width: 400px !important; /* Duplicar ancho estimado (~200px a ~400px) */
+        width: 400px !important; /* Mantenido */
         max-width: 100% !important; /* Evitar desbordes */
         box-sizing: border-box !important; /* Incluir padding y border */
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
