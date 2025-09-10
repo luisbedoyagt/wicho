@@ -295,6 +295,7 @@ function renderEvent(event, index, leagueCode) {
         console.error('Error al parsear fecha:', err);
     }
     div.innerHTML = `
+        <div class="league-name">${leagueNames[eventLeagueCode] || eventLeagueCode || 'Liga no especificada'}</div>
         <div class="event-content">
             <div class="team-logo-container">
                 <span class="team-name">${event.local.trim()}</span>
