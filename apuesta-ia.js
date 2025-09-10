@@ -166,9 +166,10 @@ function parsePlainText(text, matchData) {
         const escapedLocal = matchData.local.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const escapedVisitante = matchData.visitante.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-        const localJustification = analysisText.match(new RegExp(`${escapedLocal}:\\s*([^\\n]*?)(?=\\n*Empate:|\\n*${escapedVisitante}:|\\n*Probabilidades:|$)`));
-        const drawJustification = analysisText.match(/Empate:\s*([^\\n]*?)(?=\\n*${escapedVisitante}:|\\n*Probabilidades:|$)/);
-        const awayJustification = analysisText.match(new RegExp(`${escapedVisitante}:\\s*([^\\n]*?)(?=\\n*Probabilidades:|$)`));
+        // Expresiones regulares para capturar justificaciones (permitiendo múltiples líneas)
+        const localJustification = analysisText.match(new RegExp(`${escapedLocal}:\\s*(.*?)(?=\\n*Empate:|\\n*${escapedVisitante}:|\\n*Probabilidades:|$)`));
+        const drawJustification = analysisText.match(/Empate:\s*(.*?)(?=\n*${escapedVisitante}:|\n*Probabilidades:|$)/s);
+        const awayJustification = analysisText.match(new RegExp(`${escapedVisitante}:\\s*(.*?)(?=\\n*Probabilidades:|$)`));
 
         console.log(`[parsePlainText] LocalJustification:`, localJustification ? localJustification[1].trim() : 'No encontrado');
         console.log(`[parsePlainText] DrawJustification:`, drawJustification ? drawJustification[1].trim() : 'No encontrado');
