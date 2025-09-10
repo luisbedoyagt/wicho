@@ -50,7 +50,7 @@
 
     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 2.5vw, 1.7rem) !important; /* Más grande */
+        font-size: clamp(1.2rem, 2.5vw, 1.7rem) !important; /* Mantenido como en tu código */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
@@ -268,14 +268,15 @@
         margin-bottom: 0;
     }
     .control-group label {
-        font-size: 0.8rem;
-        margin-bottom: 0.4rem;
+        font-size: 0.4rem; /* Reducido 50% de 0.8rem */
+        margin-bottom: 0.2rem; /* Ajustado proporcionalmente */
     }
     .select {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.7rem;
-        background-position: right 0.4rem top 50%;
-        background-size: 0.8rem auto;
+        padding: 0.2rem 0.3rem; /* Reducido 50% de 0.4rem 0.6rem */
+        font-size: 0.35rem !important; /* Reducido 50% de 0.7rem */
+        background-position: right 0.2rem top 50%; /* Ajustado proporcionalmente */
+        background-size: 0.4rem auto; /* Reducido 50% de 0.8rem */
+        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5); /* Añadido para legibilidad */
     }
     .event-list {
         gap: 0.8rem;
@@ -307,16 +308,16 @@
         padding: 0.8rem;
     }
     select optgroup {
-        font-size: 0.9em;
-        margin-top: 6px;
-        padding-bottom: 3px;
+        font-size: 0.45em; /* Reducido 50% de 0.9em */
+        margin-top: 3px; /* Ajustado proporcionalmente */
+        padding-bottom: 1.5px; /* Ajustado proporcionalmente */
     }
     select optgroup:not(:first-child) {
-        margin-top: 12px;
+        margin-top: 6px; /* Ajustado proporcionalmente */
     }
     select option {
-        font-size: 0.8em;
-        padding-left: 8px;
+        font-size: 0.4em; /* Reducido 50% de 0.8em */
+        padding-left: 4px; /* Ajustado proporcionalmente */
     }
     .prediction-container {
         padding: 0.8rem;
