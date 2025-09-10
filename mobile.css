@@ -183,6 +183,31 @@
         font-size: 0.6rem;
     }
 
+    /* Centrado y fondo para la ficha de eventos */
+    .event-card {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        background: var(--secondary-bg) !important;
+        border: 1px solid var(--border-color) !important;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.4) !important;
+        border-radius: 8px !important;
+        padding: 0.8rem !important;
+        position: relative !important;
+        overflow: hidden !important;
+        margin-bottom: 0.5rem;
+    }
+    .event-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 10% 10%, rgba(0, 224, 255, 0.1), transparent 50%);
+        pointer-events: none;
+    }
+
     /* Resto de las secciones */
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
@@ -274,7 +299,7 @@
         box-sizing: border-box !important; /* Incluir padding y border */
     }
     .control-group label {
-        font-size: 0.72rem !important; /* Aumentado 50% de 0.48rem a 0.72rem */
+        font-size: 0.72rem !important; /* Mantenido (aumentado 50% previamente) */
         margin-bottom: 0.24rem !important; /* Mantenido */
         line-height: 1 !important; /* Acoplar texto verticalmente */
         width: fit-content !important; /* Acoplar al texto */
@@ -304,6 +329,7 @@
     }
     .event-list {
         gap: 0.8rem;
+        width: 100% !important; /* Asegurar que ocupe todo el espacio disponible */
     }
     .event-item {
         padding: 0.8rem;
@@ -349,9 +375,8 @@
         padding: 0.8rem;
         background: var(--secondary-bg);
         border: 1px solid var(--border-color);
-        border-radius: 8px;
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.4);
-        margin-top: 0.6rem;
+        border-radius: 8px;
         position: relative;
         overflow: hidden;
     }
