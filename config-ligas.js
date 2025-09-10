@@ -32,9 +32,9 @@ const leagueNames = {
     "uefa.wchampions": "UEFA Champions League femenina",
     "uefa.europa": "UEFA Europa League",
     "uefa.europa.conf": "UEFA Conference League",
-    "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
-    "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
-    "fifa.worldq.uefa": "Eliminatorias_UEFA"
+    "fifa.worldq.conmebol": "Eliminatorias CONMEBOL",
+    "fifa.worldq.concacaf": "Eliminatorias CONCACAF",
+    "fifa.worldq.uefa": "Eliminatorias UEFA"
 };
 
 // Mapeos de códigos de liga a nombres de hoja de cálculo
@@ -64,10 +64,10 @@ const leagueCodeToName = {
     "conmebol.sudamericana": "CONMEBOL_Sudamericana",
     "conmebol.libertadores": "CONMEBOL_Libertadores",
     "chn.1": "China_Superliga",
-    "uefa.champions": "UEFA Champions League",
-    "uefa.wchampions": "UEFA Champions League femenina",
-    "uefa.europa": "UEFA Europa League",
-    "uefa.europa.conf": "UEFA Conference League",
+    "uefa.champions": "UEFA_Champions_League",
+    "uefa.wchampions": "UEFA_Champions_League_Femenina",
+    "uefa.europa": "UEFA_Europa_League",
+    "uefa.europa.conf": "UEFA_Conference_League",
     "fifa.worldq.conmebol": "Eliminatorias_CONMEBOL",
     "fifa.worldq.concacaf": "Eliminatorias_CONCACAF",
     "fifa.worldq.uefa": "Eliminatorias_UEFA"
