@@ -632,10 +632,10 @@ function generateTeamHtml(team = {}) {
             <div class="stat-section">
                 <span class="section-title">Datos</span>
                 <div class="stat-metrics">
-                    <span>Ranking: ${team.pos || ''}</span>
-                    <span>Puntos: ${team.points || ''}</span>
-                    <span>Forma: ${team.form || ''}</span>
-                    <span>% Victorias: ${winPct}%</span>
+                    <span>Ranking:${team.pos || ''}</span>
+                    <span>Puntos:${team.points || ''}</span>
+                    <span>Forma:${team.form || ''}</span>
+                    <span>Victorias:${winPct}%</span>
                 </div>
             </div>
         </div>
