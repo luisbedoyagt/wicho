@@ -1,3 +1,5 @@
+// apuesta-ia.js
+
 // UTILIDADES Y CONSTANTES
 const getDomElement = id => {
     const element = document.getElementById(id);
@@ -146,24 +148,40 @@ function calculateFormFactor(form, isHome = false) {
 // PARSEO DE PRONÓSTICO DE TEXTO PLANO
 function parsePlainText(text, matchData) {
     console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
+    console.log(`[parsePlainText] Texto completo:`, text);
     const aiProbs = {};
     const aiJustification = {
         home: "Sin justificación detallada.",
-        draw: "Sin justificación detallada.",
+        draw: "Un empate es posible, pero menos probable según las estadísticas actuales.",
         away: "Sin justificación detallada."
     };
 
     // Extraer justificaciones
     const analysisMatch = text.match(/Análisis del Partido:(.*?)Probabilidades:/s);
     if (analysisMatch && analysisMatch[1]) {
-        const analysisText = analysisMatch[1];
-        const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?:Empate:|$)`, 's'));
-        const drawJustification = analysisText.match(/Empate:(.*?)(?:(?:[^:]+:)|$)/s);
-        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$)`, 's'));
-        if (localJustification) aiJustification.home = localJustification[1].trim();
-        if (drawJustification) aiJustification.draw = drawJustification[1].trim();
-        if (awayJustification) aiJustification.away = awayJustification[1].trim();
-        console.log(`[parsePlainText] Justificaciones extraídas: Local=${aiJustification.home}, Empate=${aiJustification.draw}, Visitante=${aiJustification.away}`);
+        const analysisText = analysisMatch[1].trim();
+        console.log(`[parsePlainText] AnalysisText:`, analysisText);
+
+        const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?:Empate:|${matchData.visitante}:|Probabilidades:|$|\\n\\n)`, 's'));
+        const drawJustification = analysisText.match(/Empate:\s*(.*?)(?=(?:${matchData.visitante}:|Probabilidades:|$|\n\n))/s);
+        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$|\\n\\n)`, 's'));
+
+        if (localJustification && localJustification[1].trim()) {
+            aiJustification.home = localJustification[1].trim();
+        }
+        if (drawJustification && drawJustification[1].trim()) {
+            aiJustification.draw = drawJustification[1].trim();
+        } else {
+            console.warn(`[parsePlainText] No se encontró justificación para Empate. Usando texto por defecto.`);
+        }
+        if (awayJustification && awayJustification[1].trim()) {
+            aiJustification.away = awayJustification[1].trim();
+        }
+        console.log(`[parsePlainText] Justificaciones extraídas:`, {
+            home: aiJustification.home,
+            draw: aiJustification.draw,
+            away: aiJustification.away
+        });
     } else {
         console.warn(`[parsePlainText] No se encontró la sección de análisis en el texto: ${text}`);
     }
@@ -535,7 +553,7 @@ function generateTeamHtml(team = {}) {
                     <span>PJ: ${team.pjAway || 0}</span>
                     <span>V: ${team.winsAway || 0}</span>
                     <span>E: ${team.tiesAway || 0}</span>
-                    <span>D: ${team.lossesAway || 0}</span>
+                    <span>D: ${team.lossesHome || 0}</span>
                     <span>GF: ${team.gfAway || 0}</span>
                     <span>GC: ${team.gaAway || 0}</span>
                     <span>DG: ${dgAway >= 0 ? '+' + dgAway : dgAway || 0}</span>
