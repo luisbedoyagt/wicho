@@ -66,6 +66,7 @@ body {
     background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg));
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6), inset 0 1px 3px rgba(255, 255, 255, 0.1);
     border: 1px solid var(--border-color);
+    animation: slide-in-header 0.8s ease-out forwards; /* Animación de entrada para la ficha */
 }
 
 .app-header::before {
@@ -83,7 +84,7 @@ body {
 
 .app-header h1 {
     font-family: var(--font-heading);
-    font-size: clamp(1.5rem, 4vw, 2rem); /* Reducido ligeramente para evitar conflictos */
+    font-size: clamp(1.5rem, 4vw, 2rem);
     color: var(--highlight-blue);
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -94,13 +95,23 @@ body {
     color: transparent;
     position: relative;
     padding: 0.4rem 0.8rem;
-    display: inline-block;
+    display: block; /* Asegura que los títulos se apilen */
+    text-align: center; /* Centra horizontalmente */
+    margin: 0.5rem auto; /* Espaciado vertical entre títulos */
     transition: transform 0.3s ease, text-shadow 0.3s ease;
-    animation: auto-glow 5s ease-in-out infinite; /* Animación automática */
+    animation: slide-in-text 0.8s ease-out forwards, float-text 3s ease-in-out infinite; /* Animación de entrada + flotación */
+}
+
+.app-header h1:nth-child(1) {
+    animation-delay: 0s, 0.8s; /* Primer título sin retraso adicional */
+}
+
+.app-header h1:nth-child(2) {
+    animation-delay: 0.2s, 1s; /* Segundo título con ligero retraso para entrada escalonada */
 }
 
 .app-header h1:hover {
-    transform: scale(1.03);
+    transform: translateY(-3px); /* Elevación vertical en lugar de escalado */
     text-shadow: 0 0 12px var(--highlight-blue), 0 0 18px rgba(0, 224, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -123,14 +134,34 @@ body {
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
 }
 
-@keyframes auto-glow {
+@keyframes slide-in-header {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-text {
+    0% {
+        transform: translateY(-15px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes float-text {
     0%, 100% {
-        transform: scale(1);
-        text-shadow: 0 0 10px var(--highlight-blue), 0 0 15px rgba(0, 224, 255, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+        transform: translateY(0);
     }
     50% {
-        transform: scale(1.03);
-        text-shadow: 0 0 12px var(--highlight-blue), 0 0 18px rgba(0, 224, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.5);
+        transform: translateY(-3px); /* Movimiento vertical sutil */
     }
 }
 
