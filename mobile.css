@@ -268,16 +268,17 @@
     }
     .control-group {
         margin-bottom: 0.24rem !important; /* Reducido 40% de 0.4rem */
-        margin-left: auto !important; /* Centrar */
-        margin-right: auto !important; /* Centrar */
+        margin-left: 0 !important; /* Alinear a la izquierda */
+        width: 400px !important; /* Duplicar ancho estimado (~200px a ~400px) */
+        max-width: 100% !important; /* Evitar desbordes */
+        box-sizing: border-box !important; /* Incluir padding y border */
     }
     .control-group label {
         font-size: 0.48rem !important; /* Reducido 40% de 0.8rem */
         margin-bottom: 0.24rem !important; /* Reducido 40% de 0.4rem */
         line-height: 1 !important; /* Acoplar texto verticalmente */
         width: fit-content !important; /* Acoplar al texto */
-        margin-left: auto !important; /* Centrar */
-        margin-right: auto !important; /* Centrar */
+        margin-left: 0 !important; /* Alinear a la izquierda */
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
     }
     select {
@@ -286,8 +287,10 @@
         line-height: 1 !important; /* Acoplar texto verticalmente */
         background-position: right 0.48rem top 50% !important; /* Reducido 40% de 0.8rem */
         background-size: 0.9rem auto !important; /* Reducido 40% de 1.5rem */
-        margin-left: auto !important; /* Centrar */
-        margin-right: auto !important; /* Centrar */
+        margin-left: 0 !important; /* Alinear a la izquierda */
+        width: 400px !important; /* Duplicar ancho estimado (~200px a ~400px) */
+        max-width: 100% !important; /* Evitar desbordes */
+        box-sizing: border-box !important; /* Incluir padding y border */
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
         border-radius: 4px !important; /* Suavizar esquinas */
     }
