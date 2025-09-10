@@ -60,7 +60,7 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.15rem 0.3rem; /* Mantenido para acoplar el texto */
+        padding: 0.15rem 0.2rem; /* Mantenido para acoplar el texto */
         display: inline-block;
         transition: transform 0.3s ease, text-shadow 0.3s ease;
         animation: auto-glow-mobile 5s ease-in-out infinite; /* Animación automática mantenida */
