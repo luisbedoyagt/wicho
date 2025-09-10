@@ -166,28 +166,86 @@ function parsePlainText(text, matchData) {
         const escapedLocal = matchData.local.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const escapedVisitante = matchData.visitante.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-        // Expresiones regulares para capturar justificaciones (permitiendo múltiples líneas)
-        const localJustification = analysisText.match(new RegExp(`${escapedLocal}:\\s*(.*?)(?=\\n*Empate:|\\n*${escapedVisitante}:|\\n*Probabilidades:|$)`));
-        const drawJustification = analysisText.match(/Empate:\s*(.*?)(?=\n*${escapedVisitante}:|\n*Probabilidades:|$)/s);
-        const awayJustification = analysisText.match(new RegExp(`${escapedVisitante}:\\s*(.*?)(?=\\n*Probabilidades:|$)`));
+        // Encontrar índices de los delimitadores principales
+        const localIndex = analysisText.indexOf(`${matchData.local}:`);
+        const drawIndex = analysisText.indexOf('Empate:');
+        const awayIndices = [...analysisText.matchAll(new RegExp(`${escapedVisitante}:`, 'g'))].map(match => match.index);
+        const probsIndex = analysisText.indexOf('Probabilidades:');
+        
+        console.log(`[parsePlainText] Índices encontrados:`, {
+            localIndex,
+            drawIndex,
+            awayIndices,
+            probsIndex
+        });
 
-        console.log(`[parsePlainText] LocalJustification:`, localJustification ? localJustification[1].trim() : 'No encontrado');
-        console.log(`[parsePlainText] DrawJustification:`, drawJustification ? drawJustification[1].trim() : 'No encontrado');
-        console.log(`[parsePlainText] AwayJustification:`, awayJustification ? awayJustification[1].trim() : 'No encontrado');
+        // Validar la estructura
+        if (localIndex === -1 || drawIndex === -1 || awayIndices.length === 0) {
+            console.warn(`[parsePlainText] Estructura de análisis inválida:`, { localIndex, drawIndex, awayIndices });
+        }
 
-        if (localJustification && localJustification[1].trim()) {
-            aiJustification.home = localJustification[1].trim().replace(/\s+/g, ' ');
-        }
-        if (drawJustification && drawJustification[1].trim()) {
-            aiJustification.draw = drawJustification[1].trim().replace(/\s+/g, ' ');
+        // Extraer justificación del equipo local
+        let localJustification = null;
+        if (localIndex !== -1 && drawIndex > localIndex) {
+            localJustification = analysisText.slice(localIndex + matchData.local.length + 1, drawIndex).trim();
+            console.log(`[parsePlainText] LocalJustification:`, localJustification || 'No encontrado');
+            if (localJustification) {
+                aiJustification.home = localJustification.replace(/\s+/g, ' ');
+            }
         } else {
-            console.warn(`[parsePlainText] No se encontró justificación para Empate. Usando texto por defecto.`);
+            console.warn(`[parsePlainText] No se pudo extraer justificación para ${matchData.local}.`);
         }
-        if (awayJustification && awayJustification[1].trim()) {
-            aiJustification.away = awayJustification[1].trim().replace(/\s+/g, ' ');
+
+        // Extraer justificación del empate
+        let drawJustification = null;
+        if (drawIndex !== -1 && awayIndices.length > 0) {
+            const firstValidAwayIndex = awayIndices.find(index => index > drawIndex);
+            if (firstValidAwayIndex !== undefined) {
+                drawJustification = analysisText.slice(drawIndex + 7, firstValidAwayIndex).trim();
+                console.log(`[parsePlainText] DrawJustification:`, drawJustification || 'No encontrado');
+                if (drawJustification) {
+                    // Verificar si el texto contiene una aparición no deseada de ${escapedVisitante}:
+                    const unexpectedAway = drawJustification.match(new RegExp(`${escapedVisitante}:`));
+                    if (unexpectedAway) {
+                        console.warn(`[parsePlainText] Aparición inesperada de "${matchData.visitante}:" en justificación de empate:`, drawJustification);
+                        // Tomar solo el texto antes de la aparición no deseada
+                        drawJustification = drawJustification.split(new RegExp(`${escapedVisitante}:`))[0].trim();
+                    }
+                    aiJustification.draw = drawJustification.replace(/\s+/g, ' ');
+                }
+            } else {
+                console.warn(`[parsePlainText] No se encontró una ocurrencia válida de ${matchData.visitante}: después de Empate.`);
+            }
+        } else if (drawIndex !== -1 && probsIndex > drawIndex) {
+            drawJustification = analysisText.slice(drawIndex + 7, probsIndex).trim();
+            console.log(`[parsePlainText] DrawJustification:`, drawJustification || 'No encontrado');
+            if (drawJustification) {
+                aiJustification.draw = drawJustification.replace(/\s+/g, ' ');
+            }
         } else {
-            console.warn(`[parsePlainText] No se encontró justificación para ${matchData.visitante}. Usando texto por defecto.`);
+            console.warn(`[parsePlainText] No se pudo extraer justificación para Empate.`);
         }
+
+        // Extraer justificación del equipo visitante
+        let awayJustification = null;
+        if (awayIndices.length > 0) {
+            const lastAwayIndex = awayIndices[awayIndices.length - 1];
+            if (probsIndex > lastAwayIndex) {
+                awayJustification = analysisText.slice(lastAwayIndex + matchData.visitante.length + 1, probsIndex).trim();
+            } else {
+                awayJustification = analysisText.slice(lastAwayIndex + matchData.visitante.length + 1).trim();
+            }
+            console.log(`[parsePlainText] AwayJustification:`, awayJustification || 'No encontrado');
+            if (awayJustification) {
+                aiJustification.away = awayJustification.replace(/\s+/g, ' ');
+            }
+            if (awayIndices.length > 1) {
+                console.warn(`[parsePlainText] Múltiples ocurrencias de "${matchData.visitante}:" detectadas:`, awayIndices);
+            }
+        } else {
+            console.warn(`[parsePlainText] No se encontró justificación para ${matchData.visitante}.`);
+        }
+
         console.log(`[parsePlainText] Justificaciones extraídas:`, {
             home: aiJustification.home,
             draw: aiJustification.draw,
