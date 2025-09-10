@@ -50,7 +50,7 @@
 
     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 2.5vw, 1.7rem) !important; /* TEXTO de título Más grande o mas pequeño */
+        font-size: clamp(1.2rem, 2.5vw, 1.7rem) !important; /* Mantenido como en tu código */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
@@ -265,17 +265,31 @@
         padding: 1.5rem 0;
     }
     .control-group {
-        margin-bottom: 0;
+        margin-bottom: 0.2rem; /* Reducido para compacidad */
+        width: fit-content; /* Acoplar al contenido */
+        max-width: 150px; /* Límite para evitar que sea demasiado estrecho */
+        margin-left: auto; /* Centrar o alinear */
+        margin-right: auto; /* Centrar o alinear */
     }
     .control-group label {
-        font-size: 0.8rem;
-        margin-bottom: 0.4rem;
+        font-size: 0.4rem !important; /* Reducido 50% de 0.8rem */
+        margin-bottom: 0.2rem; /* Reducido para compacidad */
+        width: fit-content; /* Acoplar al texto */
+        margin-left: auto; /* Centrar */
+        margin-right: auto; /* Centrar */
+        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5); /* Para legibilidad */
     }
     .select {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.7rem;
-        background-position: right 0.4rem top 50%;
-        background-size: 0.8rem auto;
+        padding: 0.2rem 0.3rem !important; /* Reducido 50% de 0.4rem 0.6rem */
+        font-size: 0.35rem !important; /* Reducido 50% de 0.7rem */
+        background-position: right 0.2rem top 50% !important; /* Ajustado */
+        background-size: 0.4rem auto !important; /* Reducido 50% */
+        width: fit-content; /* Acoplar al texto */
+        max-width: 150px; /* Límite para consistencia */
+        margin-left: auto; /* Centrar */
+        margin-right: auto; /* Centrar */
+        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5); /* Para legibilidad */
+        border-radius: 4px; /* Suavizar esquinas */
     }
     .event-list {
         gap: 0.8rem;
@@ -307,16 +321,16 @@
         padding: 0.8rem;
     }
     select optgroup {
-        font-size: 0.9em;
-        margin-top: 6px;
-        padding-bottom: 3px;
+        font-size: 0.45em !important; /* Reducido 50% de 0.9em */
+        margin-top: 3px; /* Reducido */
+        padding-bottom: 1.5px; /* Reducido */
     }
     select optgroup:not(:first-child) {
-        margin-top: 12px;
+        margin-top: 6px; /* Reducido */
     }
     select option {
-        font-size: 0.8em;
-        padding-left: 8px;
+        font-size: 0.4em !important; /* Reducido 50% de 0.8em */
+        padding-left: 4px; /* Reducido */
     }
     .prediction-container {
         padding: 0.8rem;
