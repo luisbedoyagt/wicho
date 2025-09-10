@@ -592,7 +592,7 @@ function generateTeamHtml(team = {}) {
     return `
         <div class="team-details">
             <div class="stat-section">
-                <span class="section-title">General</span>
+                <span class="section-title">General:</span>
                 <div class="stat-metrics">
                     <span>PJ: ${team.pj || 0}</span>
                     <span>V: ${team.g || 0}</span>
@@ -604,7 +604,7 @@ function generateTeamHtml(team = {}) {
                 </div>
             </div>
             <div class="stat-section">
-                <span class="section-title">Local</span>
+                <span class="section-title">Local:</span>
                 <div class="stat-metrics">
                     <span>PJ: ${team.pjHome || 0}</span>
                     <span>V: ${team.winsHome || 0}</span>
@@ -617,7 +617,7 @@ function generateTeamHtml(team = {}) {
                 </div>
             </div>
             <div class="stat-section">
-                <span class="section-title">Visitante</span>
+                <span class="section-title">Visitante:</span>
                 <div class="stat-metrics">
                     <span>PJ: ${team.pjAway || 0}</span>
                     <span>V: ${team.winsAway || 0}</span>
@@ -630,7 +630,7 @@ function generateTeamHtml(team = {}) {
                 </div>
             </div>
             <div class="stat-section">
-                <span class="section-title">Datos</span>
+                <span class="section-title">Datos:</span>
                 <div class="stat-metrics">
                     <span>Ranking:${team.pos || ''}</span>
                     <span>Puntos:${team.points || ''}</span>
