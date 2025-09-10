@@ -236,8 +236,31 @@
     .event-item {
         padding: 1rem;
         margin-bottom: 0.5rem;
-        border-radius: 4px;
+        border-radius: 8px; /* CAMBIO: Igualado a recommendation-box para consistencia */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.6), inset 0 0 10px rgba(0, 224, 255, 0.3); /* CAMBIO: Igualado a recommendation-box */
         transition: background-color 0.3s;
+        max-width: 600px; /* CAMBIO: Mantenido para limitar el ancho */
+        width: 100%; /* CAMBIO: Asegura que ocupe el ancho disponible */
+        display: flex; /* CAMBIO: Reforzado para centrar contenido */
+        flex-direction: column; /* CAMBIO: Asegura disposición vertical */
+        align-items: center; /* CAMBIO: Centra todo el contenido horizontalmente */
+    }
+
+    .event-content {
+        max-width: 100%; /* CAMBIO: Evita desbordes */
+        overflow: hidden; /* CAMBIO: Evita que el contenido se salga */
+    }
+
+    .league-name {
+        font-size: 0.95rem; /* CAMBIO: Ajustado para consistencia con .team-name */
+        font-weight: 600;
+        text-align: center;
+        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5);
+        margin-bottom: 0.5rem;
+        color: var(--highlight-blue);
+        max-width: 100%; /* CAMBIO: Limita el ancho para evitar desbordes */
+        overflow-wrap: break-word; /* CAMBIO: Permite que nombres largos se dividan */
+        line-height: 1.2; /* CAMBIO: Mejora legibilidad */
     }
 
     .team-logo-container {
