@@ -274,19 +274,19 @@
         box-sizing: border-box !important; /* Incluir padding y border */
     }
     .control-group label {
-        font-size: 0.48rem !important; /* Reducido 40% de 0.8rem */
-        margin-bottom: 0.24rem !important; /* Reducido 40% de 0.4rem */
+        font-size: 0.72rem !important; /* Aumentado 50% de 0.48rem a 0.72rem */
+        margin-bottom: 0.24rem !important; /* Mantenido */
         line-height: 1 !important; /* Acoplar texto verticalmente */
         width: fit-content !important; /* Acoplar al texto */
         margin-left: 0 !important; /* Alinear a la izquierda */
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
     }
     select {
-        padding: 0.5865rem 0.6rem !important; /* Aumentado 15% en vertical (de 0.51rem a 0.5865rem) */
-        font-size: 0.69rem !important; /* Aumentado 15% (de 0.6rem a 0.69rem) */
+        padding: 0.5865rem 0.6rem !important; /* Mantenido (aumentado 15% previamente) */
+        font-size: 0.69rem !important; /* Mantenido (aumentado 15% previamente) */
         line-height: 1 !important; /* Acoplar texto verticalmente */
-        background-position: right 0.552rem top 50% !important; /* Aumentado 15% (de 0.48rem a 0.552rem) */
-        background-size: 1.035rem auto !important; /* Aumentado 15% (de 0.9rem a 1.035rem) */
+        background-position: right 0.552rem top 50% !important; /* Mantenido (aumentado 15% previamente) */
+        background-size: 1.035rem auto !important; /* Mantenido (aumentado 15% previamente) */
         margin-left: 0 !important; /* Alinear a la izquierda */
         width: 400px !important; /* Mantenido */
         max-width: 100% !important; /* Evitar desbordes */
