@@ -25,13 +25,15 @@
     }
 
     .app-header {
-        padding: 0.5rem 0 !important; /* Aumentado de 0.23rem para dar más espacio al contenedor */
-        margin-bottom: 0.5rem !important; /* Aumentado de 0.1rem para consistencia */
+        padding: 0.5rem 0 !important;
+        margin-bottom: 0.5rem !important;
         border-radius: 6px !important;
         background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg)) !important;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1) !important;
-        min-height: 3rem !important; /* Aumentado de 2rem para acomodar mejor los títulos */
-        border: 1px solid red !important; /* Temporal para depuración */
+        min-height: 3rem !important;
+        /*border: 1px solid red !important;*/ /* Comentado para eliminar el borde de depuración */
+        position: relative; /* Necesario para animaciones de posición */
+        animation: slide-in-header 0.8s ease-out forwards; /* Animación de entrada para la ficha */
     }
 
     .app-header::before {
@@ -59,17 +61,28 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.2rem 0.3rem !important; /* Aumentado de 0.09rem verticalmente para más espacio */
-        display: block !important; /* Asegura que los h1 se apilen verticalmente */
-        text-align: center !important; /* Centra horizontalmente */
-        margin: 0.5rem auto !important; /* Añade margen vertical para separar los títulos */
-        line-height: 1.4 !important; /* Aumentado de 0.7 para mejor legibilidad y espaciado */
+        padding: 0.2rem 0.3rem !important;
+        display: block !important;
+        text-align: center !important;
+        margin: 0.5rem auto !important;
+        line-height: 1.4 !important;
         width: fit-content;
+        animation: slide-in-text 0.8s ease-out forwards, float-text 3s ease-in-out infinite; /* Animación de entrada + flotación */
+        animation-delay: 0s, 0.8s; /* La flotación comienza después de la entrada */
+    }
+
+    .app-header h1:nth-child(1) {
+        animation-delay: 0s, 0.8s; /* Primer título sin retraso adicional */
+    }
+
+    .app-header h1:nth-child(2) {
+        animation-delay: 0.2s, 1s; /* Segundo título con ligero retraso para entrada escalonada */
     }
 
     .app-header h1:hover {
-        transform: scale(1.02);
+        transform: scale(1.02) translateY(-2px); /* Añade un pequeño desplazamiento vertical al hover */
         text-shadow: 0 0 5px var(--highlight-blue), 0 0 7px rgba(0, 224, 255, 0.6), 0 1px 1px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease, text-shadow 0.3s ease;
     }
 
     .app-header h1::after {
@@ -84,14 +97,34 @@
         opacity: 0.6;
     }
 
-    @keyframes auto-glow-mobile {
+    @keyframes slide-in-header {
+        0% {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slide-in-text {
+        0% {
+            transform: translateY(-15px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes float-text {
         0%, 100% {
-            transform: scale(1);
-            text-shadow: 0 0 4px var(--highlight-blue), 0 0 6px rgba(0, 224, 255, 0.5), 0 1px 1px rgba(0, 0, 0, 0.4);
+            transform: translateY(0);
         }
         50% {
-            transform: scale(1.02);
-            text-shadow: 0 0 5px var(--highlight-blue), 0 0 7px rgba(0, 224, 255, 0.6), 0 1px 1px rgba(0, 0, 0, 0.4);
+            transform: translateY(-3px); /* Movimiento sutil hacia arriba */
         }
     }
 
