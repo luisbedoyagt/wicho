@@ -125,7 +125,7 @@
 
     .team-details {
         display: grid;
-        grid-template-columns: 1fr; /* Una columna para apilar verticalmente */
+        grid-template-columns: 1fr;
         gap: 1.5rem;
     }
 
@@ -138,19 +138,18 @@
     .stat-metrics {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem;
-        justify-content: flex-start; /* Alinear métricas a la izquierda */
+        gap: 0.75rem;
+        justify-content: space-between; /* Distribuir cuadros uniformemente */
     }
 
     .stat-metrics span {
-        flex: 1 1 100px; /* Ancho mínimo para cada métrica */
-        max-width: 150px; /* Ancho máximo para consistencia */
+        flex: 1 1 80px; /* Ancho mínimo más compacto */
+        max-width: 120px; /* Ancho máximo para uniformidad */
         padding: 0.5rem;
         text-align: center;
-        border: 1px solid #e0e0e0; /* Borde para definir cuadros */
+        border: 1px solid #e0e0e0;
         border-radius: 4px;
-        background-color: #f9f9f9; /* Fondo claro para destacar */
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .probabilities-grid {
