@@ -6,20 +6,20 @@
 
 .app-header h1 {
     font-size: clamp(1.8rem, 4vw, 2.2rem);
-    font-family: 'Roboto', 'Arial', sans-serif; /* Fuente moderna */
+    font-family: 'Roboto', 'Arial', sans-serif;
     font-weight: 700;
-    color: var(--highlight-blue, #61dafb); /* Color destacado, con fallback */
-    text-transform: uppercase; /* Mayúsculas para impacto */
-    letter-spacing: 1px; /* Espaciado entre letras */
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra suave */
-    background: linear-gradient(90deg, var(--highlight-blue, #61dafb), var(--secondary-bg, #20232a)); /* Gradiente */
+    color: var(--highlight-blue, #61dafb);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(90deg, var(--highlight-blue, #61dafb), var(--secondary-bg, #20232a));
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent; /* Para que el gradiente se aplique al texto */
+    color: transparent;
     padding: 0.5rem 1rem;
     display: inline-block;
     border-radius: 6px;
-    animation: fadeIn 1s ease-in-out; /* Animación de entrada */
+    animation: fadeIn 1s ease-in-out;
 }
 
 /* Animación de entrada */
@@ -41,14 +41,14 @@
     }
 
     .app-header h1 {
-        font-size: clamp(2rem, 4vw, 2.8rem); /* Tamaño reducido para más elegancia */
-        font-family: 'Roboto', 'Arial', sans-serif; /* Fuente moderna */
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        font-family: 'Roboto', 'Arial', sans-serif;
         font-weight: 700;
-        color: var(--highlight-blue, #61dafb); /* Color destacado */
+        color: var(--highlight-blue, #61dafb);
         text-transform: uppercase;
-        letter-spacing: 1.5px; /* Mayor espaciado para pantallas grandes */
-        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
-        background: linear-gradient(90deg, var(--highlight-blue, #61dafb), var(--secondary-bg, #20232a)); /* Gradiente */
+        letter-spacing: 1.5px;
+        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(90deg, var(--highlight-blue, #61dafb), var(--secondary-bg, #20232a));
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
@@ -60,7 +60,6 @@
         animation: fadeIn 1s ease-in-out;
     }
 
-    /* Efecto de brillo opcional */
     .app-header h1::before {
         content: '';
         position: absolute;
@@ -121,7 +120,7 @@
         grid-template-columns: 1fr;
         grid-template-areas: "ia";
         gap: 0;
-        min-height: 200px;
+        min-height: 120px; /* Reducido para acoplarse al título */
         width: 100%;
         padding: 0;
         overflow: visible;
@@ -129,10 +128,14 @@
 
     .ia-card {
         grid-area: ia;
-        min-height: 200px;
+        min-height: 120px; /* Reducido para acoplarse al título */
         width: 100%;
         margin: 0;
         overflow: visible;
+        background: linear-gradient(135deg, rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.1), rgba(var(--secondary-bg-rgb, 32, 35, 42), 0.1)); /* Fondo vistoso */
+        border: 1px solid var(--highlight-blue, #61dafb); /* Borde que combina con el título */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+        border-radius: 10px; /* Bordes más redondeados */
     }
 
     .combined-card {
@@ -306,13 +309,13 @@
 
     #detailed-prediction {
         padding: 1.5rem;
-        background: var(--secondary-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+        background: var(--secondary-bg, #20232a);
+        border: 1px solid var(--highlight-blue, #61dafb); /* Borde vistoso */
+        border-radius: 10px; /* Bordes más redondeados */
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 2px 8px rgba(0, 0, 0, 0.2); /* Sombra combinada */
         position: relative;
         height: auto;
-        min-height: 200px;
+        min-height: 120px; /* Reducido para acoplarse al título */
         width: 100%;
         overflow-y: visible;
         overflow-wrap: break-word;
@@ -328,7 +331,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: radial-gradient(circle at 10% 10%, rgba(0, 224, 255, 0.1), transparent 50%);
+        background: linear-gradient(135deg, rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.1), transparent); /* Fondo vistoso */
         pointer-events: none;
     }
 
@@ -337,20 +340,22 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        color: var(--highlight-blue);
-        font-size: 1.2rem;
-        font-weight: bold;
+        color: var(--highlight-blue, #61dafb);
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        font-weight: 600;
+        font-family: 'Roboto', 'Arial', sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: rgba(32, 35, 42, 0.8);
-        padding: 1rem;
+        background: linear-gradient(90deg, rgba(var(--secondary-bg-rgb, 32, 35, 42), 0.8), rgba(var(--highlight-blue-rgb, 97, 218, 251), 0.2)); /* Fondo vistoso */
+        padding: 0.8rem 1.2rem;
         border-radius: 8px;
-        backdrop-filter: blur(3px);
-        border: 1px solid var(--highlight-blue);
-        box-shadow: 0 0 10px rgba(97, 218, 251, 0.5);
+        border: 1px solid var(--highlight-blue, #61dafb);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         z-index: 10;
-        width: 80%;
+        width: 90%;
+        text-align: center;
+        animation: fadeIn 0.5s ease-in-out;
     }
 
     .reset-container {
