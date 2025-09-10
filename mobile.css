@@ -208,6 +208,16 @@
         pointer-events: none;
     }
 
+    /* Estilos para el nombre de la liga */
+    .league-name {
+        font-size: 0.9rem !important; /* Ligeramente más grande para destacar */
+        font-weight: 600 !important; /* Negrita para énfasis */
+        text-align: center !important; /* Centrado */
+        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
+        margin-bottom: 0.3rem !important; /* Separación del resto del contenido */
+        color: var(--highlight-blue) !important; /* Color consistente con otros elementos */
+    }
+
     /* Resto de las secciones */
     .recommendation-ia-grid {
         grid-template-columns: 1fr;
@@ -347,6 +357,7 @@
     .event-details {
         font-size: 0.75rem;
         white-space: normal;
+        text-align: center; /* Centrado para consistencia */
     }
     .event-content {
         gap: 0.3rem;
