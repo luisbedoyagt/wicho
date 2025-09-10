@@ -83,7 +83,7 @@ body {
 
 .app-header h1 {
     font-family: var(--font-heading);
-    font-size: clamp(1.8rem, 4.5vw, 2.5rem);
+    font-size: clamp(1.5rem, 4vw, 2rem); /* Reducido ligeramente para evitar conflictos */
     color: var(--highlight-blue);
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -96,7 +96,7 @@ body {
     padding: 0.4rem 0.8rem;
     display: inline-block;
     transition: transform 0.3s ease, text-shadow 0.3s ease;
-    animation: auto-glow 5s ease-in-out infinite; /* Animación automática cada 5s */
+    animation: auto-glow 5s ease-in-out infinite; /* Animación automática */
 }
 
 .app-header h1:hover {
