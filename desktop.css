@@ -24,7 +24,7 @@
             "ia ia";
         gap: 2rem;
         row-gap: 2rem;
-        column-gap: 0.5rem; /* Separación reducida para home/away */
+        column-gap: 0.5rem;
         align-items: start;
         grid-auto-rows: minmax(250px, auto);
         max-width: 1200px;
@@ -92,7 +92,8 @@
     .card-body {
         flex: 1;
         overflow-y: auto;
-        padding: 1rem; /* Reducido de 1.5rem */
+        padding: 1rem;
+        max-width: 100%;
     }
 
     .event-list {
@@ -128,42 +129,42 @@
     .team-details {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 0.75rem; /* Reducido de 1rem */
-        max-width: 100%; /* Evitar desborde */
-        overflow-x: auto; /* Permitir desplazamiento si es necesario */
+        gap: 0.5rem; /* Reducido de 0.75rem */
+        max-width: 100%;
     }
 
     .stat-section {
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.4rem; /* Reducido de 0.5rem */
     }
 
     .section-title {
         font-weight: bold;
-        font-size: 1rem;
-        min-width: 80px;
+        font-size: 0.9rem; /* Reducido de 1rem */
+        min-width: 60px; /* Reducido de 80px */
     }
 
     .stat-metrics {
         display: flex;
         flex-wrap: nowrap;
-        gap: 0.4rem;
+        gap: 0.3rem; /* Reducido de 0.4rem */
         flex: 1;
     }
 
     .stat-metrics span {
-        width: 50px; /* Ancho fijo para uniformidad */
-        padding: 0.2rem;
+        width: 40px; /* Cuadros más pequeños */
+        padding: 0.15rem; /* Reducido de 0.2rem */
         text-align: center;
         border: 1px solid #e0e0e0;
         border-radius: 4px;
-        font-size: 0.75rem;
+        font-size: 0.7rem; /* Reducido de 0.75rem */
         box-sizing: border-box;
-        text-overflow: ellipsis; /* Truncar texto largo */
+        text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+        flex-shrink: 1; /* Permitir ajuste si es necesario */
     }
 
     .probabilities-grid {
