@@ -5,7 +5,7 @@
         padding: 0.8rem;
     }
     .container {
-        gap: 0.5rem; /* Reducido para acercar secciones */
+        gap: 0.5rem; /* Mantenido para coherencia entre secciones */
     }
     .main-grid {
         grid-template-columns: 1fr;
@@ -21,15 +21,15 @@
     .result-card,
     .recommendation-ia-grid,
     .reset-container {
-        margin-bottom: 0.5rem; /* Reducido para acercar a eventos */
+        margin-bottom: 0.5rem; /* Mantenido para otras secciones */
     }
     .card {
         margin-bottom: 0.5rem;
     }
 
     .app-header {
-        padding: 0.8rem 0; /* Reducido para acoplar el título */
-        margin-bottom: 0.4rem; /* Mantenido para acercar a eventos */
+        padding: 0.8rem 0; /* Mantenido para acoplar el título */
+        margin-bottom: 0.1rem; /* Reducido en un 75% (de 0.4rem a 0.1rem) */
         border-radius: 6px;
         background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg));
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
@@ -50,23 +50,23 @@
 
     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(0.6rem, 2vw, 0.75rem); /* Reducido en un 50% */
+        font-size: clamp(0.6rem, 2vw, 0.75rem); /* Mantenido: reducido en 50% */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
-        letter-spacing: 0.5px; /* Reducido para acoplar el texto */
-        text-shadow: 0 0 6px var(--highlight-blue), 0 0 8px rgba(0, 224, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.4); /* Ajustado para el nuevo tamaño */
+        letter-spacing: 0.5px; /* Mantenido para acoplar el texto */
+        text-shadow: 0 0 6px var(--highlight-blue), 0 0 8px rgba(0, 224, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.4); /* Mantenido */
         background: linear-gradient(90deg, var(--highlight-blue), #00a0e0);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.2rem 0.4rem; /* Reducido para acoplar el texto */
+        padding: 0.2rem 0.4rem; /* Mantenido para acoplar el texto */
         display: inline-block;
         transition: transform 0.3s ease, text-shadow 0.3s ease;
         animation: auto-glow-mobile 5s ease-in-out infinite; /* Animación automática mantenida */
-        line-height: 1.2; /* Ajustado para mejor legibilidad */
-        width: fit-content; /* Acopla el contenedor al texto */
-        margin: 0 auto; /* Centra el título */
+        line-height: 1.2; /* Mantenido para legibilidad */
+        width: fit-content; /* Mantenido para acoplar el texto */
+        margin: 0 auto; /* Mantenido para centrar el título */
     }
 
     .app-header h1:hover {
