@@ -145,30 +145,32 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 0.1rem; /* Reducido de 0.15rem */
+        gap: 1.5rem; /* Aumentado de 0.1rem a ~2 tabulaciones (1.5rem ≈ 24px) */
     }
 
     .section-title {
         font-weight: bold;
         font-size: 0.8rem;
-        min-width: 40px;
+        min-width: 60px; /* Aumentado de 40px para mejor espaciado */
+        width: 60px; /* Ancho fijo para consistencia */
+        text-align: left; /* Alinea el título a la izquierda */
     }
 
     .stat-metrics {
         display: flex;
         flex-wrap: nowrap;
-        gap: 0.05rem; /* Reducido de 0.1rem */
+        gap: 0.05rem; /* Sin cambios, mantiene cuadros compactos */
         flex: 1;
     }
 
     .stat-metrics span {
-        width: 48px; /* 60% más ancho (30px * 1.6) */
+        width: 48px; /* Sin cambios */
         padding: 0.1rem;
         text-align: center;
         border: 1px solid #e0e0e0;
         border-radius: 4px;
-        font-size: 0.6rem; /* Aumentado de 0.55rem para legibilidad */
-        line-height: 1rem; /* Para altura ~17px */
+        font-size: 0.6rem;
+        line-height: 1rem;
         box-sizing: border-box;
         text-overflow: ellipsis;
         overflow: hidden;
