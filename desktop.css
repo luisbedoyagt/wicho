@@ -59,14 +59,14 @@
         grid-template-columns: 1fr;
         grid-template-areas: "ia";
         gap: 0;
-        min-height: 400px;
+        min-height: 200px; /* Reducido a la mitad para el estado inicial */
         width: 100%;
         padding: 0;
     }
 
     .ia-card {
         grid-area: ia;
-        min-height: 400px;
+        min-height: 200px; /* Reducido a la mitad para el estado inicial */
         width: 100%;
         margin: 0;
     }
@@ -248,9 +248,9 @@
         border-radius: 8px;
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
         position: relative;
-        overflow-y: auto; /* Permitir scroll si el contenido es extenso */
+        overflow-y: auto;
         height: auto;
-        min-height: 400px;
+        min-height: 200px; /* Reducido a la mitad para el estado inicial */
         width: 100%;
     }
 
