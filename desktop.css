@@ -16,10 +16,12 @@
 
     .main-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         grid-template-areas:
-            "events home away"
-            "results ia ia";
+            "events events"
+            "home away"
+            "results results"
+            "ia ia";
         gap: 2rem;
         align-items: start;
         grid-auto-rows: minmax(250px, auto);
@@ -50,13 +52,12 @@
     .recommendation-ia-grid {
         grid-area: ia;
         display: grid;
-        grid-template-columns: 1fr 1fr; /* 2 columnas para ia-card y combined-card */
+        grid-template-columns: 1fr;
         grid-template-areas:
-            "ia ia"
-            "combined combined";
+            "ia"
+            "combined";
         gap: 2rem;
-        align-items: start;
-        min-height: 400px;
+        min-height: 650px; /* Suma de ia-card y combined-card */
     }
 
     .ia-card {
