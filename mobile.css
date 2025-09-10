@@ -50,7 +50,7 @@
 
     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 2.5vw, 1.7rem) !important; /* Mantenido como en tu código */
+        font-size: clamp(1.2rem, 2.5vw, 1.7rem) !important; /* TEXTO de título Más grande o mas pequeño */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
@@ -62,7 +62,7 @@
         color: transparent;
         padding: 0.15rem 0.3rem; /* Mantenido para acoplar el texto */
         display: inline-block;
-        transition: transform 0.3s ease, text-shadow: 0.3s ease;
+        transition: transform 0.3s ease, text-shadow 0.3s ease;
         animation: auto-glow-mobile 5s ease-in-out infinite; /* Animación automática mantenida */
         line-height: 1.2; /* Mantenido para legibilidad */
         width: fit-content; /* Mantenido para acoplar el texto */
@@ -265,33 +265,17 @@
         padding: 1.5rem 0;
     }
     .control-group {
-        margin-bottom: 0.2rem; /* Reducido para compacidad vertical */
-        width: fit-content; /* Acoplar al contenido */
-        max-width: 200px; /* Límite para consistencia */
-        margin-left: auto; /* Centrar */
-        margin-right: auto; /* Centrar */
+        margin-bottom: 0;
     }
     .control-group label {
-        font-size: 0.4rem !important; /* Reducido 50% de 0.8rem */
-        margin-bottom: 0.2rem; /* Reducido 50% de 0.4rem */
-        line-height: 1; /* Acoplar texto verticalmente */
-        width: fit-content; /* Acoplar al texto */
-        margin-left: auto; /* Centrar */
-        margin-right: auto; /* Centrar */
-        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5); /* Para legibilidad */
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
     }
     .select {
-        padding: 0.2rem 0.6rem !important; /* Reducido 50% en vertical (de 0.4rem a 0.2rem) */
-        font-size: 0.35rem !important; /* Reducido 50% de 0.7rem */
-        line-height: 1 !important; /* Acoplar texto verticalmente */
-        background-position: right 0.4rem top 50% !important; /* Mantenido para ícono */
-        background-size: 0.6rem auto !important; /* Reducido para proporción */
-        width: fit-content; /* Acoplar al texto */
-        max-width: 200px; /* Límite para consistencia */
-        margin-left: auto; /* Centrar */
-        margin-right: auto; /* Centrar */
-        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5); /* Para legibilidad */
-        border-radius: 4px; /* Suavizar esquinas */
+        padding: 0.4rem 0.6rem;
+        font-size: 0.7rem;
+        background-position: right 0.4rem top 50%;
+        background-size: 0.8rem auto;
     }
     .event-list {
         gap: 0.8rem;
@@ -323,18 +307,16 @@
         padding: 0.8rem;
     }
     select optgroup {
-        font-size: 0.45em !important; /* Reducido 50% de 0.9em */
-        margin-top: 3px; /* Reducido 50% */
-        padding-bottom: 1.5px; /* Reducido 50% */
-        line-height: 1; /* Acoplar texto verticalmente */
+        font-size: 0.9em;
+        margin-top: 6px;
+        padding-bottom: 3px;
     }
     select optgroup:not(:first-child) {
-        margin-top: 6px; /* Reducido 50% */
+        margin-top: 12px;
     }
     select option {
-        font-size: 0.4em !important; /* Reducido 50% de 0.8em */
-        padding-left: 4px; /* Reducido 50% */
-        line-height: 1; /* Acoplar texto verticalmente */
+        font-size: 0.8em;
+        padding-left: 8px;
     }
     .prediction-container {
         padding: 0.8rem;
