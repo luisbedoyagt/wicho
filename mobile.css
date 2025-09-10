@@ -25,12 +25,12 @@
     }
 
     .app-header {
-        padding: 0.16rem 0 !important; /* Reducido 60% de 0.4rem */
+        padding: 0.224rem 0 !important; /* Aumentado 40% de 0.16rem */
         margin-bottom: 0.1rem !important;
         border-radius: 6px !important;
         background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg)) !important;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1) !important; /* Reducido para menor impacto visual */
-        min-height: 0 !important; /* Evita altura mínima predeterminada */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1) !important;
+        min-height: 0 !important;
     }
 
     .app-header::before {
@@ -39,7 +39,7 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 1.6px !important; /* Reducido 60% de 4px */
+        height: 2.24px !important; /* Aumentado 40% de 1.6px */
         background: linear-gradient(to right, transparent, var(--highlight-blue), transparent) !important;
         opacity: 0.5;
         border-top-left-radius: 6px;
@@ -58,11 +58,11 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.06rem 0.3rem !important; /* Reducido 60% en vertical de 0.15rem */
+        padding: 0.084rem 0.3rem !important; /* Aumentado 40% de 0.06rem en vertical */
         display: inline-block;
         transition: transform 0.3s ease, text-shadow 0.3s ease;
         animation: auto-glow-mobile 5s ease-in-out infinite;
-        line-height: 0.48 !important; /* Reducido 60% de 1.2 */
+        line-height: 0.672 !important; /* Aumentado 40% de 0.48 */
         width: fit-content;
         margin: 0 auto !important;
     }
@@ -96,8 +96,8 @@
     }
 
     .app-header p {
-        font-size: 0.6rem !important; /* Ajustado para legibilidad (en lugar de 0.32rem) */
-        margin-top: 0.12rem !important; /* Reducido 60% de 0.3rem */
+        font-size: 0.8rem !important; /* Ajustado a 0.8rem para consistencia (en lugar de 0.84rem) */
+        margin-top: 0.168rem !important; /* Aumentado 40% de 0.12rem */
     }
 
     .card-header {
