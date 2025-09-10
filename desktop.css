@@ -106,7 +106,7 @@
 
     .control-group {
         margin: 0 !important; /* Sobrescribir margin-bottom: 1.5rem de general.css */
-        margin-bottom: 1.0rem !important; /* ~2.25 líneas (1.5 * 1.8rem) */
+        margin-bottom: 1.0rem !important; /* Mantenido según tu CSS */
         padding: 0 !important; /* Eliminar padding */
     }
 
@@ -220,18 +220,20 @@
     }
 
     .probabilities-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        justify-items: center;
+        display: flex; /* Cambiar de grid a flex para alinear en una fila */
+        flex-wrap: nowrap; /* Forzar una sola fila */
+        justify-content: space-between; /* Distribuir uniformemente */
+        gap: 1rem; /* Mantener separación entre cuadros */
+        margin-top: 2rem; /* Mantener margen superior de general.css */
     }
 
     .probability-tile {
-        flex: 1 1 100px;
-        max-width: 150px;
-        padding: 1rem;
+        flex: 0 0 150px; /* Ancho fijo igual al cuadro Visitante */
+        width: 150px; /* Asegurar ancho consistente */
+        padding: 0.9rem 0.6rem; /* Usar padding de general.css para igualar Visitante */
         text-align: center;
-        border-radius: 4px;
+        border-radius: 6px; /* Usar border-radius de general.css */
+        box-sizing: border-box;
     }
 
     .recommendation-box {
