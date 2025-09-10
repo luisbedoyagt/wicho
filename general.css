@@ -52,14 +52,14 @@ body {
     max-width: 1200px;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1rem; /* Reducido para acercar secciones */
 }
 
 /* Encabezado de la app */
 .app-header {
     text-align: center;
     padding: 2rem 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.8rem; /* Reducido para acercar a eventos */
     position: relative;
     overflow: hidden;
     border-radius: 8px;
@@ -83,7 +83,6 @@ body {
 
 .app-header h1 {
     font-family: var(--font-heading);
-    font-weight: 700;
     font-size: clamp(1.8rem, 4.5vw, 2.5rem);
     color: var(--highlight-blue);
     letter-spacing: 1px;
@@ -97,6 +96,7 @@ body {
     padding: 0.4rem 0.8rem;
     display: inline-block;
     transition: transform 0.3s ease, text-shadow 0.3s ease;
+    animation: auto-glow 5s ease-in-out infinite; /* Animación automática cada 5s */
 }
 
 .app-header h1:hover {
@@ -121,6 +121,17 @@ body {
     color: var(--label-color);
     margin-top: 0.5rem;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes auto-glow {
+    0%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 10px var(--highlight-blue), 0 0 15px rgba(0, 224, 255, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    50% {
+        transform: scale(1.03);
+        text-shadow: 0 0 12px var(--highlight-blue), 0 0 18px rgba(0, 224, 255, 0.7), 0 1px 4px rgba(0, 0, 0, 0.5);
+    }
 }
 
 @keyframes glow-text {
@@ -258,7 +269,7 @@ select {
     border-radius: 6px;
     font-size: 1rem;
     -webkit-appearance: none;
-    -moz-appearance: none Union: none;
+    -moz-appearance: none;
     appearance: none;
     cursor: pointer;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
