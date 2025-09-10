@@ -162,24 +162,28 @@ function parsePlainText(text, matchData) {
         const analysisText = analysisMatch[1].trim();
         console.log(`[parsePlainText] AnalysisText:`, analysisText);
 
-        const localJustification = analysisText.match(new RegExp(`${matchData.local}:\\s*(.*?)(?=Empate:|${matchData.visitante}:|Probabilidades:|$|\\n\\n)`, 's'));
-        const drawJustification = analysisText.match(/Empate:\s*(.*?)(?=(?:${matchData.visitante}:|Probabilidades:|$|\n\n))/s);
-        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:\\s*(.*?)(?=Probabilidades:|$|\\n\\n)`, 's'));
+        // Escapar caracteres especiales en los nombres de los equipos
+        const escapedLocal = matchData.local.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedVisitante = matchData.visitante.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-        console.log(`[parsePlainText] LocalJustification:`, localJustification ? localJustification[1] : 'No encontrado');
-        console.log(`[parsePlainText] DrawJustification:`, drawJustification ? drawJustification[1] : 'No encontrado');
-        console.log(`[parsePlainText] AwayJustification:`, awayJustification ? awayJustification[1] : 'No encontrado');
+        const localJustification = analysisText.match(new RegExp(`${escapedLocal}:\\s*([^\\n]*?)(?=\\n*Empate:|\\n*${escapedVisitante}:|\\n*Probabilidades:|$)`));
+        const drawJustification = analysisText.match(/Empate:\s*([^\\n]*?)(?=\\n*${escapedVisitante}:|\\n*Probabilidades:|$)/);
+        const awayJustification = analysisText.match(new RegExp(`${escapedVisitante}:\\s*([^\\n]*?)(?=\\n*Probabilidades:|$)`));
+
+        console.log(`[parsePlainText] LocalJustification:`, localJustification ? localJustification[1].trim() : 'No encontrado');
+        console.log(`[parsePlainText] DrawJustification:`, drawJustification ? drawJustification[1].trim() : 'No encontrado');
+        console.log(`[parsePlainText] AwayJustification:`, awayJustification ? awayJustification[1].trim() : 'No encontrado');
 
         if (localJustification && localJustification[1].trim()) {
-            aiJustification.home = localJustification[1].trim();
+            aiJustification.home = localJustification[1].trim().replace(/\s+/g, ' ');
         }
         if (drawJustification && drawJustification[1].trim()) {
-            aiJustification.draw = drawJustification[1].trim();
+            aiJustification.draw = drawJustification[1].trim().replace(/\s+/g, ' ');
         } else {
             console.warn(`[parsePlainText] No se encontró justificación para Empate. Usando texto por defecto.`);
         }
         if (awayJustification && awayJustification[1].trim()) {
-            aiJustification.away = awayJustification[1].trim();
+            aiJustification.away = awayJustification[1].trim().replace(/\s+/g, ' ');
         } else {
             console.warn(`[parsePlainText] No se encontró justificación para ${matchData.visitante}. Usando texto por defecto.`);
         }
