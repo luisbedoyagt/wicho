@@ -265,17 +265,33 @@
         padding: 1.5rem 0;
     }
     .control-group {
-        margin-bottom: 0;
+        margin-bottom: 0.24rem !important; /* Reducido 40% de 0.4rem */
+        width: fit-content !important; /* Acoplar al contenido */
+        max-width: 200px !important; /* Límite para consistencia */
+        margin-left: auto !important; /* Centrar */
+        margin-right: auto !important; /* Centrar */
     }
     .control-group label {
-        font-size: 0.8rem;
-        margin-bottom: 0.4rem;
+        font-size: 0.48rem !important; /* Reducido 40% de 0.8rem */
+        margin-bottom: 0.24rem !important; /* Reducido 40% de 0.4rem */
+        line-height: 1 !important; /* Acoplar texto verticalmente */
+        width: fit-content !important; /* Acoplar al texto */
+        margin-left: auto !important; /* Centrar */
+        margin-right: auto !important; /* Centrar */
+        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
     }
-    .select {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.7rem;
-        background-position: right 0.4rem top 50%;
-        background-size: 0.8rem auto;
+    select {
+        padding: 0.51rem 0.6rem !important; /* Reducido 40% en vertical (de 0.85rem a 0.51rem) */
+        font-size: 0.6rem !important; /* Reducido 40% de 1rem */
+        line-height: 1 !important; /* Acoplar texto verticalmente */
+        background-position: right 0.48rem top 50% !important; /* Reducido 40% de 0.8rem */
+        background-size: 0.9rem auto !important; /* Reducido 40% de 1.5rem */
+        width: fit-content !important; /* Acoplar al texto */
+        max-width: 200px !important; /* Límite para consistencia */
+        margin-left: auto !important; /* Centrar */
+        margin-right: auto !important; /* Centrar */
+        text-shadow: 0 0 3px rgba(0, 224, 255, 0.5) !important; /* Para legibilidad */
+        border-radius: 4px !important; /* Suavizar esquinas */
     }
     .event-list {
         gap: 0.8rem;
@@ -307,16 +323,18 @@
         padding: 0.8rem;
     }
     select optgroup {
-        font-size: 0.9em;
-        margin-top: 6px;
-        padding-bottom: 3px;
+        font-size: 0.54em !important; /* Reducido 40% de 0.9em */
+        margin-top: 3.6px !important; /* Reducido 40% de 6px */
+        padding-bottom: 1.8px !important; /* Reducido 40% de 3px */
+        line-height: 1 !important; /* Acoplar texto verticalmente */
     }
     select optgroup:not(:first-child) {
-        margin-top: 12px;
+        margin-top: 7.2px !important; /* Reducido 40% de 12px */
     }
     select option {
-        font-size: 0.8em;
-        padding-left: 8px;
+        font-size: 0.48em !important; /* Reducido 40% de 0.8em */
+        padding-left: 4.8px !important; /* Reducido 40% de 8px */
+        line-height: 1 !important; /* Acoplar texto verticalmente */
     }
     .prediction-container {
         padding: 0.8rem;
