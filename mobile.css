@@ -48,9 +48,9 @@
         border-top-right-radius: 6px;
     }
 
-    .app-header h1 {
+     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 2.5vw, 1.7rem); /* TEXTO de título Más grande o mas pequeño */
+        font-size: clamp(1.2rem, 2vw, 1.4rem) !important; /* Mantenido: reducido en 50% adicional */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
