@@ -22,7 +22,9 @@
             "home away"
             "results results"
             "ia ia";
-        gap: 2rem;
+        gap: 2rem; /* Gap general */
+        row-gap: 2rem; /* Gap entre filas */
+        column-gap: 0.5rem; /* Gap reducido 75% (de 2rem a 0.5rem) para la fila home/away */
         align-items: start;
         grid-auto-rows: minmax(250px, auto);
         max-width: 1200px;
@@ -139,24 +141,25 @@
     .section-title {
         font-weight: bold;
         font-size: 1rem;
-        min-width: 80px; /* Espacio reservado para el título */
+        min-width: 80px;
     }
 
     .stat-metrics {
         display: flex;
-        flex-wrap: nowrap; /* Forzar una sola línea */
-        gap: 0.5rem;
-        flex: 1; /* Ocupar el espacio restante */
+        flex-wrap: nowrap;
+        gap: 0.4rem; /* Reducido para cuadros más juntos */
+        flex: 1;
     }
 
     .stat-metrics span {
-        flex: 0 0 60px; /* Ancho fijo más pequeño */
-        max-width: 90px; /* Límite máximo */
-        padding: 0.3rem;
+        flex: 0 0 50px; /* Cuadros más pequeños */
+        max-width: 80px; /* Límite máximo reducido */
+        padding: 0.2rem; /* Padding más pequeño */
         text-align: center;
         border: 1px solid #e0e0e0;
         border-radius: 4px;
-        font-size: 0.8rem;
+        font-size: 0.75rem; /* Fuente más pequeña */
+        box-sizing: border-box; /* Incluir borde y padding en el ancho */
     }
 
     .probabilities-grid {
