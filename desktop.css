@@ -58,17 +58,22 @@
         display: grid;
         grid-template-columns: 1fr;
         grid-template-areas: "ia";
-        gap: 0; /* Reducido para que el recuadro esté más "pegado" */
+        gap: 0;
         min-height: 400px;
         width: 100%;
-        padding: 0; /* Eliminamos padding para integración visual */
+        padding: 0;
     }
 
     .ia-card {
         grid-area: ia;
         min-height: 400px;
         width: 100%;
-        margin: 0; /* Eliminamos márgenes para que esté más "pegado" */
+        margin: 0;
+    }
+
+    /* Aseguramos que .combined-card no se muestre, incluso si se genera dinámicamente */
+    .combined-card {
+        display: none !important;
     }
 
     .card {
