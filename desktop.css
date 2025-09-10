@@ -57,7 +57,7 @@
             "ia"
             "combined";
         gap: 2rem;
-        min-height: 650px; /* Suma de ia-card y combined-card */
+        min-height: 650px;
     }
 
     .ia-card {
@@ -125,8 +125,8 @@
 
     .team-details {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
+        grid-template-columns: 1fr; /* Una columna para apilar verticalmente */
+        gap: 1.5rem;
     }
 
     .stat-section {
@@ -139,6 +139,18 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
+        justify-content: flex-start; /* Alinear métricas a la izquierda */
+    }
+
+    .stat-metrics span {
+        flex: 1 1 100px; /* Ancho mínimo para cada métrica */
+        max-width: 150px; /* Ancho máximo para consistencia */
+        padding: 0.5rem;
+        text-align: center;
+        border: 1px solid #e0e0e0; /* Borde para definir cuadros */
+        border-radius: 4px;
+        background-color: #f9f9f9; /* Fondo claro para destacar */
+        font-size: 0.9rem;
     }
 
     .probabilities-grid {
