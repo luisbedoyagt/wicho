@@ -728,7 +728,7 @@ function calculateAll() {
 
     // Manejar datos limitados
     if (isLimitedData && dom.details) {
-        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Datos limitados</div>`;
+        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Datos limitados en el Torneo, revisar FORMA</div>`;
         setTimeout(() => dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>', 5000);
     } else if (dom.details) {
         dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>';
