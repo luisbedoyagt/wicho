@@ -25,7 +25,7 @@
     }
 
     .app-header {
-        padding: 0.224rem 0 !important; /* Aumentado 40% de 0.16rem */
+        padding: 0.23rem 0 !important; /* Aumentado 40% de 0.16rem */
         margin-bottom: 0.1rem !important;
         border-radius: 6px !important;
         background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg)) !important;
@@ -39,7 +39,7 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 2.24px !important; /* Aumentado 40% de 1.6px */
+        height: 2.3px !important; /* Aumentado 40% de 1.6px */
         background: linear-gradient(to right, transparent, var(--highlight-blue), transparent) !important;
         opacity: 0.5;
         border-top-left-radius: 6px;
@@ -48,7 +48,7 @@
 
     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(0.8rem, 2vw, 1rem) !important; /* Mantenido para legibilidad */
+        font-size: clamp(0.96rem, 2.4vw, 1.2rem) !important; /* Aumentado 40% para mayor impacto */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
@@ -58,11 +58,11 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.084rem 0.3rem !important; /* Aumentado 40% de 0.06rem en vertical */
+        padding: 0.09rem 0.3rem !important; /* Aumentado 40% de 0.06rem en vertical */
         display: inline-block;
         transition: transform 0.3s ease, text-shadow 0.3s ease;
         animation: auto-glow-mobile 5s ease-in-out infinite;
-        line-height: 0.672 !important; /* Aumentado 40% de 0.48 */
+        line-height: 0.68 !important; /* Aumentado 40% de 0.48 */
         width: fit-content;
         margin: 0 auto !important;
     }
@@ -96,8 +96,8 @@
     }
 
     .app-header p {
-        font-size: 0.8rem !important; /* Ajustado a 0.8rem para consistencia (en lugar de 0.84rem) */
-        margin-top: 0.168rem !important; /* Aumentado 40% de 0.12rem */
+        font-size: 0.8rem !important; /* Aumentado 40% de 0.6rem, redondeado */
+        margin-top: 0.17rem !important; /* Aumentado 40% de 0.12rem */
     }
 
     .card-header {
