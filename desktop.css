@@ -97,29 +97,39 @@
     .card-body {
         flex: 1;
         overflow-y: auto;
-        padding: 0 0.8rem; /* Eliminado padding vertical, mantenido lateral */
+        padding: 0 0.8rem; /* Sin padding vertical, mantiene lateral */
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
     }
 
     .control-group {
-        margin-bottom: 0 !important; /* Forzar sin espacio debajo */
+        margin: 0 !important; /* Eliminar todos los márgenes */
+        padding: 0 !important; /* Eliminar padding */
     }
 
     .control-group label {
-        margin: 0 !important; /* Eliminar márgenes por defecto del label */
+        margin: 0 !important; /* Eliminar márgenes del label */
+        padding: 0 !important; /* Eliminar padding del label */
         font-size: 1rem;
         font-weight: bold;
+        line-height: 1.2; /* Reducir line-height para minimizar espacio */
+    }
+
+    .team-selection-label {
+        margin: 0 !important; /* Eliminar márgenes del span con el texto */
+        padding: 0 !important; /* Eliminar padding */
+        display: block; /* Asegurar que el span ocupe su propia línea */
     }
 
     .control-group select {
-        margin: 0 !important; /* Eliminar márgenes por defecto del select */
+        margin: 0 !important; /* Eliminar márgenes del select */
+        padding: 0.2rem; /* Padding mínimo para el select */
     }
 
     #formHomeBox, #formAwayBox {
         margin: 0 !important; /* Eliminar todos los márgenes */
-        padding-top: 0 !important; /* Eliminar padding superior */
+        padding: 0 !important; /* Eliminar padding */
     }
 
     .event-list {
