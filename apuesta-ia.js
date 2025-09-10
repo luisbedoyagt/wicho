@@ -162,9 +162,13 @@ function parsePlainText(text, matchData) {
         const analysisText = analysisMatch[1].trim();
         console.log(`[parsePlainText] AnalysisText:`, analysisText);
 
-        const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?:Empate:|${matchData.visitante}:|Probabilidades:|$|\\n\\n)`, 's'));
+        const localJustification = analysisText.match(new RegExp(`${matchData.local}:\\s*(.*?)(?=Empate:|${matchData.visitante}:|Probabilidades:|$|\\n\\n)`, 's'));
         const drawJustification = analysisText.match(/Empate:\s*(.*?)(?=(?:${matchData.visitante}:|Probabilidades:|$|\n\n))/s);
-        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$|\\n\\n)`, 's'));
+        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:\\s*(.*?)(?=Probabilidades:|$|\\n\\n)`, 's'));
+
+        console.log(`[parsePlainText] LocalJustification:`, localJustification ? localJustification[1] : 'No encontrado');
+        console.log(`[parsePlainText] DrawJustification:`, drawJustification ? drawJustification[1] : 'No encontrado');
+        console.log(`[parsePlainText] AwayJustification:`, awayJustification ? awayJustification[1] : 'No encontrado');
 
         if (localJustification && localJustification[1].trim()) {
             aiJustification.home = localJustification[1].trim();
@@ -176,6 +180,8 @@ function parsePlainText(text, matchData) {
         }
         if (awayJustification && awayJustification[1].trim()) {
             aiJustification.away = awayJustification[1].trim();
+        } else {
+            console.warn(`[parsePlainText] No se encontró justificación para ${matchData.visitante}. Usando texto por defecto.`);
         }
         console.log(`[parsePlainText] Justificaciones extraídas:`, {
             home: aiJustification.home,
@@ -728,7 +734,7 @@ function calculateAll() {
 
     // Manejar datos limitados
     if (isLimitedData && dom.details) {
-        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong>Revisar la forma de cada equipo (torneo con menos de 5 partidos por equipo).</div>`;
+        dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Datos limitados (PJ Home: ${tH.pjHome || 0}, PJ Away: ${tA.pjAway || 0}).</div>`;
         setTimeout(() => dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>', 5000);
     } else if (dom.details) {
         dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>';
