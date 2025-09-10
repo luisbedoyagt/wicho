@@ -50,7 +50,7 @@
 
     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(0.8rem, 2.0vw, 1.0rem) !important; /* Más grande */
+        font-size: clamp(1.5rem, 2.8vw, 1.8rem) !important; /* Más grande */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
