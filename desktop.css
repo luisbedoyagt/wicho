@@ -119,7 +119,7 @@
     .team-logo-container {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.3rem; /* Reducido de 0.5rem para que los elementos de selección de equipos estén más juntos */
         justify-content: center;
     }
 
@@ -136,7 +136,7 @@
     .team-details {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 0.2rem;
+        gap: 0.1rem; /* Reducido de 0.2rem para que las secciones (General, Local, Visitante) estén más juntas */
         width: 100%;
         max-width: 100%;
     }
@@ -145,32 +145,32 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 1.5rem; /* Mantiene ~2 tabulaciones entre título y cuadros */
+        gap: 1.5rem; /* Sin cambios, mantiene ~2 tabulaciones entre título y cuadros */
     }
 
     .section-title {
         font-weight: bold;
         font-size: 0.8rem;
-        min-width: 60px; /* Ancho fijo para alineación */
+        min-width: 60px;
         width: 60px;
         text-align: left;
     }
 
     .stat-metrics {
         display: flex;
-        flex-wrap: wrap; /* Permite que los cuadros se distribuyan en varias filas */
-        gap: 0.5rem; /* Aumentado de 0.05rem para mayor separación entre cuadros */
+        flex-wrap: wrap;
+        gap: 0.5rem; /* Sin cambios, mantiene separación entre cuadros */
         flex: 1;
     }
 
     .stat-metrics span {
-        width: 60px; /* Aumentado de 48px para cuadros más grandes */
-        padding: 0.2rem; /* Aumentado de 0.1rem para mejor legibilidad */
+        width: 60px;
+        padding: 0.2rem;
         text-align: center;
         border: 1px solid #e0e0e0;
         border-radius: 4px;
-        font-size: 0.7rem; /* Aumentado de 0.6rem para datos más legibles */
-        line-height: 1.2rem; /* Ajustado para altura proporcional */
+        font-size: 0.7rem;
+        line-height: 1.2rem;
         box-sizing: border-box;
         text-overflow: ellipsis;
         overflow: hidden;
