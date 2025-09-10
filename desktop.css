@@ -1,5 +1,3 @@
-/* Configuración Escritorio: Estilos para pantallas de 768px o más */
-
 @media (min-width: 768px) {
     .main-grid {
         display: grid;
@@ -9,41 +7,136 @@
             "results away"
             "results ia";
         gap: 2.5rem;
+        align-items: start;
+        grid-auto-rows: minmax(200px, auto);
+        max-width: 1200px;
+        margin: 0 auto;
     }
 
     .event-card {
         grid-area: events;
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
     }
 
     #card-home {
         grid-area: home;
+        min-height: 300px;
     }
 
     #card-away {
         grid-area: away;
+        min-height: 200px;
     }
 
     .result-card {
         grid-area: results;
+        min-height: 400px;
     }
 
     .recommendation-ia-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-area: ia;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 2.5rem;
-        margin-top: 2rem;
+        align-items: stretch;
+        margin-top: 0;
     }
 
     .recommendation-ia-grid .card {
+        height: 100%;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .recommendation-ia-grid .card-body {
+        flex: 1;
+    }
+
+    .card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
         margin-bottom: 0;
     }
 
-    .recommendation-ia-grid .card-header {
-        background: var(--metal-gradient-light);
-        color: var(--highlight-blue);
-        text-shadow: 0 0 8px rgba(0, 224, 255, 0.7), 0 1px 2px rgba(0, 0, 0, 0.8);
+    .card-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
     }
 
-    .recommendation-ia-grid .card-header .fas {
-        text-shadow: 0 0 5px var(--highlight-blue);
+    .app-header,
+    .event-card,
+    #card-home,
+    #card-away,
+    .result-card,
+    .recommendation-ia-grid,
+    .reset-container {
+        margin-bottom: 0;
+    }
+
+    .container {
+        gap: 2rem;
+    }
+
+    body {
+        padding: 2rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.2rem;
+        overflow: hidden;
+    }
+
+    .event-list {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .probabilities-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .probability-tile {
+        flex: 1 1 120px;
+        max-width: 200px;
+        padding: 0.9rem;
+    }
+
+    .card-header h3 {
+        font-size: 1.8rem;
+    }
+
+    .card-header .fas {
+        font-size: 1.6rem;
+    }
+
+    .app-header h1 {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+    }
+
+    .app-header p {
+        font-size: 1.3rem;
+    }
+
+    .event-item {
+        font-size: 1rem;
+        padding: 1.2rem;
+        max-width: 700px;
+    }
+
+    .team-logo {
+        width: 50px;
+        height: 50px;
     }
 }
