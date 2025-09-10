@@ -108,23 +108,27 @@
         padding: 0 !important; /* Eliminar padding */
     }
 
-    .control-group label {
-        margin: 0 !important; /* Eliminar márgenes del label */
-        padding: 0 !important; /* Eliminar padding del label */
+    .team-selection-label {
+        margin: 0 !important; /* Eliminar márgenes del texto */
+        padding: 0 !important; /* Eliminar padding */
         font-size: 1rem;
         font-weight: bold;
-        line-height: 1.2; /* Reducir line-height para minimizar espacio */
+        line-height: 1.2; /* Reducir line-height */
+        display: block; /* Asegurar que ocupe su propia línea */
     }
 
-    .team-selection-label {
-        margin: 0 !important; /* Eliminar márgenes del span con el texto */
+    .control-group label {
+        margin: 0 !important; /* Eliminar márgenes del label */
         padding: 0 !important; /* Eliminar padding */
-        display: block; /* Asegurar que el span ocupe su propia línea */
+        display: none; /* Ocultar label vacío */
     }
 
     .control-group select {
-        margin: 0 !important; /* Eliminar márgenes del select */
-        padding: 0.2rem; /* Padding mínimo para el select */
+        margin: 0 !important; /* Eliminar márgenes */
+        padding: 0.5rem; /* Aumentar padding para visibilidad */
+        height: 2rem; /* Asegurar tamaño visible */
+        font-size: 1rem; /* Aumentar tamaño de fuente */
+        width: 100%; /* Asegurar que ocupe el ancho disponible */
     }
 
     #formHomeBox, #formAwayBox {
