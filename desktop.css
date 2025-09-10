@@ -97,10 +97,20 @@
     .card-body {
         flex: 1;
         overflow-y: auto;
-        padding: 0.3rem; /* Reducido de 0.5rem a 0.3rem para mayor compacidad */
+        padding: 0.8rem; /* Revertido a 0.8rem para no alterar otros elementos */
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+    }
+
+    .control-group {
+        margin-bottom: 0.1rem; /* Añadido para reducir espacio entre el label/select y team-details */
+    }
+
+    .control-group label {
+        margin: 0; /* Elimina márgenes por defecto del label */
+        font-size: 1rem;
+        font-weight: bold;
     }
 
     .event-list {
@@ -119,15 +129,9 @@
     .team-logo-container {
         display: flex;
         align-items: center;
-        gap: 0.3rem; /* Sin cambios, mantiene elementos de selección compactos */
+        gap: 0.3rem;
         justify-content: center;
-        margin-bottom: 0.1rem; /* Reducido de 0.3rem a 0.1rem para acercar a las secciones de datos */
-    }
-
-    .team-selection-label {
-        margin-bottom: 0.1rem; /* Añadido para controlar el texto "Selecciona el Equipo Local:" */
-        font-size: 1rem;
-        font-weight: bold;
+        margin-bottom: 0.3rem; /* Revertido a 0.3rem, ya que no afecta el label */
     }
 
     .team-logo {
