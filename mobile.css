@@ -62,7 +62,7 @@
         color: transparent;
         padding: 0.15rem 0.3rem; /* Mantenido para acoplar el texto */
         display: inline-block;
-        transition: transform 0.3s ease, text-shadow 0.3s ease;
+        transition: transform 0.3s ease, text-shadow: 0.3s ease;
         animation: auto-glow-mobile 5s ease-in-out infinite; /* Animación automática mantenida */
         line-height: 1.2; /* Mantenido para legibilidad */
         width: fit-content; /* Mantenido para acoplar el texto */
@@ -265,27 +265,29 @@
         padding: 1.5rem 0;
     }
     .control-group {
-        margin-bottom: 0.2rem; /* Reducido para compacidad */
+        margin-bottom: 0.2rem; /* Reducido para compacidad vertical */
         width: fit-content; /* Acoplar al contenido */
-        max-width: 150px; /* Límite para evitar que sea demasiado estrecho */
-        margin-left: auto; /* Centrar o alinear */
-        margin-right: auto; /* Centrar o alinear */
+        max-width: 200px; /* Límite para consistencia */
+        margin-left: auto; /* Centrar */
+        margin-right: auto; /* Centrar */
     }
     .control-group label {
         font-size: 0.4rem !important; /* Reducido 50% de 0.8rem */
-        margin-bottom: 0.2rem; /* Reducido para compacidad */
+        margin-bottom: 0.2rem; /* Reducido 50% de 0.4rem */
+        line-height: 1; /* Acoplar texto verticalmente */
         width: fit-content; /* Acoplar al texto */
         margin-left: auto; /* Centrar */
         margin-right: auto; /* Centrar */
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5); /* Para legibilidad */
     }
     .select {
-        padding: 0.2rem 0.3rem !important; /* Reducido 50% de 0.4rem 0.6rem */
+        padding: 0.2rem 0.6rem !important; /* Reducido 50% en vertical (de 0.4rem a 0.2rem) */
         font-size: 0.35rem !important; /* Reducido 50% de 0.7rem */
-        background-position: right 0.2rem top 50% !important; /* Ajustado */
-        background-size: 0.4rem auto !important; /* Reducido 50% */
+        line-height: 1 !important; /* Acoplar texto verticalmente */
+        background-position: right 0.4rem top 50% !important; /* Mantenido para ícono */
+        background-size: 0.6rem auto !important; /* Reducido para proporción */
         width: fit-content; /* Acoplar al texto */
-        max-width: 150px; /* Límite para consistencia */
+        max-width: 200px; /* Límite para consistencia */
         margin-left: auto; /* Centrar */
         margin-right: auto; /* Centrar */
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5); /* Para legibilidad */
@@ -322,15 +324,17 @@
     }
     select optgroup {
         font-size: 0.45em !important; /* Reducido 50% de 0.9em */
-        margin-top: 3px; /* Reducido */
-        padding-bottom: 1.5px; /* Reducido */
+        margin-top: 3px; /* Reducido 50% */
+        padding-bottom: 1.5px; /* Reducido 50% */
+        line-height: 1; /* Acoplar texto verticalmente */
     }
     select optgroup:not(:first-child) {
-        margin-top: 6px; /* Reducido */
+        margin-top: 6px; /* Reducido 50% */
     }
     select option {
         font-size: 0.4em !important; /* Reducido 50% de 0.8em */
-        padding-left: 4px; /* Reducido */
+        padding-left: 4px; /* Reducido 50% */
+        line-height: 1; /* Acoplar texto verticalmente */
     }
     .prediction-container {
         padding: 0.8rem;
