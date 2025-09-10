@@ -97,7 +97,7 @@
     .card-body {
         flex: 1;
         overflow-y: auto;
-        padding: 0.5rem; /* Reducido de 0.8rem para compactar el contenido */
+        padding: 0.3rem; /* Reducido de 0.5rem a 0.3rem para mayor compacidad */
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
@@ -121,7 +121,13 @@
         align-items: center;
         gap: 0.3rem; /* Sin cambios, mantiene elementos de selección compactos */
         justify-content: center;
-        margin-bottom: 0.3rem; /* Añadido para reducir espacio entre selección y datos */
+        margin-bottom: 0.1rem; /* Reducido de 0.3rem a 0.1rem para acercar a las secciones de datos */
+    }
+
+    .team-selection-label {
+        margin-bottom: 0.1rem; /* Añadido para controlar el texto "Selecciona el Equipo Local:" */
+        font-size: 1rem;
+        font-weight: bold;
     }
 
     .team-logo {
