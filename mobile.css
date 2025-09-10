@@ -25,7 +25,7 @@
     }
 
     .app-header {
-        padding: 0.24rem 0; /* Reducido 40% en vertical de 0.4rem, horizontal sin cambio */
+        padding: 0.24rem 0; /* Reducido 40% en vertical de 0.4rem */
         margin-bottom: 0.1rem;
         border-radius: 6px;
         background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg));
@@ -38,7 +38,7 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
+        height: 2.4px; /* Reducido 40% de 4px */
         background: linear-gradient(to right, transparent, var(--highlight-blue), transparent);
         opacity: 0.5;
         border-top-left-radius: 6px;
@@ -47,7 +47,7 @@
 
     .app-header h1 {
         font-family: var(--font-heading);
-        font-size: clamp(1.0rem, 1.8vw, 1.0rem) !important;
+        font-size: clamp(0.8rem, 2vw, 1rem) !important; /* Ajustado para legibilidad */
         font-weight: 700;
         color: var(--highlight-blue);
         text-transform: uppercase;
@@ -57,11 +57,11 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.09rem 0.3rem; /* Reducido 40% en vertical de 0.15rem, horizontal sin cambio */
+        padding: 0.09rem 0.3rem; /* Reducido 40% en vertical de 0.15rem */
         display: inline-block;
         transition: transform 0.3s ease, text-shadow 0.3s ease;
         animation: auto-glow-mobile 5s ease-in-out infinite;
-        line-height: 1.2;
+        line-height: 0.72; /* Reducido 40% de 1.2 */
         width: fit-content;
         margin: 0 auto;
     }
@@ -96,7 +96,7 @@
 
     .app-header p {
         font-size: 0.8rem;
-        margin-top: 0.3rem;
+        margin-top: 0.18rem; /* Reducido 40% de 0.3rem */
     }
 
     .card-header {
@@ -324,7 +324,7 @@
         margin-left: 0;
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5);
     }
-    select {
+    .select {
         padding: 0.5865rem 0.6rem;
         font-size: 0.69rem;
         line-height: 1;
