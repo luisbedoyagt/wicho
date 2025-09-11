@@ -45,6 +45,7 @@ const dom = {
 
 // VARIABLES GLOBALES
 let teamsByLeague = {}, allData = {}, eventInterval;
+let previousLeagueCode = ''; // MODIFICADO: Variable para guardar la liga previa antes de cambiar
 
 // NORMALIZACIÓN DE DATOS
 const teamFields = {
@@ -406,8 +407,13 @@ function displaySelectedLeagueEvents(leagueCode) {
     if (totalPages > 1) eventInterval = setInterval(showCurrentPage, 10000);
 }
 
-// CAMBIO DE LIGA
+// CAMBIO DE LIGA (MODIFICADO: Guarda la liga actual en previousLeagueCode antes de cambiar)
 function onLeagueChange() {
+    // MODIFICADO: Guardar la liga actual antes de procesar el cambio
+    if (dom.leagueSelect.value && previousLeagueCode !== dom.leagueSelect.value) {
+        previousLeagueCode = dom.leagueSelect.value;
+    }
+
     const code = dom.leagueSelect.value;
     if (!dom.teamHomeSelect || !dom.teamAwaySelect) return;
     dom.teamHomeSelect.disabled = !code;
@@ -441,31 +447,62 @@ function onLeagueChange() {
     clearProbabilities();
 }
 
-// SELECCIÓN DE EVENTO (MEJORADO PARA BUSCAR EVENTO)
+// SELECCIÓN DE EVENTO (MODIFICADO: No cambia la liga, usa previousLeagueCode para cargar equipos y datos)
 function selectEvent(homeTeamName, awayTeamName) {
-    const ligaName = Object.keys(allData.calendario || {}).find(liga =>
-        allData.calendario[liga]?.some(e => normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName))
-    );
-    const eventLeagueCode = ligaName ? Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '' : '';
-    console.log('[selectEvent] Buscando evento:', { homeTeamName, awayTeamName, ligaName, eventLeagueCode });
-    if (dom.leagueSelect) dom.leagueSelect.value = eventLeagueCode;
-    onLeagueChange();
+    // MODIFICADO: Obtener la liga actual (previousLeagueCode) sin cambiarla
+    const currentLeagueCode = previousLeagueCode || dom.leagueSelect.value || '';
+    console.log('[selectEvent] Seleccionando evento con liga actual:', currentLeagueCode, { homeTeamName, awayTeamName });
+
+    if (!currentLeagueCode) {
+        console.warn('[selectEvent] No hay liga seleccionada previamente. Selecciona una liga primero.');
+        if (dom.details) dom.details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> Selecciona una liga primero para ver eventos.</div>';
+        return;
+    }
+
+    // MODIFICADO: No llamar a onLeagueChange() ni setear dom.leagueSelect.value
+
     setTimeout(() => {
+        // Cargar equipos de la liga actual (previousLeagueCode)
+        const teams = teamsByLeague[currentLeagueCode] || [];
+        if (!teams.length) {
+            console.warn('[selectEvent] No hay equipos en la liga actual:', currentLeagueCode);
+            return;
+        }
+
+        // Encontrar opciones en los selectores actuales (que ya están cargados con la liga actual)
         const findOption = (select, name) => Array.from(select.options).find(opt => {
             const textParts = opt.text.split(' - ');
             return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(name);
         });
+
         const homeOption = findOption(dom.teamHomeSelect, homeTeamName);
         const awayOption = findOption(dom.teamAwaySelect, awayTeamName);
-        if (homeOption) dom.teamHomeSelect.value = homeOption.value;
-        if (awayOption) dom.teamAwaySelect.value = awayOption.value;
+
+        // Seleccionar los equipos si se encuentran
+        if (homeOption) {
+            dom.teamHomeSelect.value = homeOption.value;
+        } else {
+            console.warn('[selectEvent] Equipo local no encontrado en liga actual:', homeTeamName);
+        }
+        if (awayOption) {
+            dom.teamAwaySelect.value = awayOption.value;
+        } else {
+            console.warn('[selectEvent] Equipo visitante no encontrado en liga actual:', awayTeamName);
+        }
+
+        // Llamar a onTeamChange para llenar las fichas y calcular
         onTeamChange();
+
+        // Buscar el evento para pronóstico (en todas las ligas, como antes)
+        const ligaName = Object.keys(allData.calendario || {}).find(liga =>
+            allData.calendario[liga]?.some(e => normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName))
+        );
         const event = allData.calendario?.[ligaName]?.find(e =>
             normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName)
         );
-        console.log('[selectEvent] Evento encontrado:', event ? JSON.stringify(event, null, 2) : 'No encontrado');
+        console.log('[selectEvent] Evento encontrado para pronóstico:', event ? JSON.stringify(event, null, 2) : 'No encontrado');
         console.log('[selectEvent] Pronóstico IA:', event?.pronostico_json || event?.pronostico || 'No disponible');
-    }, 500);
+    }, 100); // Reducido el timeout ya que no recargamos la liga
 }
 
 // INICIALIZACIÓN
@@ -658,6 +695,7 @@ function clearAll() {
     clearProbabilities();
     clearTeamData('Home');
     clearTeamData('Away');
+    previousLeagueCode = ''; // MODIFICADO: Resetear la liga previa
     displaySelectedLeagueEvents('');
     if (dom.details) dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>';
 }
