@@ -59,12 +59,12 @@
         background: linear-gradient(90deg, var(--highlight-blue) 0%, #00c4e0 100%);
         -webkit-background-clip: text;
         background-clip: text;
-        color: transparent;
+        color: var(--text-color, #ffffff) !important;
         padding: 0.2rem 0.3rem !important;
         display: block !important;
         text-align: center !important;
         margin: 0.5rem auto !important;
-        line-height: 4.8 !important;
+        line-height: 0.6 !important;
         position: relative;
         transition: text-shadow 0.3s ease, transform 0.3s ease;
         animation: fade-in-title 3s ease-out forwards;
