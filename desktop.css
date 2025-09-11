@@ -1,7 +1,7 @@
 /* Estilos para pantallas grandes */
 .app-header {
     text-align: center;
-    margin-bottom: 1rem; /* Reducido para acercar a eventos */
+    margin-bottom: 1rem;
     padding: 2.5rem 0;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg));
@@ -15,21 +15,21 @@
     color: var(--highlight-blue);
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    text-shadow: 0 0 12px var(--highlight-blue), 0 0 20px rgba(0, 224, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
-    background: linear-gradient(90deg, var(--highlight-blue), #00a0e0);
+    text-shadow: 0 0 5px rgba(0, 224, 255, 0.5);
+    background: linear-gradient(90deg, var(--highlight-blue) 0%, #00c4e0 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     padding: 0.5rem 1rem;
     display: inline-block;
     position: relative;
-    transition: transform 0.3s ease, text-shadow 0.3s ease;
-    animation: auto-glow-desktop 5s ease-in-out infinite; /* Animación automática */
+    transition: text-shadow 0.3s ease, transform 0.3s ease;
+    animation: fade-in-title 1s ease-out forwards;
 }
 
 .app-header h1:hover {
-    transform: scale(1.03);
-    text-shadow: 0 0 15px var(--highlight-blue), 0 0 25px rgba(0, 224, 255, 0.7), 0 2px 5px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+    text-shadow: 0 0 8px rgba(0, 224, 255, 0.7);
 }
 
 .app-header h1::before {
@@ -39,7 +39,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
     transition: left 0.5s ease;
 }
 
@@ -52,29 +52,29 @@
     position: absolute;
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
+    transform: translateX(-50%) scaleX(0);
+    width: 70%;
     height: 2px;
-    background: linear-gradient(to right, transparent, var(--highlight-blue), transparent);
-    opacity: 0.7;
+    background: var(--highlight-blue);
+    opacity: 0.8;
+    transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+    transform-origin: center;
 }
 
-/* Animación automática para desktop */
-@keyframes auto-glow-desktop {
-    0%, 100% {
-        transform: scale(1);
-        text-shadow: 0 0 12px var(--highlight-blue), 0 0 20px rgba(0, 224, 255, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
-    }
-    50% {
-        transform: scale(1.03);
-        text-shadow: 0 0 15px var(--highlight-blue), 0 0 25px rgba(0, 224, 255, 0.7), 0 2px 5px rgba(0, 0, 0, 0.5);
-    }
+.app-header h1:hover::after {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 1;
 }
 
-/* Animación de entrada */
-@keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(-10px); }
-    100% { opacity: 1; transform: translateY(0); }
+@keyframes fade-in-title {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (min-width: 768px) {
@@ -236,31 +236,31 @@
     .event-item {
         padding: 1rem;
         margin-bottom: 0.5rem;
-        border-radius: 8px; /* CAMBIO: Igualado a recommendation-box para consistencia */
-        box-shadow: 0 5px 15px rgba(0,0,0,0.6), inset 0 0 10px rgba(0, 224, 255, 0.3); /* CAMBIO: Igualado a recommendation-box */
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.6), inset 0 0 10px rgba(0, 224, 255, 0.3);
         transition: background-color 0.3s;
-        max-width: 600px; /* CAMBIO: Mantenido para limitar el ancho */
-        width: 100%; /* CAMBIO: Asegura que ocupe el ancho disponible */
-        display: flex; /* CAMBIO: Reforzado para centrar contenido */
-        flex-direction: column; /* CAMBIO: Asegura disposición vertical */
-        align-items: center; /* CAMBIO: Centra todo el contenido horizontalmente */
+        max-width: 600px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .event-content {
-        max-width: 100%; /* CAMBIO: Evita desbordes */
-        overflow: hidden; /* CAMBIO: Evita que el contenido se salga */
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .league-name {
-        font-size: 0.95rem; /* CAMBIO: Ajustado para consistencia con .team-name */
+        font-size: 0.95rem;
         font-weight: 600;
         text-align: center;
         text-shadow: 0 0 3px rgba(0, 224, 255, 0.5);
         margin-bottom: 0.5rem;
         color: var(--highlight-blue);
-        max-width: 100%; /* CAMBIO: Limita el ancho para evitar desbordes */
-        overflow-wrap: break-word; /* CAMBIO: Permite que nombres largos se dividan */
-        line-height: 1.2; /* CAMBIO: Mejora legibilidad */
+        max-width: 100%;
+        overflow-wrap: break-word;
+        line-height: 1.2;
     }
 
     .team-logo-container {
