@@ -156,15 +156,13 @@ function parsePlainText(text, matchData) {
     // Extraer justificaciones
     const analysisMatch = text.match(/Análisis del Partido:(.*?)Probabilidades:/s);
     if (analysisMatch && analysisMatch[1]) {
-        const analysisText = analysisMatch[1].trim();
-        // Usar expresiones regulares más flexibles
-        const localJustification = analysisText.match(new RegExp(`${matchData.local}\\s*:(.*?)(?=(?:Empate\\s*:|${matchData.visitante}\\s*:|$))`, 's'));
-        const drawJustification = analysisText.match(/Empate\s*:(.*?)(?=(?:[^:]+?:|$))/s);
-        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}\\s*:(.*?)(?:Probabilidades:|$)`,'s'));
-
-        if (localJustification) aiJustification.home = localJustification[1].trim() || "Sin justificación detallada.";
-        if (drawJustification) aiJustification.draw = drawJustification[1].trim() || "Sin justificación detallada.";
-        if (awayJustification) aiJustification.away = awayJustification[1].trim() || "Sin justificación detallada.";
+        const analysisText = analysisMatch[1];
+        const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?:Empate:|$)`, 's'));
+        const drawJustification = analysisText.match(/Empate:(.*?)(?:(?:[^:]+:)|$)/s);
+        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?:Probabilidades:|$)`, 's'));
+        if (localJustification) aiJustification.home = localJustification[1].trim();
+        if (drawJustification) aiJustification.draw = drawJustification[1].trim();
+        if (awayJustification) aiJustification.away = awayJustification[1].trim();
         console.log(`[parsePlainText] Justificaciones extraídas: Local=${aiJustification.home}, Empate=${aiJustification.draw}, Visitante=${aiJustification.away}`);
     } else {
         console.warn(`[parsePlainText] No se encontró la sección de análisis en el texto: ${text}`);
@@ -679,7 +677,7 @@ function calculateAll() {
         html += `<p><strong>Ambos Anotan (BTTS):</strong> Sí: ${json.BTTS.si.probabilidad} No: ${json.BTTS.no.probabilidad}</p>`;
         html += `<p><strong>Goles Totales (Más/Menos 2.5):</strong> Más de 2.5: ${json.Goles.mas_2_5.probabilidad} Menos de 2.5: ${json.Goles.menos_2_5.probabilidad}</p>`;
         html += `</div>`;
-        console.log('[calculateAll] HTML generado para #detailed-prediction:', html); // Log para depurar
+
         if (detailedPredictionBox) {
             detailedPredictionBox.innerHTML = html;
             console.log('[calculateAll] Mostrando pronóstico JSON:', JSON.stringify(json, null, 2));
@@ -698,7 +696,7 @@ function calculateAll() {
         html += `<p><strong>Ambos Anotan (BTTS):</strong> Sí: ${json.BTTS.si.probabilidad} No: ${json.BTTS.no.probabilidad}</p>`;
         html += `<p><strong>Goles Totales (Más/Menos 2.5):</strong> Más de 2.5: ${json.Goles.mas_2_5.probabilidad} Menos de 2.5: ${json.Goles.menos_2_5.probabilidad}</p>`;
         html += `</div>`;
-        console.log('[calculateAll] HTML generado para #detailed-prediction:', html); // Log para depurar
+
         if (detailedPredictionBox) {
             detailedPredictionBox.innerHTML = html;
             console.log('[calculateAll] Mostrando pronóstico de texto plano parseado:', JSON.stringify(json, null, 2));
