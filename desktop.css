@@ -1,5 +1,5 @@
-/* Estilos para pantallas grandes */
-.app-header {
+/* Estilos para pantallas grandes - Efecto 1: Brillo de Escaneo Horizontal */
+.app-header.scan-effect {
     text-align: center;
     margin-bottom: 1rem;
     padding: 2.5rem 0;
@@ -8,15 +8,15 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), inset 0 1px 4px rgba(255, 255, 255, 0.1);
 }
 
-.app-header h1 {
+.app-header.scan-effect h1 {
     font-family: var(--font-heading);
     font-size: clamp(2rem, 3.5vw, 3rem);
     font-weight: 700;
     color: var(--highlight-blue);
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    text-shadow: 0 0 5px rgba(0, 224, 255, 0.5);
-    background: linear-gradient(90deg, var(--highlight-blue) 0%, #00c4e0 100%);
+    text-shadow: 0 0 4px rgba(0, 224, 255, 0.5);
+    background: linear-gradient(90deg, var(--highlight-blue) 20%, #00a0e0 80%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -24,46 +24,91 @@
     display: inline-block;
     position: relative;
     transition: text-shadow 0.3s ease, transform 0.3s ease;
-    animation: fade-in-title 1s ease-out forwards;
+    animation: fade-in-title 1s ease-out forwards, scan-glow 2s ease-in-out 1s 1;
 }
 
-.app-header h1:hover {
+.app-header.scan-effect h1:hover {
     transform: translateY(-2px);
     text-shadow: 0 0 8px rgba(0, 224, 255, 0.7);
 }
 
-.app-header h1::before {
+.app-header.scan-effect h1::before {
     content: '';
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s ease;
 }
 
-.app-header h1:hover::before {
+.app-header.scan-effect h1:hover::before {
     left: 100%;
 }
 
-.app-header h1::after {
+.app-header.scan-effect h1::after {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%) scaleX(0);
-    width: 70%;
-    height: 2px;
-    background: var(--highlight-blue);
-    opacity: 0.8;
-    transition: transform 0.4s ease-out, opacity 0.4s ease-out;
-    transform-origin: center;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 1px solid var(--highlight-blue);
+    opacity: 0;
+    border-radius: 4px;
+    transition: opacity 0.3s ease;
 }
 
-.app-header h1:hover::after {
-    transform: translateX(-50%) scaleX(1);
-    opacity: 1;
+.app-header.scan-effect h1:hover::after {
+    opacity: 0.6;
+}
+
+/* Estilos para pantallas grandes - Efecto 2: Resplandor Pulsante con Letras Animadas */
+.app-header.pulse-effect {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding: 2.5rem 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg));
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), inset 0 1px 4px rgba(255, 255, 255, 0.1);
+}
+
+.app-header.pulse-effect h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-weight: 700;
+    color: var(--highlight-blue);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 5px rgba(0, 224, 255, 0.5);
+    background: linear-gradient(90deg, var(--highlight-blue) 30%, #00c4e0 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding: 0.5rem 1rem;
+    display: inline-block;
+    position: relative;
+    transition: text-shadow 0.3s ease, transform 0.3s ease;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.app-header.pulse-effect h1 span {
+    display: inline-block;
+    animation: letter-pop 0.5s ease-out forwards;
+}
+
+.app-header.pulse-effect h1:nth-child(1) span {
+    animation-delay: calc(0.05s * var(--i));
+}
+
+.app-header.pulse-effect h1:nth-child(2) span {
+    animation-delay: calc(0.05s * var(--i) + 0.3s);
+}
+
+.app-header.pulse-effect h1:hover {
+    transform: translateY(-2px);
+    text-shadow: 0 0 10px rgba(0, 224, 255, 0.7);
 }
 
 @keyframes fade-in-title {
@@ -74,6 +119,35 @@
     100% {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes scan-glow {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        text-shadow: 0 0 5px rgba(0, 224, 255, 0.5);
+    }
+    50% {
+        text-shadow: 0 0 10px rgba(0, 224, 255, 0.7);
+    }
+}
+
+@keyframes letter-pop {
+    0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }
 
