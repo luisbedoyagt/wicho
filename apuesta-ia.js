@@ -327,7 +327,6 @@ async function fetchAllData() {
         if (dom.leagueSelect) dom.leagueSelect.disabled = false;
     }
 }
-
 // MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
 function displaySelectedLeagueEvents(leagueCode) {
     if (!dom.selectedLeagueEvents) return;
@@ -432,6 +431,49 @@ function renderEvent(event, index, leagueCode) {
     return div;
 }
 
+// SELECCIÓN DE EVENTO
+function selectEvent(homeTeamName, awayTeamName) {
+    const currentLeagueCode = dom.leagueSelect.value;
+    console.log('[selectEvent] Seleccionando evento:', { homeTeamName, awayTeamName, currentLeagueCode });
+
+    // No cambiar la liga seleccionada, usar la liga actual
+    if (!currentLeagueCode) {
+        console.warn('[selectEvent] No hay liga seleccionada, no se pueden llenar equipos.');
+        return;
+    }
+
+    // Verificar si los equipos están en la liga actual
+    const teamsInLeague = teamsByLeague[currentLeagueCode] || [];
+    const homeTeam = teamsInLeague.find(t => normalizeName(t.name) === normalizeName(homeTeamName));
+    const awayTeam = teamsInLeague.find(t => normalizeName(t.name) === normalizeName(awayTeamName));
+
+    if (!homeTeam || !awayTeam) {
+        console.warn('[selectEvent] Uno o ambos equipos no están en la liga actual:', { homeTeamName, awayTeamName, currentLeagueCode });
+        return;
+    }
+
+    // Llenar los selects de equipos local y visitante
+    const findOption = (select, name) => Array.from(select.options).find(opt => {
+        const textParts = opt.text.split(' - ');
+        return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(name);
+    });
+
+    const homeOption = findOption(dom.teamHomeSelect, homeTeamName);
+    const awayOption = findOption(dom.teamAwaySelect, awayTeamName);
+
+    if (homeOption) dom.teamHomeSelect.value = homeOption.value;
+    if (awayOption) dom.teamAwaySelect.value = awayOption.value;
+
+    if (!homeOption || !awayOption) {
+        console.warn('[selectEvent] No se encontraron opciones para uno o ambos equipos:', { homeTeamName, awayTeamName });
+        return;
+    }
+
+    // Ejecutar análisis/pronóstico
+    onTeamChange();
+    console.log('[selectEvent] Equipos seleccionados:', { home: homeOption.value, away: awayOption.value });
+}
+
 // CAMBIO DE LIGA
 function onLeagueChange() {
     const code = dom.leagueSelect.value;
@@ -465,33 +507,6 @@ function onLeagueChange() {
     clearTeamData('Away');
     displaySelectedLeagueEvents(code);
     clearProbabilities();
-}
-
-// SELECCIÓN DE EVENTO
-function selectEvent(homeTeamName, awayTeamName) {
-    const ligaName = Object.keys(allData.calendario || {}).find(liga =>
-        allData.calendario[liga]?.some(e => normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName))
-    );
-    const eventLeagueCode = ligaName ? Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '' : '';
-    console.log('[selectEvent] Buscando evento:', { homeTeamName, awayTeamName, ligaName, eventLeagueCode });
-    if (dom.leagueSelect) dom.leagueSelect.value = eventLeagueCode;
-    onLeagueChange();
-    setTimeout(() => {
-        const findOption = (select, name) => Array.from(select.options).find(opt => {
-            const textParts = opt.text.split(' - ');
-            return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(name);
-        });
-        const homeOption = findOption(dom.teamHomeSelect, homeTeamName);
-        const awayOption = findOption(dom.teamAwaySelect, awayTeamName);
-        if (homeOption) dom.teamHomeSelect.value = homeOption.value;
-        if (awayOption) dom.teamAwaySelect.value = awayOption.value;
-        onTeamChange();
-        const event = allData.calendario?.[ligaName]?.find(e =>
-            normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName)
-        );
-        console.log('[selectEvent] Evento encontrado:', event ? JSON.stringify(event, null, 2) : 'No encontrado');
-        console.log('[selectEvent] Pronóstico IA:', event?.pronostico_json || event?.pronostico || 'No disponible');
-    }, 500);
 }
 
 // INICIALIZACIÓN
