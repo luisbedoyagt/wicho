@@ -367,18 +367,71 @@ function displaySelectedLeagueEvents(leagueCode) {
     if (!dom.selectedLeagueEvents) return;
     if (eventInterval) clearInterval(eventInterval);
     dom.selectedLeagueEvents.innerHTML = allData.calendario ? '' : '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos.</span></div>';
-    if (!allData.calendario) return;
+    if (!allData.calendario) {
+        console.warn('[displaySelectedLeagueEvents] No hay datos en allData.calendario');
+        return;
+    }
     let events = [];
+    const now = new Date();
     if (leagueCode) {
-        events = allData.calendario[leagueCodeToName[leagueCode]] || [];
+        const leagueEvents = allData.calendario[leagueCodeToName[leagueCode]] || [];
+        // Filtrar eventos: futuros (fecha > now) o en vivo (now >= fecha && now < fecha + 2 horas)
+        events = leagueEvents.filter(event => {
+            try {
+                const parsedDate = new Date(event.fecha);
+                if (!isFinite(parsedDate)) {
+                    console.warn(`[displaySelectedLeagueEvents] Fecha inválida para evento ${event.local} vs ${event.visitante}: ${event.fecha}`);
+                    return false;
+                }
+                const twoHoursAfter = new Date(parsedDate.getTime() + 120 * 60 * 1000);
+                const isFutureOrLive = parsedDate > now || (now >= parsedDate && now < twoHoursAfter);
+                console.log(`[displaySelectedLeagueEvents] Evento ${event.local} vs ${event.visitante}:`, {
+                    fecha: event.fecha,
+                    isFuture: parsedDate > now,
+                    isLive: now >= parsedDate && now < twoHoursAfter,
+                    included: isFutureOrLive
+                });
+                return isFutureOrLive;
+            } catch (err) {
+                console.error(`[displaySelectedLeagueEvents] Error al parsear fecha para evento ${event.local} vs ${event.visitante}:`, err);
+                return false;
+            }
+        });
+        console.log(`[displaySelectedLeagueEvents] Eventos filtrados para liga ${leagueCode}:`, events.length);
     } else {
+        // Caso sin liga específica: filtrar eventos de todas las ligas
         Object.entries(allData.calendario).forEach(([code, evts]) => {
             const originalCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === code);
-            if (originalCode) evts.forEach(event => events.push({ ...event, leagueCode: originalCode }));
+            if (originalCode) {
+                const filteredEvents = evts.filter(event => {
+                    try {
+                        const parsedDate = new Date(event.fecha);
+                        if (!isFinite(parsedDate)) {
+                            console.warn(`[displaySelectedLeagueEvents] Fecha inválida para evento ${event.local} vs ${event.visitante}: ${event.fecha}`);
+                            return false;
+                        }
+                        const twoHoursAfter = new Date(parsedDate.getTime() + 120 * 60 * 1000);
+                        const isFutureOrLive = parsedDate > now || (now >= parsedDate && now < twoHoursAfter);
+                        console.log(`[displaySelectedLeagueEvents] Evento ${event.local} vs ${event.visitante} (liga ${code}):`, {
+                            fecha: event.fecha,
+                            isFuture: parsedDate > now,
+                            isLive: now >= parsedDate && now < twoHoursAfter,
+                            included: isFutureOrLive
+                        });
+                        return isFutureOrLive;
+                    } catch (err) {
+                        console.error(`[displaySelectedLeagueEvents] Error al parsear fecha para evento ${event.local} vs ${event.visitante}:`, err);
+                        return false;
+                    }
+                });
+                filteredEvents.forEach(event => events.push({ ...event, leagueCode: originalCode }));
+            }
         });
+        console.log('[displaySelectedLeagueEvents] Eventos filtrados totales (sin liga específica):', events.length);
     }
     if (!events.length) {
-        dom.selectedLeagueEvents.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos.</span></div>';
+        dom.selectedLeagueEvents.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos o en vivo.</span></div>';
+        console.warn('[displaySelectedLeagueEvents] No se encontraron eventos para renderizar');
         return;
     }
     const eventsPerPage = 1, totalPages = Math.ceil(events.length / eventsPerPage);
@@ -430,19 +483,16 @@ function onLeagueChange() {
     clearProbabilities();
 }
 
-// SELECCIÓN DE EVENTO (MODIFICADA PARA NO CAMBIAR LA LIGA Y LLENAR FICHAS/PROBABILIDADES)
+// SELECCIÓN DE EVENTO
 function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
-    // Buscar el evento en todas las ligas disponibles
     const ligaName = Object.keys(allData.calendario || {}).find(liga =>
         allData.calendario[liga]?.some(e => normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName))
     );
     eventLeagueCode = eventLeagueCode || (ligaName ? Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '' : '');
     console.log('[selectEvent] Buscando evento:', { homeTeamName, awayTeamName, ligaName, eventLeagueCode });
 
-    // NO cambiamos dom.leagueSelect.value para mantener la liga actual
     const currentLeagueCode = dom.leagueSelect.value;
 
-    // Si no hay liga seleccionada o los equipos no están en la liga actual, cargamos los equipos de la liga del evento
     if (!currentLeagueCode || !teamsByLeague[currentLeagueCode]?.some(t => normalizeName(t.name) === normalizeName(homeTeamName)) ||
         !teamsByLeague[currentLeagueCode]?.some(t => normalizeName(t.name) === normalizeName(awayTeamName))) {
         if (eventLeagueCode && teamsByLeague[eventLeagueCode]) {
@@ -471,7 +521,6 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
         }
     }
 
-    // Seleccionar los equipos en los selectores
     const findOption = (select, name) => Array.from(select.options).find(opt => {
         const textParts = opt.text.split(' - ');
         return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(name);
@@ -481,7 +530,6 @@ function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
     if (homeOption) dom.teamHomeSelect.value = homeOption.value;
     if (awayOption) dom.teamAwaySelect.value = awayOption.value;
 
-    // Llamar a onTeamChange con el eventLeagueCode para asegurar que las fichas y probabilidades se llenen
     if (homeOption && awayOption) {
         onTeamChange(null, eventLeagueCode);
     } else {
@@ -547,14 +595,13 @@ async function init() {
     displaySelectedLeagueEvents('');
 }
 
-// ONTEAMCHANGE (MODIFICADA PARA SOPORTAR EVENTLEAGUECODE)
+// ONTEAMCHANGE
 function onTeamChange(event, eventLeagueCode = null) {
     const leagueCode = eventLeagueCode || dom.leagueSelect.value;
     const teamHome = dom.teamHomeSelect.value;
     const teamAway = dom.teamAwaySelect.value;
     console.log('[onTeamChange] Selección:', { leagueCode, teamHome, teamAway, eventLeagueCode });
 
-    // Si no hay liga seleccionada y no se proporcionó eventLeagueCode, limpiar y salir
     if (!leagueCode) {
         clearProbabilities();
         clearTeamData('Home');
@@ -563,7 +610,6 @@ function onTeamChange(event, eventLeagueCode = null) {
         return;
     }
 
-    // Llenar datos de equipos
     const tH = findTeam(leagueCode, teamHome);
     const tA = findTeam(leagueCode, teamAway);
     
@@ -579,7 +625,6 @@ function onTeamChange(event, eventLeagueCode = null) {
         clearTeamData('Away');
     }
 
-    // Calcular probabilidades si ambos equipos están seleccionados y son diferentes
     if (teamHome && teamAway && teamHome !== teamAway && tH.name && tA.name) {
         calculateAll(leagueCode);
     } else {
@@ -715,7 +760,7 @@ function validateProbability(value, defaultValue) {
     return isFinite(value) && value >= 0 && value <= 1 ? value : defaultValue;
 }
 
-// CÁLCULO COMPLETO (MODIFICADA PARA USAR LEAGUECODE)
+// CÁLCULO COMPLETO
 function calculateAll(leagueCode) {
     const teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
     if (!leagueCode || !teamHome || !teamAway) {
