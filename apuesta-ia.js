@@ -155,7 +155,7 @@ function generateDynamicJustification(team, isHome = true, opponent = '') {
     return `${team.name} muestra una tasa de victorias del ${winRate}% ${isHome ? 'en casa' : 'fuera'}, con un diferencial de goles ${dgStr} en ${pj} partidos. Forma reciente: ${formSummary}. Históricamente ${opponent ? `contra ${opponent}` : ''}, ha sido inconsistente en resultados clave.`;
 }
 
-// PARSEO DE PRONÓSTICO DE TEXTO PLANO (CORREGIDO: EXTRAE SOLO CONTENIDO, SIN ESTÁTICO)
+// PARSEO DE PRONÓSTICO DE TEXTO PLANO
 function parsePlainText(text, matchData) {
     console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
     const aiProbs = {};
@@ -165,34 +165,27 @@ function parsePlainText(text, matchData) {
         away: ""
     };
 
-    // Normalizar texto: eliminar líneas vacías múltiples y espacios extra
     const normalizedText = text.replace(/\n\s*\n/g, '\n').trim();
 
-    // Extraer justificaciones
     const analysisMatch = normalizedText.match(/Análisis del Partido:(.*?)Probabilidades:/s);
     if (analysisMatch && analysisMatch[1]) {
         const analysisText = analysisMatch[1].trim();
         console.log('[parsePlainText] Texto de análisis:', analysisText);
 
-        // Función auxiliar para limpiar (solo headers pegados al final, no al inicio)
         const cleanText = (matchText) => {
             if (!matchText || !matchText.trim()) return '';
             let cleaned = matchText.trim();
-            // Solo limpia headers pegados al final (ej. ". San Martín:" -> ". ")
             cleaned = cleaned.replace(/\.\s*(\w+:\s*)/g, '. ');
-            // Quita líneas vacías extras
             cleaned = cleaned.replace(/\n\s*\n/g, ' ').trim();
             return cleaned;
         };
 
-        // Justificación local: después de "Belgrano:" hasta "Empate:" o "San Martín:"
         const localJustification = analysisText.match(new RegExp(`${matchData.local}:\\s*(.+?)(?=\\s*(Empate:|${matchData.visitante}:))`, 's'));
         if (localJustification) {
             aiJustification.home = cleanText(localJustification[1]);
             console.log('[parsePlainText] Home raw match:', localJustification[1]);
         }
 
-        // Justificación empate: después de "Empate:" hasta "San Martín:" o "Probabilidades:"
         const visitorHeader = `${matchData.visitante}:`;
         const drawJustification = analysisText.match(new RegExp(`Empate:\\s*(.+?)(?=\\s*${visitorHeader}|Probabilidades:)`, 's'));
         if (drawJustification) {
@@ -200,14 +193,12 @@ function parsePlainText(text, matchData) {
             console.log('[parsePlainText] Draw raw match:', drawJustification[1]);
         }
 
-        // Justificación visitante: después de "San Martín:" hasta "Probabilidades:" (último bloque)
         const awayJustification = analysisText.match(new RegExp(`${visitorHeader}\\s*(.+?)(?=Probabilidades:|$)`, 's'));
         if (awayJustification) {
             aiJustification.away = cleanText(awayJustification[1]);
             console.log('[parsePlainText] Away raw match:', awayJustification[1]);
         }
 
-        // Anti-duplicados: si away incluye draw, recórtalo
         if (aiJustification.away.includes(aiJustification.draw)) {
             aiJustification.away = aiJustification.away.replace(aiJustification.draw, '').trim();
             console.log('[parsePlainText] Duplicado removido en away.');
@@ -218,7 +209,6 @@ function parsePlainText(text, matchData) {
         console.warn(`[parsePlainText] No se encontró la sección de análisis en el texto: ${normalizedText.substring(0, 200)}...`);
     }
 
-    // Extraer probabilidades (sin cambios)
     const probsMatch = normalizedText.match(/Probabilidades:(.*)(?=Ambos Anotan|Goles Totales|$)/s);
     if (probsMatch && probsMatch[1]) {
         const probsText = probsMatch[1].trim();
@@ -246,7 +236,6 @@ function parsePlainText(text, matchData) {
         console.warn(`[parsePlainText] No se encontró la sección de probabilidades en el texto: ${normalizedText.substring(0, 200)}...`);
     }
 
-    // Extraer BTTS y Goles Totales (sin cambios)
     const bttsMatch = normalizedText.match(/Ambos Anotan \(BTTS\):\s*Sí:\s*(\d+)%\s*No:\s*(\d+)%/i);
     const goalsMatch = normalizedText.match(/Goles Totales \(Más\/Menos 2\.5\):\s*Más de 2\.5:\s*(\d+)%\s*Menos de 2\.5:\s*(\d+)%/i);
 
@@ -290,7 +279,7 @@ function parsePlainText(text, matchData) {
     return result;
 }
 
-// FETCH DATOS COMPLETOS (CORREGIDO PARA EVITAR HARDCODE DE URL)
+// FETCH DATOS COMPLETOS
 async function fetchAllData() {
     if (dom.leagueSelect) {
         dom.leagueSelect.innerHTML = '<option value="">Cargando datos...</option>';
@@ -441,15 +430,47 @@ function onLeagueChange() {
     clearProbabilities();
 }
 
-// SELECCIÓN DE EVENTO (MEJORADO PARA BUSCAR EVENTO)
+// SELECCIÓN DE EVENTO (MODIFICADA PARA NO CAMBIAR LA LIGA)
 function selectEvent(homeTeamName, awayTeamName) {
+    // Buscar el evento en todas las ligas disponibles
     const ligaName = Object.keys(allData.calendario || {}).find(liga =>
         allData.calendario[liga]?.some(e => normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName))
     );
     const eventLeagueCode = ligaName ? Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '' : '';
     console.log('[selectEvent] Buscando evento:', { homeTeamName, awayTeamName, ligaName, eventLeagueCode });
-    if (dom.leagueSelect) dom.leagueSelect.value = eventLeagueCode;
-    onLeagueChange();
+
+    // NO cambiamos dom.leagueSelect.value para mantener la liga actual
+    const currentLeagueCode = dom.leagueSelect.value;
+
+    // Si no hay liga seleccionada o los equipos no están en la liga actual, cargamos los equipos de la liga del evento
+    if (!currentLeagueCode || !teamsByLeague[currentLeagueCode]?.some(t => normalizeName(t.name) === normalizeName(homeTeamName)) ||
+        !teamsByLeague[currentLeagueCode]?.some(t => normalizeName(t.name) === normalizeName(awayTeamName))) {
+        if (eventLeagueCode && teamsByLeague[eventLeagueCode]) {
+            const teams = teamsByLeague[eventLeagueCode].sort((a, b) => (a.pos || 0) - (b.pos || 0));
+            const createOptions = () => {
+                const fragment = document.createDocumentFragment();
+                fragment.appendChild(Object.assign(document.createElement('option'), { value: '', textContent: '-- Selecciona equipo --' }));
+                teams.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.name;
+                    opt.textContent = `${t.pos || ''} - ${t.name}`;
+                    fragment.appendChild(opt);
+                });
+                return fragment;
+            };
+            dom.teamHomeSelect.innerHTML = dom.teamAwaySelect.innerHTML = '';
+            dom.teamHomeSelect.appendChild(createOptions());
+            dom.teamAwaySelect.appendChild(createOptions());
+            dom.teamHomeSelect.disabled = false;
+            dom.teamAwaySelect.disabled = false;
+        } else {
+            console.warn('[selectEvent] No se encontraron equipos para la liga:', eventLeagueCode);
+            dom.teamHomeSelect.innerHTML = dom.teamAwaySelect.innerHTML = '<option value="">No hay equipos disponibles</option>';
+            return;
+        }
+    }
+
+    // Seleccionar los equipos en los selectores
     setTimeout(() => {
         const findOption = (select, name) => Array.from(select.options).find(opt => {
             const textParts = opt.text.split(' - ');
@@ -460,6 +481,7 @@ function selectEvent(homeTeamName, awayTeamName) {
         if (homeOption) dom.teamHomeSelect.value = homeOption.value;
         if (awayOption) dom.teamAwaySelect.value = awayOption.value;
         onTeamChange();
+
         const event = allData.calendario?.[ligaName]?.find(e =>
             normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName)
         );
@@ -489,8 +511,9 @@ async function init() {
     const regionsMap = {};
     Object.keys(allData.ligas).forEach(code => {
         const region = leagueRegions[code] || 'Otras Ligas';
-        if (!regionsMap[region]) regionsMap[region] = [];
-        regionsMap[region].push(code);
+        if tame = normalizeName(teamName)) {
+            return [code, teams];
+        }
     });
     const customOrder = ["Europa", "Sudamérica", "Norteamérica", "Centroamérica", "Asia", "Copas Internacionales", "Eliminatorias Mundiales", "Otras Ligas"];
     const sortedRegions = Object.keys(regionsMap).sort((a, b) => {
@@ -667,7 +690,7 @@ function validateProbability(value, defaultValue) {
     return isFinite(value) && value >= 0 && value <= 1 ? value : defaultValue;
 }
 
-// CÁLCULO COMPLETO (FALLBACK CON JUSTIFICACIONES DINÁMICAS, SIN ESTÁTICO)
+// CÁLCULO COMPLETO
 function calculateAll() {
     const leagueCode = dom.leagueSelect.value, teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
     if (!leagueCode || !teamHome || !teamAway) {
@@ -682,7 +705,6 @@ function calculateAll() {
         return;
     }
 
-    // Calcular probabilidades para Resultados y Probabilidades (usando Dixon-Coles)
     const statsDixon = dixonColesProbabilities(tH, tA, leagueCode);
     const isLimitedData = tH.pjHome < 3 || tA.pjAway < 3;
     const probabilities = [
@@ -693,7 +715,6 @@ function calculateAll() {
         { label: 'Más de 2.5 goles', value: statsDixon.pO25H, id: 'pO25', type: 'Mercado' }
     ];
 
-    // Normalizar probabilidades 1X2
     const sum1X2 = probabilities[0].value + probabilities[1].value + probabilities[2].value;
     if (sum1X2 > 0 && (sum1X2 < 0.95 || sum1X2 > 1.05)) {
         const scale = 1 / sum1X2;
@@ -702,18 +723,15 @@ function calculateAll() {
         probabilities[2].value *= scale;
     }
 
-    // Actualizar DOM con probabilidades (Resultados y Probabilidades)
     probabilities.forEach(p => {
         p.value = validateProbability(p.value, p.type === 'Resultado' ? 1/3 : 0.5);
         if (dom[p.id]) dom[p.id].textContent = formatPct(p.value);
         else console.warn(`[calculateAll] Elemento ${p.id} no encontrado`);
     });
 
-    // Generar recomendaciones (Resultados y Probabilidades)
     const recommendations = probabilities.filter(p => p.value >= 0.3).sort((a, b) => b.value - a.value).slice(0, 3);
     if (dom.suggestion) dom.suggestion.innerHTML = `<h3>Recomendaciones de Apuesta</h3><ul>${recommendations.map(r => `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`).join('')}</ul>`;
 
-    // Buscar pronóstico IA (MEJORADO: BÚSQUEDA EN TODAS LAS LIGAS SI NO SE ENCUENTRA)
     let event = null;
     const ligaName = leagueCodeToName[leagueCode] || leagueCode;
     console.log('[calculateAll] Buscando en liga:', ligaName);
@@ -722,11 +740,10 @@ function calculateAll() {
             normalizeName(e.local) === normalizeName(teamHome) && normalizeName(e.visitante) === normalizeName(teamAway)
         );
     }
-    // Fallback: buscar en todas las ligas si no se encuentra
     if (!event && allData.calendario) {
         for (const [liga, events] of Object.entries(allData.calendario)) {
             event = events.find(e =>
-                normalizeName(e.local) === normalizeName(teamHome) && normalizeName(e.visitante) === normalizeName(teamAway)
+                normalizeName(e.local) === normalizeName(teamHome) && normalizeName(e.visitante) === normalizeName(awayTeamName)
             );
             if (event) {
                 console.log('[calculateAll] Evento encontrado en liga alternativa:', liga);
@@ -776,7 +793,6 @@ function calculateAll() {
             console.log('[calculateAll] Mostrando pronóstico de texto plano parseado:', JSON.stringify(json, null, 2));
         }
     } else {
-        // Fallback: Mostrar probabilidades calculadas con justificaciones dinámicas
         const homeJust = generateDynamicJustification(tH, true, teamAway);
         const awayJust = generateDynamicJustification(tA, false, teamHome);
         const drawJust = `Ambos equipos muestran formas mixtas con ${tH.e + tA.e} empates combinados en partidos recientes y promedios de goles bajos (${(tH.gf + tA.gf) / (tH.pj + tA.pj).toFixed(1)} por juego).`;
@@ -800,10 +816,8 @@ function calculateAll() {
         }
     }
 
-    // Limpiar predicción combinada
     if (dom.combinedPrediction) dom.combinedPrediction.innerHTML = '';
 
-    // Manejar datos limitados
     if (isLimitedData && dom.details) {
         dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Datos limitados (PJ Home: ${tH.pjHome || 0}, PJ Away: ${tA.pjAway || 0}).</div>`;
         setTimeout(() => dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>', 5000);
@@ -822,7 +836,6 @@ function dixonColesProbabilities(tH, tA, league) {
     const minGames = 3;
     const teams = teamsByLeague[league];
 
-    // Calcular promedios de la liga
     const totals = teams.reduce((acc, t) => ({
         games: acc.games + (t.pj || 0) / 2,
         gfHome: acc.gfHome + (t.gfHome || 0),
@@ -836,32 +849,27 @@ function dixonColesProbabilities(tH, tA, league) {
         gaHome: totals.gaHome / (totals.games || 1),
         gfAway: totals.gfAway / (totals.games || 1),
         gaAway: totals.gaAway / (totals.games || 1),
-        gd: totals.gd / (totals.games || 1)
-    };
+        gd: totals.gd / (totals.games || 1
+    });
     console.log('[dixonColesProbabilities] Promedios de liga:', leagueAvg);
 
-    // Ajuste por ranking
     const rankFactorHome = tH.pos ? 1 + (1 - tH.pos / teams.length) * 0.2 : 1.0;
     const rankFactorAway = tA.pos ? 1 + (1 - tA.pos / teams.length) * 0.2 : 1.0;
 
-    // Ajuste por diferencia de goles
     const gdFactorHome = (tH.gf - tH.ga) / (leagueAvg.gd || 1);
     const gdFactorAway = (tA.gf - tA.ga) / (leagueAvg.gd || 1);
     const gdAdjustmentHome = 1 + Math.min(Math.max(gdFactorHome * 0.1, -0.1), 0.1);
     const gdAdjustmentAway = 1 + Math.min(Math.max(gdFactorAway * 0.1, -0.1), 0.1);
 
-    // Ajuste por forma reciente
     const formFactorHome = calculateFormFactor(tH.formHome || tH.form, true);
     const formFactorAway = calculateFormFactor(tA.formAway || tA.form, false);
     console.log('[dixonColesProbabilities] Factores:', { rankFactorHome, rankFactorAway, gdAdjustmentHome, gdAdjustmentAway, formFactorHome, formFactorAway });
 
-    // Calcular tasas de ataque y defensa
     const homeAttackRaw = (tH.gfHome || 0) / Math.max(tH.pjHome || minGames, minGames) / (leagueAvg.gfHome || 1);
     const homeDefenseRaw = Math.max((tH.gaHome || 0) / Math.max(tH.pjHome || minGames, minGames), 0.1) / (leagueAvg.gaHome || 1);
     const awayAttackRaw = (tA.gfAway || 0) / Math.max(tA.pjAway || minGames, minGames) / (leagueAvg.gfAway || 1);
     const awayDefenseRaw = Math.max((tA.gaAway || 0) / Math.max(tA.pjAway || minGames, minGames), 0.1) / (leagueAvg.gaHome || 1);
 
-    // Mezclar con promedios de liga si hay pocos partidos
     const weight = Math.min(Math.max((tH.pjHome + tA.pjAway) / (2 * minGames), 0), 0.8);
     const homeAttack = (weight * homeAttackRaw + (1 - weight) * 1.0) * rankFactorHome * gdAdjustmentHome * formFactorHome * shrinkageFactor;
     const homeDefense = (weight * homeDefenseRaw + (1 - weight) * 1.0) * rankFactorHome * gdAdjustmentHome * formFactorHome * shrinkageFactor;
@@ -869,12 +877,10 @@ function dixonColesProbabilities(tH, tA, league) {
     const awayDefense = (weight * awayDefenseRaw + (1 - weight) * 1.0) * rankFactorAway * gdAdjustmentAway * formFactorAway * shrinkageFactor;
     console.log('[dixonColesProbabilities] Tasas:', { homeAttackRaw, homeDefenseRaw, awayAttackRaw, awayDefenseRaw, homeAttack, homeDefense, awayAttack, awayDefense });
 
-    // Calcular goles esperados
     let expectedHomeGoals = homeAttack * awayDefense * leagueAvg.gfHome;
     let expectedAwayGoals = awayAttack * homeDefense * leagueAvg.gaAway;
     console.log('[dixonColesProbabilities] Goles esperados:', { expectedHomeGoals, expectedAwayGoals });
 
-    // Calcular probabilidades
     let homeWin = 0, draw = 0, awayWin = 0;
     for (let i = 0; i <= 10; i++) {
         for (let j = 0; j <= 10; j++) {
@@ -885,7 +891,6 @@ function dixonColesProbabilities(tH, tA, league) {
         }
     }
 
-    // Ajuste Dixon-Coles para correlación
     const tau = (scoreH, scoreA) => {
         if (scoreH === 0 && scoreA === 0) return 1 - (homeAttack * awayDefense * rho);
         if (scoreH === 0 && scoreA === 1) return 1 + (homeAttack * rho);
