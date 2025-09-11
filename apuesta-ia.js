@@ -143,7 +143,7 @@ function calculateFormFactor(form, isHome = false) {
     return Math.min(Math.max(formFactor, 0.8), 1.2);
 }
 
-// PARSEO DE PRONÓSTICO DE TEXTO PLANO (CORREGIDO PARA EMPATE Y PROBABILIDADES)
+// PARSEO DE PRONÓSTICO DE TEXTO PLANO (CORREGIDO PARA EVITAR DUPLICADOS)
 function parsePlainText(text, matchData) {
     console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
     const aiProbs = {};
@@ -156,36 +156,51 @@ function parsePlainText(text, matchData) {
     // Normalizar texto: eliminar líneas vacías múltiples y espacios extra
     const normalizedText = text.replace(/\n\s*\n/g, '\n').trim();
 
-    // Extraer justificaciones (CORREGIDO PARA EMPATE)
+    // Extraer justificaciones (CORREGIDO: regex más precisas para evitar desbordamiento)
     const analysisMatch = normalizedText.match(/Análisis del Partido:(.*?)Probabilidades:/s);
     if (analysisMatch && analysisMatch[1]) {
         const analysisText = analysisMatch[1].trim();
         console.log('[parsePlainText] Texto de análisis:', analysisText);
 
-        // Justificación local
-        const localJustification = analysisText.match(new RegExp(`${matchData.local}:(.*?)(?=Empate:|San Martín:|${matchData.visitante}:|$)`, 's'));
-        if (localJustification) aiJustification.home = localJustification[1].trim() || "Sin justificación detallada.";
+        // Función auxiliar para limpiar texto (quitar headers residuales)
+        const cleanText = (matchText) => {
+            if (!matchText) return '';
+            return matchText.trim()
+                .replace(/^(San Martín:|Empate:|Belgrano:|\w+:\s*)/gi, '')  // Quita headers al inicio
+                .replace(/\.\s*(\w+:\s*)/g, '. ')  // Separa si hay header pegado al final
+                .trim() || "Sin justificación detallada.";
+        };
 
-        // Justificación empate (CORREGIDO: lookahead más flexible)
-        const drawJustification = analysisText.match(/Empate:([\s\S]*?)(?=(?:${matchData.visitante}:|Probabilidades:|$)|\s*$)/);
-        if (drawJustification) aiJustification.draw = drawJustification[1].trim() || "Sin justificación detallada.";
+        // Justificación local (busca hasta el siguiente header)
+        const localJustification = analysisText.match(new RegExp(`${matchData.local}:\\s*(.*?)(?=\\s*(?:Empate:|${matchData.visitante}:)\\s*$)`, 's'));
+        if (localJustification) aiJustification.home = cleanText(localJustification[1]);
 
-        // Justificación visitante
-        const awayJustification = analysisText.match(new RegExp(`${matchData.visitante}:(.*?)(?=Probabilidades:|$)`, 's'));
-        if (awayJustification) aiJustification.away = awayJustification[1].trim() || "Sin justificación detallada.";
+        // Justificación empate (hasta el header del visitante o Probabilidades, sin incluirlo)
+        const visitorHeader = `${matchData.visitante}:`;
+        const drawJustification = analysisText.match(new RegExp(`Empate:\\s*(.*?)(?=\\s*${visitorHeader}|Probabilidades:)`, 's'));
+        if (drawJustification) aiJustification.draw = cleanText(drawJustification[1]);
+
+        // Justificación visitante (solo el último bloque, para evitar parciales)
+        const awayJustification = analysisText.match(new RegExp(`${visitorHeader}\\s*(.*?)(?=Probabilidades:|$)`, 's'));
+        if (awayJustification) aiJustification.away = cleanText(awayJustification[1]);
+
+        // Verificación anti-duplicados: si away incluye texto de draw, recórtalo
+        if (aiJustification.away.includes(aiJustification.draw)) {
+            aiJustification.away = aiJustification.away.replace(aiJustification.draw, '').trim();
+            console.log('[parsePlainText] Duplicado detectado y removido en away.');
+        }
 
         console.log(`[parsePlainText] Justificaciones extraídas: Local="${aiJustification.home}", Empate="${aiJustification.draw}", Visitante="${aiJustification.away}"`);
     } else {
         console.warn(`[parsePlainText] No se encontró la sección de análisis en el texto: ${normalizedText.substring(0, 200)}...`);
     }
 
-    // Extraer probabilidades (CORREGIDO PARA MÚLTIPLES FORMATOS)
+    // Extraer probabilidades (sin cambios, pero con logs)
     const probsMatch = normalizedText.match(/Probabilidades:(.*)(?=Ambos Anotan|Goles Totales|$)/s);
     if (probsMatch && probsMatch[1]) {
         const probsText = probsMatch[1].trim();
         console.log('[parsePlainText] Texto de probabilidades:', probsText);
 
-        // Intentar formatos específicos
         const homeProbMatch = probsText.match(new RegExp(`(?:${matchData.local}:|\\b${matchData.local}\\b).*?(\\d+)%`, 'i'));
         const drawProbMatch = probsText.match(/(?:Empate:|\bEmpate\b).*?(\d+)%/i);
         const awayProbMatch = probsText.match(new RegExp(`(?:${matchData.visitante}:|\\b${matchData.visitante}\\b).*?(\\d+)%`, 'i'));
@@ -195,7 +210,6 @@ function parsePlainText(text, matchData) {
             aiProbs.draw = parseFloat(drawProbMatch[1]) / 100;
             aiProbs.away = parseFloat(awayProbMatch[1]) / 100;
         } else {
-            // Fallback: extraer los primeros 3 porcentajes
             const percentages = probsText.match(/(\d+)%/g) || [];
             if (percentages.length >= 3) {
                 aiProbs.home = parseFloat(percentages[0]) / 100;
@@ -209,7 +223,7 @@ function parsePlainText(text, matchData) {
         console.warn(`[parsePlainText] No se encontró la sección de probabilidades en el texto: ${normalizedText.substring(0, 200)}...`);
     }
 
-    // Extraer BTTS y Goles Totales
+    // Extraer BTTS y Goles Totales (sin cambios)
     const bttsMatch = normalizedText.match(/Ambos Anotan \(BTTS\):\s*Sí:\s*(\d+)%\s*No:\s*(\d+)%/i);
     const goalsMatch = normalizedText.match(/Goles Totales \(Más\/Menos 2\.5\):\s*Más de 2\.5:\s*(\d+)%\s*Menos de 2\.5:\s*(\d+)%/i);
 
