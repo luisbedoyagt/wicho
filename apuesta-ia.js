@@ -332,14 +332,31 @@ function renderEvent(event, index, leagueCode) {
     const awayLogo = awayTeam?.logoUrl || '';
     let eventDateTime = 'Fecha no disponible';
     let isInProgress = false;
+    let isStartingSoon = false;
     try {
         const parsedDate = new Date(event.fecha);
         if (isFinite(parsedDate)) {
             const now = new Date();
-            isInProgress = now >= parsedDate && now < new Date(parsedDate.getTime() + 120 * 60 * 1000);
+            const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutos desde ahora
+            const twoHoursAfter = new Date(parsedDate.getTime() + 120 * 60 * 1000); // 2 horas después del inicio
+            isInProgress = now >= parsedDate && now < twoHoursAfter;
+            isStartingSoon = parsedDate > now && parsedDate <= thirtyMinutesFromNow;
             const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Guatemala' };
             const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guatemala' };
             eventDateTime = `${parsedDate.toLocaleDateString('es-ES', dateOptions)} ${parsedDate.toLocaleTimeString('es-ES', timeOptions)} (GT)`;
+            // Añadir texto y clase según el estado
+            if (isInProgress) {
+                eventDateTime += `<span class="event-live"> - EVENTO EN VIVO</span>`;
+                div.classList.add('in-progress');
+            } else if (isStartingSoon) {
+                eventDateTime += `<span class="event-soon"> - Evento por iniciar</span>`;
+                div.classList.add('starting-soon');
+            }
+            console.log(`[renderEvent] Evento ${event.local} vs ${event.visitante}:`, {
+                fecha: event.fecha,
+                isInProgress,
+                isStartingSoon
+            });
         }
     } catch (err) {
         console.error('Error al parsear fecha:', err);
@@ -354,12 +371,14 @@ function renderEvent(event, index, leagueCode) {
                 <img src="${awayLogo}" class="team-logo away-logo ${!awayLogo ? 'hidden' : ''}" alt="Logo de ${event.visitante.trim()}">
                 <span class="team-name">${event.visitante.trim()}</span>
             </div>
-            <span class="event-details">${eventDateTime}${isInProgress ? ' - Evento en Juego' : ''}</span>
+            <span class="event-details">${eventDateTime}</span>
             <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
         </div>
     `;
-    if (!isInProgress) div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim(), eventLeagueCode));
-    else div.classList.add('in-progress');
+    // Solo eventos futuros (no en vivo ni por iniciar) son seleccionables
+    if (!isInProgress && !isStartingSoon) {
+        div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim(), eventLeagueCode));
+    }
     return div;
 }
 
