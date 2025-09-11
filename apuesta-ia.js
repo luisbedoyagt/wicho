@@ -511,9 +511,8 @@ async function init() {
     const regionsMap = {};
     Object.keys(allData.ligas).forEach(code => {
         const region = leagueRegions[code] || 'Otras Ligas';
-        if tame = normalizeName(teamName)) {
-            return [code, teams];
-        }
+        if (!regionsMap[region]) regionsMap[region] = [];
+        regionsMap[region].push(code);
     });
     const customOrder = ["Europa", "Sudamérica", "Norteamérica", "Centroamérica", "Asia", "Copas Internacionales", "Eliminatorias Mundiales", "Otras Ligas"];
     const sortedRegions = Object.keys(regionsMap).sort((a, b) => {
@@ -743,7 +742,7 @@ function calculateAll() {
     if (!event && allData.calendario) {
         for (const [liga, events] of Object.entries(allData.calendario)) {
             event = events.find(e =>
-                normalizeName(e.local) === normalizeName(teamHome) && normalizeName(e.visitante) === normalizeName(awayTeamName)
+                normalizeName(e.local) === normalizeName(teamHome) && normalizeName(e.visitante) === normalizeName(teamAway)
             );
             if (event) {
                 console.log('[calculateAll] Evento encontrado en liga alternativa:', liga);
@@ -795,7 +794,7 @@ function calculateAll() {
     } else {
         const homeJust = generateDynamicJustification(tH, true, teamAway);
         const awayJust = generateDynamicJustification(tA, false, teamHome);
-        const drawJust = `Ambos equipos muestran formas mixtas con ${tH.e + tA.e} empates combinados en partidos recientes y promedios de goles bajos (${(tH.gf + tA.gf) / (tH.pj + tA.pj).toFixed(1)} por juego).`;
+        const drawJust = `Ambos equipos muestran formas mixtas con ${tH.e + tA.e} empates combinados en partidos recientes y promedios de goles bajos (${(tH.gf + tA.gf) / (tH.pj + tA.pj || 1).toFixed(1)} por juego).`;
         let html = '<div class="prediction-container">';
         html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
         html += `<p><strong>${teamHome}:</strong> ${homeJust}</p>`;
@@ -849,8 +848,8 @@ function dixonColesProbabilities(tH, tA, league) {
         gaHome: totals.gaHome / (totals.games || 1),
         gfAway: totals.gfAway / (totals.games || 1),
         gaAway: totals.gaAway / (totals.games || 1),
-        gd: totals.gd / (totals.games || 1
-    });
+        gd: totals.gd / (totals.games || 1)
+    };
     console.log('[dixonColesProbabilities] Promedios de liga:', leagueAvg);
 
     const rankFactorHome = tH.pos ? 1 + (1 - tH.pos / teams.length) * 0.2 : 1.0;
