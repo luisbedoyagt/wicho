@@ -60,11 +60,11 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.1rem 0.2rem !important;
+        padding: 0.2rem 0.3rem !important;
         display: block !important;
         text-align: center !important;
         margin: 0.5rem auto !important;
-        line-height: 1.4 !important;
+        line-height: 1.0 !important;
         position: relative;
         transition: text-shadow 0.3s ease, transform 0.3s ease;
         animation: fade-in-title 1s ease-out forwards;
