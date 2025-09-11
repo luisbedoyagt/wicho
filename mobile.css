@@ -67,7 +67,7 @@
         line-height: 0.8 !important;
         position: relative;
         transition: text-shadow 0.3s ease, transform 0.3s ease;
-        animation: fade-in-title 1s ease-out forwards;
+        animation: fade-in-title 3s ease-out forwards;
     }
 
     .app-header h1:nth-child(1) {
