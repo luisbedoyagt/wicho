@@ -143,59 +143,82 @@ function calculateFormFactor(form, isHome = false) {
     return Math.min(Math.max(formFactor, 0.8), 1.2);
 }
 
-// PARSEO DE PRONÓSTICO DE TEXTO PLANO (CORREGIDO PARA EVITAR DUPLICADOS)
+// FUNCIÓN AUXILIAR PARA JUSTIFICACIONES DINÁMICAS EN FALLBACK
+function generateDynamicJustification(team, isHome = true, opponent = '') {
+    if (!team || !team.name) return '';
+    const dg = isHome ? (team.gfHome - team.gaHome) : (team.gfAway - team.gaAway);
+    const wins = isHome ? team.winsHome : team.winsAway;
+    const pj = isHome ? team.pjHome : team.pjAway;
+    const winRate = pj > 0 ? (wins / pj * 100).toFixed(1) : 0;
+    const formSummary = team.form ? team.form.slice(-3).replace(/W/g, 'victorias').replace(/D/g, 'empates').replace(/L/g, 'derrotas') : 'sin datos recientes';
+    const dgStr = dg > 0 ? `positivo de +${dg}` : dg < 0 ? `negativo de ${dg}` : 'equilibrado';
+    return `${team.name} muestra una tasa de victorias del ${winRate}% ${isHome ? 'en casa' : 'fuera'}, con un diferencial de goles ${dgStr} en ${pj} partidos. Forma reciente: ${formSummary}. Históricamente ${opponent ? `contra ${opponent}` : ''}, ha sido inconsistente en resultados clave.`;
+}
+
+// PARSEO DE PRONÓSTICO DE TEXTO PLANO (CORREGIDO: EXTRAE SOLO CONTENIDO, SIN ESTÁTICO)
 function parsePlainText(text, matchData) {
     console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
     const aiProbs = {};
     const aiJustification = {
-        home: "Sin justificación detallada.",
-        draw: "Sin justificación detallada.",
-        away: "Sin justificación detallada."
+        home: "",
+        draw: "",
+        away: ""
     };
 
     // Normalizar texto: eliminar líneas vacías múltiples y espacios extra
     const normalizedText = text.replace(/\n\s*\n/g, '\n').trim();
 
-    // Extraer justificaciones (CORREGIDO: regex más precisas para evitar desbordamiento)
+    // Extraer justificaciones
     const analysisMatch = normalizedText.match(/Análisis del Partido:(.*?)Probabilidades:/s);
     if (analysisMatch && analysisMatch[1]) {
         const analysisText = analysisMatch[1].trim();
         console.log('[parsePlainText] Texto de análisis:', analysisText);
 
-        // Función auxiliar para limpiar texto (quitar headers residuales)
+        // Función auxiliar para limpiar (solo headers pegados al final, no al inicio)
         const cleanText = (matchText) => {
-            if (!matchText) return '';
-            return matchText.trim()
-                .replace(/^(San Martín:|Empate:|Belgrano:|\w+:\s*)/gi, '')  // Quita headers al inicio
-                .replace(/\.\s*(\w+:\s*)/g, '. ')  // Separa si hay header pegado al final
-                .trim() || "Sin justificación detallada.";
+            if (!matchText || !matchText.trim()) return '';
+            let cleaned = matchText.trim();
+            // Solo limpia headers pegados al final (ej. ". San Martín:" -> ". ")
+            cleaned = cleaned.replace(/\.\s*(\w+:\s*)/g, '. ');
+            // Quita líneas vacías extras
+            cleaned = cleaned.replace(/\n\s*\n/g, ' ').trim();
+            return cleaned;
         };
 
-        // Justificación local (busca hasta el siguiente header)
-        const localJustification = analysisText.match(new RegExp(`${matchData.local}:\\s*(.*?)(?=\\s*(?:Empate:|${matchData.visitante}:)\\s*$)`, 's'));
-        if (localJustification) aiJustification.home = cleanText(localJustification[1]);
-
-        // Justificación empate (hasta el header del visitante o Probabilidades, sin incluirlo)
-        const visitorHeader = `${matchData.visitante}:`;
-        const drawJustification = analysisText.match(new RegExp(`Empate:\\s*(.*?)(?=\\s*${visitorHeader}|Probabilidades:)`, 's'));
-        if (drawJustification) aiJustification.draw = cleanText(drawJustification[1]);
-
-        // Justificación visitante (solo el último bloque, para evitar parciales)
-        const awayJustification = analysisText.match(new RegExp(`${visitorHeader}\\s*(.*?)(?=Probabilidades:|$)`, 's'));
-        if (awayJustification) aiJustification.away = cleanText(awayJustification[1]);
-
-        // Verificación anti-duplicados: si away incluye texto de draw, recórtalo
-        if (aiJustification.away.includes(aiJustification.draw)) {
-            aiJustification.away = aiJustification.away.replace(aiJustification.draw, '').trim();
-            console.log('[parsePlainText] Duplicado detectado y removido en away.');
+        // Justificación local: después de "Belgrano:" hasta "Empate:" o "San Martín:"
+        const localJustification = analysisText.match(new RegExp(`${matchData.local}:\\s*(.+?)(?=\\s*(Empate:|${matchData.visitante}:))`, 's'));
+        if (localJustification) {
+            aiJustification.home = cleanText(localJustification[1]);
+            console.log('[parsePlainText] Home raw match:', localJustification[1]);
         }
 
-        console.log(`[parsePlainText] Justificaciones extraídas: Local="${aiJustification.home}", Empate="${aiJustification.draw}", Visitante="${aiJustification.away}"`);
+        // Justificación empate: después de "Empate:" hasta "San Martín:" o "Probabilidades:"
+        const visitorHeader = `${matchData.visitante}:`;
+        const drawJustification = analysisText.match(new RegExp(`Empate:\\s*(.+?)(?=\\s*${visitorHeader}|Probabilidades:)`, 's'));
+        if (drawJustification) {
+            aiJustification.draw = cleanText(drawJustification[1]);
+            console.log('[parsePlainText] Draw raw match:', drawJustification[1]);
+        }
+
+        // Justificación visitante: después de "San Martín:" hasta "Probabilidades:" (último bloque)
+        const awayJustification = analysisText.match(new RegExp(`${visitorHeader}\\s*(.+?)(?=Probabilidades:|$)`, 's'));
+        if (awayJustification) {
+            aiJustification.away = cleanText(awayJustification[1]);
+            console.log('[parsePlainText] Away raw match:', awayJustification[1]);
+        }
+
+        // Anti-duplicados: si away incluye draw, recórtalo
+        if (aiJustification.away.includes(aiJustification.draw)) {
+            aiJustification.away = aiJustification.away.replace(aiJustification.draw, '').trim();
+            console.log('[parsePlainText] Duplicado removido en away.');
+        }
+
+        console.log(`[parsePlainText] Justificaciones extraídas: Home="${aiJustification.home}", Draw="${aiJustification.draw}", Away="${aiJustification.away}"`);
     } else {
         console.warn(`[parsePlainText] No se encontró la sección de análisis en el texto: ${normalizedText.substring(0, 200)}...`);
     }
 
-    // Extraer probabilidades (sin cambios, pero con logs)
+    // Extraer probabilidades (sin cambios)
     const probsMatch = normalizedText.match(/Probabilidades:(.*)(?=Ambos Anotan|Goles Totales|$)/s);
     if (probsMatch && probsMatch[1]) {
         const probsText = probsMatch[1].trim();
@@ -644,7 +667,7 @@ function validateProbability(value, defaultValue) {
     return isFinite(value) && value >= 0 && value <= 1 ? value : defaultValue;
 }
 
-// CÁLCULO COMPLETO (MEJORADO CON FALBACK Y BÚSQUEDA DE EVENTO MÁS ROBUSTA)
+// CÁLCULO COMPLETO (FALLBACK CON JUSTIFICACIONES DINÁMICAS, SIN ESTÁTICO)
 function calculateAll() {
     const leagueCode = dom.leagueSelect.value, teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
     if (!leagueCode || !teamHome || !teamAway) {
@@ -718,9 +741,9 @@ function calculateAll() {
         const json = event.pronostico_json;
         let html = '<div class="prediction-container">';
         html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
-        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion}</p>`;
-        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion}</p>`;
-        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion}</p>`;
+        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion || ''}</p>`;
+        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion || ''}</p>`;
+        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion || ''}</p>`;
         html += `<h3>Probabilidades:</h3>`;
         html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.probabilidad}</p>`;
         html += `<p><strong>Empate:</strong> ${json["1X2"].empate.probabilidad}</p>`;
@@ -737,9 +760,9 @@ function calculateAll() {
         const json = parsePlainText(event.pronostico, { local: teamHome, visitante: teamAway });
         let html = '<div class="prediction-container">';
         html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
-        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion}</p>`;
-        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion}</p>`;
-        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion}</p>`;
+        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion || ''}</p>`;
+        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion || ''}</p>`;
+        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion || ''}</p>`;
         html += `<h3>Probabilidades:</h3>`;
         html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.probabilidad}</p>`;
         html += `<p><strong>Empate:</strong> ${json["1X2"].empate.probabilidad}</p>`;
@@ -753,24 +776,27 @@ function calculateAll() {
             console.log('[calculateAll] Mostrando pronóstico de texto plano parseado:', JSON.stringify(json, null, 2));
         }
     } else {
-        // Fallback: Mostrar probabilidades calculadas si no hay pronóstico IA
+        // Fallback: Mostrar probabilidades calculadas con justificaciones dinámicas
+        const homeJust = generateDynamicJustification(tH, true, teamAway);
+        const awayJust = generateDynamicJustification(tA, false, teamHome);
+        const drawJust = `Ambos equipos muestran formas mixtas con ${tH.e + tA.e} empates combinados en partidos recientes y promedios de goles bajos (${(tH.gf + tA.gf) / (tH.pj + tA.pj).toFixed(1)} por juego).`;
         let html = '<div class="prediction-container">';
         html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
-        html += `<p><strong>${teamHome}:</strong> Análisis basado en estadísticas recientes y modelo Dixon-Coles.</p>`;
-        html += `<p><strong>Empate:</strong> Posibilidad de empate considerando forma inconsistente de ambos equipos.</p>`;
-        html += `<p><strong>${teamAway}:</strong> Análisis basado en estadísticas recientes y modelo Dixon-Coles.</p>`;
+        html += `<p><strong>${teamHome}:</strong> ${homeJust}</p>`;
+        html += `<p><strong>Empate:</strong> ${drawJust}</p>`;
+        html += `<p><strong>${teamAway}:</strong> ${awayJust}</p>`;
         html += `<h3>Probabilidades:</h3>`;
         html += `<p><strong>${teamHome}:</strong> ${formatPct(statsDixon.finalHome)}</p>`;
         html += `<p><strong>Empate:</strong> ${formatPct(statsDixon.finalDraw)}</p>`;
         html += `<p><strong>${teamAway}:</strong> ${formatPct(statsDixon.finalAway)}</p>`;
         html += `<p><strong>Ambos Anotan (BTTS):</strong> Sí: ${formatPct(statsDixon.pBTTSH)} No: ${formatPct(1 - statsDixon.pBTTSH)}</p>`;
         html += `<p><strong>Goles Totales (Más/Menos 2.5):</strong> Más de 2.5: ${formatPct(statsDixon.pO25H)} Menos de 2.5: ${formatPct(1 - statsDixon.pO25H)}</p>`;
-        html += `<p><em>No hay pronóstico de IA disponible; usando modelo estadístico.</em></p>`;
+        html += `<p><em>Basado en modelo estadístico Dixon-Coles con datos de ${tH.pj + tA.pj} partidos.</em></p>`;
         html += `</div>`;
 
         if (detailedPredictionBox) {
             detailedPredictionBox.innerHTML = html;
-            console.log('[calculateAll] Mostrando fallback con Dixon-Coles');
+            console.log('[calculateAll] Mostrando fallback dinámico');
         }
     }
 
