@@ -682,25 +682,26 @@ function calculateAll() {
             detailedPredictionBox.innerHTML = html;
             console.log('[calculateAll] Mostrando pronóstico JSON:', JSON.stringify(json, null, 2));
         }
-    } else if (event && event.pronostico) {
-        const json = parsePlainText(event.pronostico, { local: teamHome, visitante: teamAway });
-        let html = '<div class="prediction-container">';
-        html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
-        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion}</p>`;
-        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion}</p>`;
-        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion}</p>`;
-        html += `<h3>Probabilidades:</h3>`;
-        html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.probabilidad}</p>`;
-        html += `<p><strong>Empate:</strong> ${json["1X2"].empate.probabilidad}</p>`;
-        html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.probabilidad}</p>`;
-        html += `<p><strong>Ambos Anotan (BTTS):</strong> Sí: ${json.BTTS.si.probabilidad} No: ${json.BTTS.no.probabilidad}</p>`;
-        html += `<p><strong>Goles Totales (Más/Menos 2.5):</strong> Más de 2.5: ${json.Goles.mas_2_5.probabilidad} Menos de 2.5: ${json.Goles.menos_2_5.probabilidad}</p>`;
-        html += `</div>`;
+    if (event && event.pronostico) {
+    const json = parsePlainText(event.pronostico, { local: teamHome, visitante: teamAway });
+    let html = '<div class="prediction-container">';
+    html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
+    html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.justificacion}</p>`;
+    html += `<p><strong>Empate:</strong> ${json["1X2"].empate.justificacion}</p>`;
+    html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.justificacion}</p>`;
+    html += `<h3>Probabilidades:</h3>`;
+    html += `<p><strong>${teamHome}:</strong> ${json["1X2"].victoria_local.probabilidad}</p>`;
+    html += `<p><strong>Empate:</strong> ${json["1X2"].empate.probabilidad}</p>`;
+    html += `<p><strong>${teamAway}:</strong> ${json["1X2"].victoria_visitante.probabilidad}</p>`;
+    html += `<p><strong>Ambos Anotan (BTTS):</strong> Sí: ${json.BTTS.si.probabilidad} No: ${json.BTTS.no.probabilidad}</p>`;
+    html += `<p><strong>Goles Totales (Más/Menos 2.5):</strong> Más de 2.5: ${json.Goles.mas_2_5.probabilidad} Menos de 2.5: ${json.Goles.menos_2_5.probabilidad}</p>`;
+    html += `</div>`;
 
-        if (detailedPredictionBox) {
-            detailedPredictionBox.innerHTML = html;
-            console.log('[calculateAll] Mostrando pronóstico de texto plano parseado:', JSON.stringify(json, null, 2));
-        }
+    if (detailedPredictionBox) {
+        detailedPredictionBox.innerHTML = html;
+        console.log('[calculateAll] Mostrando pronóstico de texto plano parseado:', JSON.stringify(json, null, 2));
+    }
+}
     } else if (detailedPredictionBox) {
         detailedPredictionBox.innerHTML = `<p>No hay un pronóstico de la IA disponible para este partido.</p>`;
         console.log('[calculateAll] Sin pronóstico disponible para', teamHome, 'vs', teamAway);
