@@ -155,7 +155,7 @@ function generateDynamicJustification(team, isHome = true, opponent = '') {
     return `${team.name} muestra una tasa de victorias del ${winRate}% ${isHome ? 'en casa' : 'fuera'}, con un diferencial de goles ${dgStr} en ${pj} partidos. Forma reciente: ${formSummary}. Históricamente ${opponent ? `contra ${opponent}` : ''}, ha sido inconsistente en resultados clave.`;
 }
 
-// PARSEO DE PRONÓSTICO DE TEXTO PLANO (CORREGIDO: EXTRAE SOLO CONTENIDO, SIN ESTÁTICO)
+// PARSEO DE PRONÓSTICO DE TEXTO PLANO
 function parsePlainText(text, matchData) {
     console.log(`[parsePlainText] Procesando texto para ${matchData.local} vs ${matchData.visitante}`);
     const aiProbs = {};
@@ -185,14 +185,14 @@ function parsePlainText(text, matchData) {
             return cleaned;
         };
 
-        // Justificación local: después de "Belgrano:" hasta "Empate:" o "San Martín:"
+        // Justificación local: después de "Local:" hasta "Empate:" o "Visitante:"
         const localJustification = analysisText.match(new RegExp(`${matchData.local}:\\s*(.+?)(?=\\s*(Empate:|${matchData.visitante}:))`, 's'));
         if (localJustification) {
             aiJustification.home = cleanText(localJustification[1]);
             console.log('[parsePlainText] Home raw match:', localJustification[1]);
         }
 
-        // Justificación empate: después de "Empate:" hasta "San Martín:" o "Probabilidades:"
+        // Justificación empate: después de "Empate:" hasta "Visitante:" o "Probabilidades:"
         const visitorHeader = `${matchData.visitante}:`;
         const drawJustification = analysisText.match(new RegExp(`Empate:\\s*(.+?)(?=\\s*${visitorHeader}|Probabilidades:)`, 's'));
         if (drawJustification) {
@@ -200,7 +200,7 @@ function parsePlainText(text, matchData) {
             console.log('[parsePlainText] Draw raw match:', drawJustification[1]);
         }
 
-        // Justificación visitante: después de "San Martín:" hasta "Probabilidades:" (último bloque)
+        // Justificación visitante: después de "Visitante:" hasta "Probabilidades:" (último bloque)
         const awayJustification = analysisText.match(new RegExp(`${visitorHeader}\\s*(.+?)(?=Probabilidades:|$)`, 's'));
         if (awayJustification) {
             aiJustification.away = cleanText(awayJustification[1]);
@@ -218,7 +218,7 @@ function parsePlainText(text, matchData) {
         console.warn(`[parsePlainText] No se encontró la sección de análisis en el texto: ${normalizedText.substring(0, 200)}...`);
     }
 
-    // Extraer probabilidades (sin cambios)
+    // Extraer probabilidades
     const probsMatch = normalizedText.match(/Probabilidades:(.*)(?=Ambos Anotan|Goles Totales|$)/s);
     if (probsMatch && probsMatch[1]) {
         const probsText = probsMatch[1].trim();
@@ -246,7 +246,7 @@ function parsePlainText(text, matchData) {
         console.warn(`[parsePlainText] No se encontró la sección de probabilidades en el texto: ${normalizedText.substring(0, 200)}...`);
     }
 
-    // Extraer BTTS y Goles Totales (sin cambios)
+    // Extraer BTTS y Goles Totales
     const bttsMatch = normalizedText.match(/Ambos Anotan \(BTTS\):\s*Sí:\s*(\d+)%\s*No:\s*(\d+)%/i);
     const goalsMatch = normalizedText.match(/Goles Totales \(Más\/Menos 2\.5\):\s*Más de 2\.5:\s*(\d+)%\s*Menos de 2\.5:\s*(\d+)%/i);
 
@@ -290,7 +290,7 @@ function parsePlainText(text, matchData) {
     return result;
 }
 
-// FETCH DATOS COMPLETOS (CORREGIDO PARA EVITAR HARDCODE DE URL)
+// FETCH DATOS COMPLETOS
 async function fetchAllData() {
     if (dom.leagueSelect) {
         dom.leagueSelect.innerHTML = '<option value="">Cargando datos...</option>';
@@ -329,6 +329,64 @@ async function fetchAllData() {
 }
 
 // MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
+function displaySelectedLeagueEvents(leagueCode) {
+    if (!dom.selectedLeagueEvents) return;
+    if (eventInterval) clearInterval(eventInterval);
+    dom.selectedLeagueEvents.innerHTML = allData.calendario ? '' : '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos.</span></div>';
+    if (!allData.calendario) return;
+
+    const now = new Date();
+    let events = [];
+    if (leagueCode) {
+        events = allData.calendario[leagueCodeToName[leagueCode]] || [];
+    } else {
+        Object.entries(allData.calendario).forEach(([code, evts]) => {
+            const originalCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === code);
+            if (originalCode) evts.forEach(event => events.push({ ...event, leagueCode: originalCode }));
+        });
+    }
+
+    // Filtrar eventos que no han terminado
+    events = events.filter(event => {
+        try {
+            const eventDate = new Date(event.fecha);
+            if (!isFinite(eventDate)) {
+                console.warn(`[displaySelectedLeagueEvents] Fecha inválida para evento: ${event.local} vs ${event.visitante}`);
+                return true; // Mantener eventos con fecha inválida para evitar filtrar accidentalmente
+            }
+            // Considerar evento terminado 2 horas después de su inicio
+            const eventEnd = new Date(eventDate.getTime() + 120 * 60 * 1000);
+            const isNotEnded = now < eventEnd;
+            if (!isNotEnded) {
+                console.log(`[displaySelectedLeagueEvents] Evento filtrado (terminado): ${event.local} vs ${event.visitante}, Fin: ${eventEnd.toLocaleString('es-ES', { timeZone: 'America/Guatemala' })}`);
+            }
+            return isNotEnded;
+        } catch (err) {
+            console.warn(`[displaySelectedLeagueEvents] Error al procesar fecha de evento: ${event.local} vs ${event.visitante}`, err);
+            return true; // Mantener eventos con error para no perderlos
+        }
+    });
+
+    if (!events.length) {
+        dom.selectedLeagueEvents.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos.</span></div>';
+        return;
+    }
+
+    const eventsPerPage = 1, totalPages = Math.ceil(events.length / eventsPerPage);
+    let currentPage = 0;
+    const showCurrentPage = () => {
+        const startIndex = currentPage * eventsPerPage;
+        dom.selectedLeagueEvents.innerHTML = '';
+        events.slice(startIndex, startIndex + eventsPerPage).forEach((event, index) => {
+            dom.selectedLeagueEvents.appendChild(renderEvent(event, index, leagueCode));
+        });
+        currentPage = (currentPage + 1) % totalPages;
+    };
+    showCurrentPage();
+    if (totalPages > 1) eventInterval = setInterval(showCurrentPage, 10000);
+}
+
+// RENDER EVENTO
 function renderEvent(event, index, leagueCode) {
     const div = document.createElement('div');
     div.className = 'event-item slide-in';
@@ -353,7 +411,7 @@ function renderEvent(event, index, leagueCode) {
             eventDateTime = `${parsedDate.toLocaleDateString('es-ES', dateOptions)} ${parsedDate.toLocaleTimeString('es-ES', timeOptions)} (GT)`;
         }
     } catch (err) {
-        console.error('Error al parsear fecha:', err);
+        console.error(`[renderEvent] Error al parsear fecha para ${event.local} vs ${event.visitante}:`, err);
     }
     div.innerHTML = `
         <div class="league-name">${leagueNames[eventLeagueCode] || eventLeagueCode || 'Liga no especificada'}</div>
@@ -372,38 +430,6 @@ function renderEvent(event, index, leagueCode) {
     if (!isInProgress) div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim()));
     else div.classList.add('in-progress');
     return div;
-}
-
-function displaySelectedLeagueEvents(leagueCode) {
-    if (!dom.selectedLeagueEvents) return;
-    if (eventInterval) clearInterval(eventInterval);
-    dom.selectedLeagueEvents.innerHTML = allData.calendario ? '' : '<div class="event-item placeholder"><span>Selecciona una liga para ver eventos.</span></div>';
-    if (!allData.calendario) return;
-    let events = [];
-    if (leagueCode) {
-        events = allData.calendario[leagueCodeToName[leagueCode]] || [];
-    } else {
-        Object.entries(allData.calendario).forEach(([code, evts]) => {
-            const originalCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === code);
-            if (originalCode) evts.forEach(event => events.push({ ...event, leagueCode: originalCode }));
-        });
-    }
-    if (!events.length) {
-        dom.selectedLeagueEvents.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos.</span></div>';
-        return;
-    }
-    const eventsPerPage = 1, totalPages = Math.ceil(events.length / eventsPerPage);
-    let currentPage = 0;
-    const showCurrentPage = () => {
-        const startIndex = currentPage * eventsPerPage;
-        dom.selectedLeagueEvents.innerHTML = '';
-        events.slice(startIndex, startIndex + eventsPerPage).forEach((event, index) => {
-            dom.selectedLeagueEvents.appendChild(renderEvent(event, index, leagueCode));
-        });
-        currentPage = (currentPage + 1) % totalPages;
-    };
-    showCurrentPage();
-    if (totalPages > 1) eventInterval = setInterval(showCurrentPage, 10000);
 }
 
 // CAMBIO DE LIGA
@@ -441,7 +467,7 @@ function onLeagueChange() {
     clearProbabilities();
 }
 
-// SELECCIÓN DE EVENTO (MEJORADO PARA BUSCAR EVENTO)
+// SELECCIÓN DE EVENTO
 function selectEvent(homeTeamName, awayTeamName) {
     const ligaName = Object.keys(allData.calendario || {}).find(liga =>
         allData.calendario[liga]?.some(e => normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName))
@@ -667,7 +693,7 @@ function validateProbability(value, defaultValue) {
     return isFinite(value) && value >= 0 && value <= 1 ? value : defaultValue;
 }
 
-// CÁLCULO COMPLETO (FALLBACK CON JUSTIFICACIONES DINÁMICAS, SIN ESTÁTICO)
+// CÁLCULO COMPLETO
 function calculateAll() {
     const leagueCode = dom.leagueSelect.value, teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
     if (!leagueCode || !teamHome || !teamAway) {
@@ -713,7 +739,7 @@ function calculateAll() {
     const recommendations = probabilities.filter(p => p.value >= 0.3).sort((a, b) => b.value - a.value).slice(0, 3);
     if (dom.suggestion) dom.suggestion.innerHTML = `<h3>Recomendaciones de Apuesta</h3><ul>${recommendations.map(r => `<li><strong>${r.label} (${formatPct(r.value)})</strong> - ${r.type}</li>`).join('')}</ul>`;
 
-    // Buscar pronóstico IA (MEJORADO: BÚSQUEDA EN TODAS LAS LIGAS SI NO SE ENCUENTRA)
+    // Buscar pronóstico IA
     let event = null;
     const ligaName = leagueCodeToName[leagueCode] || leagueCode;
     console.log('[calculateAll] Buscando en liga:', ligaName);
@@ -779,7 +805,7 @@ function calculateAll() {
         // Fallback: Mostrar probabilidades calculadas con justificaciones dinámicas
         const homeJust = generateDynamicJustification(tH, true, teamAway);
         const awayJust = generateDynamicJustification(tA, false, teamHome);
-        const drawJust = `Ambos equipos muestran formas mixtas con ${tH.e + tA.e} empates combinados en partidos recientes y promedios de goles bajos (${(tH.gf + tA.gf) / (tH.pj + tA.pj).toFixed(1)} por juego).`;
+        const drawJust = `Ambos equipos muestran formas mixtas con ${tH.e + tA.e} empates combinados en partidos recientes y promedios de goles bajos (${((tH.gf + tA.gf) / (tH.pj + tA.pj) || 0).toFixed(1)} por juego).`;
         let html = '<div class="prediction-container">';
         html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
         html += `<p><strong>${teamHome}:</strong> ${homeJust}</p>`;
