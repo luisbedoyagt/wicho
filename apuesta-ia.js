@@ -327,6 +327,7 @@ async function fetchAllData() {
         if (dom.leagueSelect) dom.leagueSelect.disabled = false;
     }
 }
+
 // MUESTRA DE EVENTOS DE LA LIGA SELECCIONADA
 function displaySelectedLeagueEvents(leagueCode) {
     if (!dom.selectedLeagueEvents) return;
@@ -436,42 +437,74 @@ function selectEvent(homeTeamName, awayTeamName) {
     const currentLeagueCode = dom.leagueSelect.value;
     console.log('[selectEvent] Seleccionando evento:', { homeTeamName, awayTeamName, currentLeagueCode });
 
-    // No cambiar la liga seleccionada, usar la liga actual
+    // Verificar si hay liga seleccionada
     if (!currentLeagueCode) {
         console.warn('[selectEvent] No hay liga seleccionada, no se pueden llenar equipos.');
+        if (dom.details) dom.details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> Selecciona una liga primero.</div>';
         return;
     }
 
-    // Verificar si los equipos están en la liga actual
-    const teamsInLeague = teamsByLeague[currentLeagueCode] || [];
-    const homeTeam = teamsInLeague.find(t => normalizeName(t.name) === normalizeName(homeTeamName));
-    const awayTeam = teamsInLeague.find(t => normalizeName(t.name) === normalizeName(awayTeamName));
+    // Normalizar nombres para búsqueda
+    const normalizedHome = normalizeName(homeTeamName);
+    const normalizedAway = normalizeName(awayTeamName);
+    console.log('[selectEvent] Nombres normalizados:', { normalizedHome, normalizedAway });
 
-    if (!homeTeam || !awayTeam) {
-        console.warn('[selectEvent] Uno o ambos equipos no están en la liga actual:', { homeTeamName, awayTeamName, currentLeagueCode });
-        return;
-    }
+    // Buscar opciones en los selects, ignorando prefijo de posición (ej. "1 - ")
+    const findOption = (select, normalizedName) => {
+        return Array.from(select.options).find(opt => {
+            const text = opt.text.replace(/^\d+\s*-\s*/, '').trim(); // Quitar "1 - " o similar
+            return normalizeName(text) === normalizedName;
+        });
+    };
 
-    // Llenar los selects de equipos local y visitante
-    const findOption = (select, name) => Array.from(select.options).find(opt => {
-        const textParts = opt.text.split(' - ');
-        return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(name);
+    const homeOption = findOption(dom.teamHomeSelect, normalizedHome);
+    const awayOption = findOption(dom.teamAwaySelect, normalizedAway);
+
+    console.log('[selectEvent] Opciones encontradas:', {
+        homeOption: homeOption ? { value: homeOption.value, text: homeOption.text } : null,
+        awayOption: awayOption ? { value: awayOption.value, text: awayOption.text } : null
     });
 
-    const homeOption = findOption(dom.teamHomeSelect, homeTeamName);
-    const awayOption = findOption(dom.teamAwaySelect, awayTeamName);
+    // Seleccionar equipos en los selects
+    if (homeOption) {
+        dom.teamHomeSelect.value = homeOption.value;
+    } else {
+        console.warn(`[selectEvent] No se encontró opción para equipo local: ${homeTeamName}`);
+    }
 
-    if (homeOption) dom.teamHomeSelect.value = homeOption.value;
-    if (awayOption) dom.teamAwaySelect.value = awayOption.value;
+    if (awayOption) {
+        dom.teamAwaySelect.value = awayOption.value;
+    } else {
+        console.warn(`[selectEvent] No se encontró opción para equipo visitante: ${awayTeamName}`);
+    }
 
-    if (!homeOption || !awayOption) {
-        console.warn('[selectEvent] No se encontraron opciones para uno o ambos equipos:', { homeTeamName, awayTeamName });
+    // Verificar si los equipos están en la liga actual (para evitar errores)
+    const teamsInLeague = teamsByLeague[currentLeagueCode] || [];
+    const homeTeam = teamsInLeague.find(t => normalizeName(t.name) === normalizedHome);
+    const awayTeam = teamsInLeague.find(t => normalizeName(t.name) === normalizedAway);
+
+    if (!homeTeam || !awayTeam) {
+        console.warn('[selectEvent] Uno o ambos equipos no están en la liga actual:', {
+            homeTeamName,
+            awayTeamName,
+            currentLeagueCode,
+            teamsInLeague: teamsInLeague.map(t => t.name)
+        });
+        if (dom.details) dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> Uno o ambos equipos no están en la liga seleccionada (${leagueNames[currentLeagueCode] || currentLeagueCode}).</div>`;
         return;
     }
 
-    // Ejecutar análisis/pronóstico
-    onTeamChange();
-    console.log('[selectEvent] Equipos seleccionados:', { home: homeOption.value, away: awayOption.value });
+    // Ejecutar análisis/pronóstico si ambos equipos están seleccionados
+    if (homeOption && awayOption) {
+        onTeamChange();
+        console.log('[selectEvent] Equipos seleccionados y análisis ejecutado:', {
+            home: homeOption.value,
+            away: awayOption.value
+        });
+    } else {
+        console.warn('[selectEvent] No se pudo ejecutar análisis, equipos no seleccionados completamente.');
+        if (dom.details) dom.details.innerHTML = `<div class="warning"><strong>Advertencia:</strong> No se pudieron seleccionar ambos equipos.</div>`;
+    }
 }
 
 // CAMBIO DE LIGA
