@@ -358,7 +358,7 @@ function renderEvent(event, index, leagueCode) {
             <span class="event-details">Estadio: ${event.estadio || 'Por confirmar'}</span>
         </div>
     `;
-    if (!isInProgress) div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim()));
+    if (!isInProgress) div.addEventListener('click', () => selectEvent(event.local.trim(), event.visitante.trim(), eventLeagueCode));
     else div.classList.add('in-progress');
     return div;
 }
@@ -430,13 +430,13 @@ function onLeagueChange() {
     clearProbabilities();
 }
 
-// SELECCIÓN DE EVENTO (MODIFICADA PARA NO CAMBIAR LA LIGA)
-function selectEvent(homeTeamName, awayTeamName) {
+// SELECCIÓN DE EVENTO (MODIFICADA PARA NO CAMBIAR LA LIGA Y LLENAR FICHAS/PROBABILIDADES)
+function selectEvent(homeTeamName, awayTeamName, eventLeagueCode) {
     // Buscar el evento en todas las ligas disponibles
     const ligaName = Object.keys(allData.calendario || {}).find(liga =>
         allData.calendario[liga]?.some(e => normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName))
     );
-    const eventLeagueCode = ligaName ? Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '' : '';
+    eventLeagueCode = eventLeagueCode || (ligaName ? Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName) || '' : '');
     console.log('[selectEvent] Buscando evento:', { homeTeamName, awayTeamName, ligaName, eventLeagueCode });
 
     // NO cambiamos dom.leagueSelect.value para mantener la liga actual
@@ -466,28 +466,34 @@ function selectEvent(homeTeamName, awayTeamName) {
         } else {
             console.warn('[selectEvent] No se encontraron equipos para la liga:', eventLeagueCode);
             dom.teamHomeSelect.innerHTML = dom.teamAwaySelect.innerHTML = '<option value="">No hay equipos disponibles</option>';
+            if (dom.details) dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No se encontraron equipos para este evento.</div>';
             return;
         }
     }
 
     // Seleccionar los equipos en los selectores
-    setTimeout(() => {
-        const findOption = (select, name) => Array.from(select.options).find(opt => {
-            const textParts = opt.text.split(' - ');
-            return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(name);
-        });
-        const homeOption = findOption(dom.teamHomeSelect, homeTeamName);
-        const awayOption = findOption(dom.teamAwaySelect, awayTeamName);
-        if (homeOption) dom.teamHomeSelect.value = homeOption.value;
-        if (awayOption) dom.teamAwaySelect.value = awayOption.value;
-        onTeamChange();
+    const findOption = (select, name) => Array.from(select.options).find(opt => {
+        const textParts = opt.text.split(' - ');
+        return textParts.length > 1 && normalizeName(textParts[1]) === normalizeName(name);
+    });
+    const homeOption = findOption(dom.teamHomeSelect, homeTeamName);
+    const awayOption = findOption(dom.teamAwaySelect, awayTeamName);
+    if (homeOption) dom.teamHomeSelect.value = homeOption.value;
+    if (awayOption) dom.teamAwaySelect.value = awayOption.value;
 
-        const event = allData.calendario?.[ligaName]?.find(e =>
-            normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName)
-        );
-        console.log('[selectEvent] Evento encontrado:', event ? JSON.stringify(event, null, 2) : 'No encontrado');
-        console.log('[selectEvent] Pronóstico IA:', event?.pronostico_json || event?.pronostico || 'No disponible');
-    }, 500);
+    // Llamar a onTeamChange con el eventLeagueCode para asegurar que las fichas y probabilidades se llenen
+    if (homeOption && awayOption) {
+        onTeamChange(null, eventLeagueCode);
+    } else {
+        console.warn('[selectEvent] No se encontraron opciones para los equipos:', { homeTeamName, awayTeamName });
+        if (dom.details) dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No se pudieron seleccionar los equipos.</div>';
+    }
+
+    const event = allData.calendario?.[ligaName]?.find(e =>
+        normalizeName(e.local) === normalizeName(homeTeamName) && normalizeName(e.visitante) === normalizeName(awayTeamName)
+    );
+    console.log('[selectEvent] Evento encontrado:', event ? JSON.stringify(event, null, 2) : 'No encontrado');
+    console.log('[selectEvent] Pronóstico IA:', event?.pronostico_json || event?.pronostico || 'No disponible');
 }
 
 // INICIALIZACIÓN
@@ -541,32 +547,52 @@ async function init() {
     displaySelectedLeagueEvents('');
 }
 
-// ONTEAMCHANGE
-function onTeamChange(event) {
-    const leagueCode = dom.leagueSelect.value, teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
-    console.log('[onTeamChange] Selección:', { leagueCode, teamHome, teamAway });
+// ONTEAMCHANGE (MODIFICADA PARA SOPORTAR EVENTLEAGUECODE)
+function onTeamChange(event, eventLeagueCode = null) {
+    const leagueCode = eventLeagueCode || dom.leagueSelect.value;
+    const teamHome = dom.teamHomeSelect.value;
+    const teamAway = dom.teamAwaySelect.value;
+    console.log('[onTeamChange] Selección:', { leagueCode, teamHome, teamAway, eventLeagueCode });
+
+    // Si no hay liga seleccionada y no se proporcionó eventLeagueCode, limpiar y salir
     if (!leagueCode) {
         clearProbabilities();
         clearTeamData('Home');
         clearTeamData('Away');
+        if (dom.details) dom.details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> Selecciona una liga o un evento válido.</div>';
         return;
     }
-    if (event) {
-        const isHome = event.target.id === 'teamHome';
-        const teamData = findTeam(leagueCode, event.target.value);
-        isHome ? (event.target.value ? fillTeamData(teamData, 'Home') : clearTeamData('Home')) : (event.target.value ? fillTeamData(teamData, 'Away') : clearTeamData('Away'));
+
+    // Llenar datos de equipos
+    const tH = findTeam(leagueCode, teamHome);
+    const tA = findTeam(leagueCode, teamAway);
+    
+    if (teamHome) {
+        fillTeamData(tH, 'Home');
     } else {
-        fillTeamData(findTeam(leagueCode, teamHome), 'Home');
-        fillTeamData(findTeam(leagueCode, teamAway), 'Away');
+        clearTeamData('Home');
     }
-    if (teamHome && teamAway && teamHome !== teamAway) {
-        const tH = findTeam(leagueCode, teamHome), tA = findTeam(leagueCode, teamAway);
-        tH.name && tA.name ? calculateAll() : dom.details && (dom.details.innerHTML = `<div class="error"><strong>Error:</strong> Equipos no encontrados.</div>`);
+    
+    if (teamAway) {
+        fillTeamData(tA, 'Away');
+    } else {
+        clearTeamData('Away');
+    }
+
+    // Calcular probabilidades si ambos equipos están seleccionados y son diferentes
+    if (teamHome && teamAway && teamHome !== teamAway && tH.name && tA.name) {
+        calculateAll(leagueCode);
     } else {
         clearProbabilities();
         if (teamHome && teamAway && teamHome === teamAway) {
-            dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No puedes seleccionar el mismo equipo.</div>';
-            setTimeout(() => dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>', 5000);
+            if (dom.details) {
+                dom.details.innerHTML = '<div class="error"><strong>Error:</strong> No puedes seleccionar el mismo equipo.</div>';
+                setTimeout(() => dom.details.innerHTML = '<div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante.</div>', 5000);
+            }
+        } else if (!tH.name || !tA.name) {
+            if (dom.details) {
+                dom.details.innerHTML = '<div class="error"><strong>Error:</strong> Equipos no encontrados en la liga seleccionada.</div>';
+            }
         }
     }
 }
@@ -689,9 +715,9 @@ function validateProbability(value, defaultValue) {
     return isFinite(value) && value >= 0 && value <= 1 ? value : defaultValue;
 }
 
-// CÁLCULO COMPLETO
-function calculateAll() {
-    const leagueCode = dom.leagueSelect.value, teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
+// CÁLCULO COMPLETO (MODIFICADA PARA USAR LEAGUECODE)
+function calculateAll(leagueCode) {
+    const teamHome = dom.teamHomeSelect.value, teamAway = dom.teamAwaySelect.value;
     if (!leagueCode || !teamHome || !teamAway) {
         if (dom.details) dom.details.innerHTML = '<div class="warning"><strong>Advertencia:</strong> Selecciona liga y equipos.</div>';
         clearProbabilities();
@@ -699,7 +725,7 @@ function calculateAll() {
     }
     const tH = findTeam(leagueCode, teamHome), tA = findTeam(leagueCode, teamAway);
     if (!tH.name || !tA.name) {
-        if (dom.details) dom.details.innerHTML = `<div class="error"><strong>Error:</strong> Equipos no encontrados.</div>`;
+        if (dom.details) dom.details.innerHTML = `<div class="error"><strong>Error:</strong> Equipos no encontrados en la liga ${leagueCode}.</div>`;
         clearProbabilities();
         return;
     }
@@ -794,7 +820,7 @@ function calculateAll() {
     } else {
         const homeJust = generateDynamicJustification(tH, true, teamAway);
         const awayJust = generateDynamicJustification(tA, false, teamHome);
-        const drawJust = `Ambos equipos muestran formas mixtas con ${tH.e + tA.e} empates combinados en partidos recientes y promedios de goles bajos (${(tH.gf + tA.gf) / (tH.pj + tA.pj || 1).toFixed(1)} por juego).`;
+        const drawJust = `Ambos equipos muestran formas mixtas con ${tH.e + tA.e} empates combinados en partidos recientes y promedios de goles bajos (${((tH.gf + tA.gf) / (tH.pj + tA.pj || 1)).toFixed(1)} por juego).`;
         let html = '<div class="prediction-container">';
         html += `<h3>Análisis del Partido: ${teamHome} vs. ${teamAway}</h3>`;
         html += `<p><strong>${teamHome}:</strong> ${homeJust}</p>`;
