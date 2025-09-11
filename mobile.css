@@ -403,8 +403,12 @@
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.4);
         margin-top: 0.6rem;
         position: relative;
-        overflow: visible; /* Cambiado de hidden a visible para evitar recorte */
-        overflow-wrap: break-word; /* Añadido para manejar texto largo */
+        overflow: visible !important;
+        overflow-wrap: break-word;
+        white-space: normal;
+        min-height: 120px;
+        width: 100%;
+        box-sizing: border-box;
     }
     .prediction-container::before {
         content: '';
@@ -416,20 +420,25 @@
         background: radial-gradient(circle at 10% 10%, rgba(0, 224, 255, 0.1), transparent 50%);
         pointer-events: none;
     }
-    .prediction-container h1 {
+    .prediction-container h1,
+    .prediction-container h3 {
         font-family: var(--font-heading);
         font-size: 1rem;
         margin: 0 0 0.5rem;
         color: var(--highlight-blue);
         font-weight: 700;
         text-shadow: 0 0 8px rgba(0, 224, 255, 0.7);
+        overflow-wrap: break-word;
     }
     .prediction-container p {
         margin: 0.3rem 0;
-        font-size: 0.9rem; /* Aumentado de 0.8rem para mejor legibilidad */
+        font-size: 0.9rem;
         line-height: 1.5;
-        color: var(--text-color);
-        text-align: left; /* Cambiado de justify a left para evitar problemas de renderizado */
+        color: var(--text-color, #ffffff) !important;
+        text-align: left;
+        white-space: normal;
+        overflow-wrap: break-word;
+        visibility: visible !important;
     }
     .prediction-container strong {
         color: var(--highlight-blue);
@@ -443,11 +452,19 @@
         border-radius: 8px;
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 2px 8px rgba(0, 0, 0, 0.2);
         position: relative;
-        overflow: visible; /* Asegura que el texto no se corte */
-        overflow-wrap: break-word; /* Permite que el texto largo se divida */
-        font-size: 0.9rem; /* Tamaño de fuente legible */
-        line-height: 1.4;
+        overflow: visible !important;
+        overflow-wrap: break-word;
+        white-space: normal;
+        font-size: 0.9rem;
+        line-height: 1.5;
         width: 100%;
-        min-height: 100px; /* Espacio suficiente */
+        min-height: 150px;
+        color: var(--text-color, #ffffff) !important;
+        box-sizing: border-box;
+    }
+    #detailed-prediction * {
+        visibility: visible !important;
+        overflow: visible !important;
+        color: inherit !important;
     }
 }
