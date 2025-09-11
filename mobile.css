@@ -464,4 +464,14 @@
         overflow: visible !important;
         color: inherit !important;
     }
+.event-details {
+    font-size: 0.75rem;
+    white-space: normal;
+}
+
+/* Ajustes para avisos en vivo y por iniciar en móvil */
+.event-live, .event-soon {
+    font-size: 0.85rem; /* Más grande que event-details para destacar */
+}
+
 }
