@@ -41,11 +41,11 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 1.3px !important;
+        height: 2.3px !important;
         background: linear-gradient(to right, transparent, var(--highlight-blue), transparent) !important;
         opacity: 0.3;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
     }
 
     .app-header h1 {
@@ -60,11 +60,11 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        padding: 0.1rem 0.2rem !important;
+        padding: 0.2rem 0.3rem !important;
         display: block !important;
         text-align: center !important;
         margin: 0.5rem auto !important;
-        line-height: 0.8 !important;
+        line-height: 1.4 !important;
         position: relative;
         transition: text-shadow 0.3s ease, transform 0.3s ease;
         animation: fade-in-title 1s ease-out forwards;
