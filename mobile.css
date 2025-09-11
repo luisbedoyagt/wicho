@@ -31,9 +31,8 @@
         background: linear-gradient(135deg, var(--metal-gradient-dark), var(--secondary-bg)) !important;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1) !important;
         min-height: 3rem !important;
-        /*border: 1px solid red !important;*/ /* Comentado para eliminar el borde de depuración */
-        position: relative; /* Necesario para animaciones de posición */
-        animation: slide-in-header 0.8s ease-out forwards; /* Animación de entrada para la ficha */
+        position: relative;
+        animation: slide-in-header 0.8s ease-out forwards;
     }
 
     .app-header::before {
@@ -67,20 +66,20 @@
         margin: 0.5rem auto !important;
         line-height: 1.4 !important;
         width: fit-content;
-        animation: slide-in-text 0.8s ease-out forwards, float-text 3s ease-in-out infinite; /* Animación de entrada + flotación */
-        animation-delay: 0s, 0.8s; /* La flotación comienza después de la entrada */
+        animation: slide-in-text 0.8s ease-out forwards, float-text 3s ease-in-out infinite;
+        animation-delay: 0s, 0.8s;
     }
 
     .app-header h1:nth-child(1) {
-        animation-delay: 0s, 0.8s; /* Primer título sin retraso adicional */
+        animation-delay: 0s, 0.8s;
     }
 
     .app-header h1:nth-child(2) {
-        animation-delay: 0.2s, 1s; /* Segundo título con ligero retraso para entrada escalonada */
+        animation-delay: 0.2s, 1s;
     }
 
     .app-header h1:hover {
-        transform: scale(1.02) translateY(-2px); /* Añade un pequeño desplazamiento vertical al hover */
+        transform: scale(1.02) translateY(-2px);
         text-shadow: 0 0 5px var(--highlight-blue), 0 0 7px rgba(0, 224, 255, 0.6), 0 1px 1px rgba(0, 0, 0, 0.4);
         transition: transform 0.3s ease, text-shadow 0.3s ease;
     }
@@ -124,7 +123,7 @@
             transform: translateY(0);
         }
         50% {
-            transform: translateY(-3px); /* Movimiento sutil hacia arriba */
+            transform: translateY(-3px);
         }
     }
 
@@ -404,7 +403,8 @@
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 3px 8px rgba(0,0,0,0.4);
         margin-top: 0.6rem;
         position: relative;
-        overflow: hidden;
+        overflow: visible; /* Cambiado de hidden a visible para evitar recorte */
+        overflow-wrap: break-word; /* Añadido para manejar texto largo */
     }
     .prediction-container::before {
         content: '';
@@ -426,14 +426,28 @@
     }
     .prediction-container p {
         margin: 0.3rem 0;
-        font-size: 0.8rem;
+        font-size: 0.9rem; /* Aumentado de 0.8rem para mejor legibilidad */
         line-height: 1.5;
         color: var(--text-color);
-        text-align: justify;
+        text-align: left; /* Cambiado de justify a left para evitar problemas de renderizado */
     }
     .prediction-container strong {
         color: var(--highlight-blue);
         font-weight: 600;
         text-shadow: 0 0 5px rgba(0, 224, 255, 0.5);
+    }
+    #detailed-prediction {
+        padding: 0.8rem;
+        background: var(--secondary-bg, #20232a);
+        border: 1px solid var(--highlight-blue, #61dafb);
+        border-radius: 8px;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 2px 8px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: visible; /* Asegura que el texto no se corte */
+        overflow-wrap: break-word; /* Permite que el texto largo se divida */
+        font-size: 0.9rem; /* Tamaño de fuente legible */
+        line-height: 1.4;
+        width: 100%;
+        min-height: 100px; /* Espacio suficiente */
     }
 }
