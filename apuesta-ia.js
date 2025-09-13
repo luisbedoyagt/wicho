@@ -392,67 +392,81 @@ function displaySelectedLeagueEvents(leagueCode) {
     }
     let events = [];
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Inicio del día actual (00:00)
+    const todayEnd = new Date(today.getTime() + 24 * 60 * 60 * 1000); // Fin del día (23:59:59)
+    console.log('[displaySelectedLeagueEvents] Fecha actual:', now.toISOString(), 'Inicio día:', today.toISOString(), 'Fin día:', todayEnd.toISOString());
+    
     if (leagueCode) {
-        const leagueEvents = allData.calendario[leagueCodeToName[leagueCode]] || [];
-        // Filtrar eventos: futuros (fecha > now) o en vivo (now >= fecha && now < fecha + 2 horas)
+        const ligaName = leagueCodeToName[leagueCode];
+        if (!ligaName) {
+            console.warn('[displaySelectedLeagueEvents] No se encontró ligaName para code:', leagueCode);
+            dom.selectedLeagueEvents.innerHTML = '<div class="event-item placeholder"><span>Liga no válida.</span></div>';
+            return;
+        }
+        const leagueEvents = allData.calendario[ligaName] || [];
         events = leagueEvents.filter(event => {
             try {
                 const parsedDate = new Date(event.fecha);
-                if (!isFinite(parsedDate)) {
-                    console.warn(`[displaySelectedLeagueEvents] Fecha inválida para evento ${event.local} vs ${event.visitante}: ${event.fecha}`);
+                if (!isFinite(parsedDate.getTime())) {
+                    console.warn(`[displaySelectedLeagueEvents] Fecha inválida para evento ${event.local} vs ${event.visitante}: ${event.fecha} (NaN)`);
                     return false;
                 }
+                console.log(`[displaySelectedLeagueEvents] Evento ${event.local} vs ${event.visitante} (liga ${ligaName}): fecha parseada=${parsedDate.toISOString()}, raw=${event.fecha}`);
+                
                 const twoHoursAfter = new Date(parsedDate.getTime() + 120 * 60 * 1000);
-                const isFutureOrLive = parsedDate > now || (now >= parsedDate && now < twoHoursAfter);
-                console.log(`[displaySelectedLeagueEvents] Evento ${event.local} vs ${event.visitante}:`, {
-                    fecha: event.fecha,
-                    isFuture: parsedDate > now,
-                    isLive: now >= parsedDate && now < twoHoursAfter,
-                    included: isFutureOrLive
-                });
-                return isFutureOrLive;
+                const isTodayOrFutureOrLive = parsedDate >= today && parsedDate < todayEnd || // Todo el día actual
+                                             parsedDate > now || // Futuros
+                                             (now >= parsedDate && now < twoHoursAfter); // En vivo
+                console.log(`[displaySelectedLeagueEvents]  - Es hoy/futuro/en vivo: ${isTodayOrFutureOrLive} (hoy: ${parsedDate >= today && parsedDate < todayEnd}, futuro: ${parsedDate > now}, en vivo: ${now >= parsedDate && now < twoHoursAfter})`);
+                return isTodayOrFutureOrLive;
             } catch (err) {
-                console.error(`[displaySelectedLeagueEvents] Error al parsear fecha para evento ${event.local} vs ${event.visitante}:`, err);
+                console.error(`[displaySelectedLeagueEvents] Error al parsear fecha para evento ${event.local} vs ${event.visitante}:`, err, event.fecha);
                 return false;
             }
         });
-        console.log(`[displaySelectedLeagueEvents] Eventos filtrados para liga ${leagueCode}:`, events.length);
+        console.log(`[displaySelectedLeagueEvents] Eventos filtrados para liga ${leagueCode} (${ligaName}): ${events.length}`);
     } else {
         // Caso sin liga específica: filtrar eventos de todas las ligas
-        Object.entries(allData.calendario).forEach(([code, evts]) => {
-            const originalCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === code);
-            if (originalCode) {
-                const filteredEvents = evts.filter(event => {
-                    try {
-                        const parsedDate = new Date(event.fecha);
-                        if (!isFinite(parsedDate)) {
-                            console.warn(`[displaySelectedLeagueEvents] Fecha inválida para evento ${event.local} vs ${event.visitante}: ${event.fecha}`);
-                            return false;
-                        }
-                        const twoHoursAfter = new Date(parsedDate.getTime() + 120 * 60 * 1000);
-                        const isFutureOrLive = parsedDate > now || (now >= parsedDate && now < twoHoursAfter);
-                        console.log(`[displaySelectedLeagueEvents] Evento ${event.local} vs ${event.visitante} (liga ${code}):`, {
-                            fecha: event.fecha,
-                            isFuture: parsedDate > now,
-                            isLive: now >= parsedDate && now < twoHoursAfter,
-                            included: isFutureOrLive
-                        });
-                        return isFutureOrLive;
-                    } catch (err) {
-                        console.error(`[displaySelectedLeagueEvents] Error al parsear fecha para evento ${event.local} vs ${event.visitante}:`, err);
+        Object.entries(allData.calendario).forEach(([ligaName, evts]) => {
+            const originalCode = Object.keys(leagueCodeToName).find(key => leagueCodeToName[key] === ligaName);
+            if (!originalCode) {
+                console.warn('[displaySelectedLeagueEvents] Liga sin code mapeado:', ligaName);
+                return;
+            }
+            const filteredEvents = evts.filter(event => {
+                try {
+                    const parsedDate = new Date(event.fecha);
+                    if (!isFinite(parsedDate.getTime())) {
+                        console.warn(`[displaySelectedLeagueEvents] Fecha inválida para evento ${event.local} vs ${event.visitante} (liga ${ligaName}): ${event.fecha} (NaN)`);
                         return false;
                     }
-                });
-                filteredEvents.forEach(event => events.push({ ...event, leagueCode: originalCode }));
-            }
+                    console.log(`[displaySelectedLeagueEvents] Evento ${event.local} vs ${event.visitante} (liga ${ligaName}): fecha parseada=${parsedDate.toISOString()}, raw=${event.fecha}`);
+                    
+                    const twoHoursAfter = new Date(parsedDate.getTime() + 120 * 60 * 1000);
+                    const isTodayOrFutureOrLive = parsedDate >= today && parsedDate < todayEnd ||
+                                                  parsedDate > now ||
+                                                  (now >= parsedDate && now < twoHoursAfter);
+                    console.log(`[displaySelectedLeagueEvents]  - Es hoy/futuro/en vivo: ${isTodayOrFutureOrLive}`);
+                    return isTodayOrFutureOrLive;
+                } catch (err) {
+                    console.error(`[displaySelectedLeagueEvents] Error al parsear fecha para evento ${event.local} vs ${event.visitante} (liga ${ligaName}):`, err);
+                    return false;
+                }
+            });
+            filteredEvents.forEach(event => events.push({ ...event, leagueCode: originalCode }));
         });
         console.log('[displaySelectedLeagueEvents] Eventos filtrados totales (sin liga específica):', events.length);
     }
+    
     if (!events.length) {
-        dom.selectedLeagueEvents.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos o en vivo.</span></div>';
-        console.warn('[displaySelectedLeagueEvents] No se encontraron eventos para renderizar');
+        dom.selectedLeagueEvents.innerHTML = '<div class="event-item placeholder"><span>No hay eventos próximos, en vivo o del día actual.</span></div>';
+        console.warn('[displaySelectedLeagueEvents] No se encontraron eventos para renderizar. Verifica fechas en allData.calendario.');
         return;
     }
+    
+    // Ordenar por fecha ascendente (próximos primero)
+    events.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    
     const eventsPerPage = 1, totalPages = Math.ceil(events.length / eventsPerPage);
     let currentPage = 0;
     const showCurrentPage = () => {
