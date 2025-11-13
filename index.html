@@ -1,53 +1,24 @@
 <!doctype html>
-<html lang="es">
+<html>
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Reproductor - Universo</title>
-  <style>
-    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0}
-    body{display:flex;flex-direction:column;min-height:100vh;background:#0f172a;color:#e6eef8;align-items:center;justify-content:flex-start}
-    header{width:100%;padding:20px 16px;text-align:center;background:linear-gradient(90deg,#0b1220,#132033);box-shadow:0 4px 18px rgba(2,6,23,.6)}
-    h1{margin:0;font-size:1.25rem}
-    main{width:100%;max-width:980px;padding:28px}
-    .player-card{background:#071028;border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(2,6,23,.6)}
-    .iframe-wrap{position:relative;padding-top:56.25%;border-radius:8px;overflow:hidden;background:#000}
-    iframe{position:absolute;inset:0;border:0;width:100%;height:100%}
-    .controls{display:flex;gap:12px;align-items:center;justify-content:flex-start;margin-top:12px}
-    .btn{background:#0ea5a4;color:#042028;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
-    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,.06);color:#a8d0d9}
-    p.small{margin:12px 0 0;color:#98b8c6;font-size:.92rem}
-    footer{width:100%;text-align:center;padding:18px 12px;color:#7f99a6;font-size:.9rem}
-    @media (max-width:600px){main{padding:18px}.controls{flex-direction:column;align-items:stretch}.btn{width:100%}}
-  </style>
+  <title>Reproductor</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 </head>
 <body>
-  <header>
-    <h1>Reproductor - Canal Universo</h1>
-  </header>
+  <video id="player" controls autoplay style="width:100%;max-width:900px;background:#000;"></video>
 
-  <main>
-    <div class="player-card">
-      <!--
-        Si la URL que proporcionaste apunta a una página con el reproductor embebido,
-        usar un iframe suele ser la forma más rápida.
-        Si en cambio tienes la URL directa del stream (por ejemplo un .m3u8 o .mp3),
-        reemplaza el iframe por un <audio> o <video> con controls.
-      -->
+  <script>
+    const url = "https://bgfuzq.fubohd.com/universo/mono.m3u8?token=cf02fa6e726b9ac6daccd7eb54afbdc4a270cff8-1b-1763087784-1763069784";
+    const video = document.getElementById("player");
 
-      <div class="player-card">
-      <video id="player" controls autoplay style="width:100%;border-radius:8px;background:#000;"></video>
-      <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-      <script>
-        if(Hls.isSupported()){
-          const hls=new Hls();
-          hls.loadSource('https://bgfuzq.fubohd.com/universo/mono.m3u8?token=cf02fa6e726b9ac6daccd7eb54afbdc4a270cff8-1b-1763087784-1763069784');
-          hls.config.xhrSetup = function(xhr){ xhr.withCredentials = false; }
-          hls.attachMedia(document.getElementById('player'));
-        }else if(document.getElementById('player').canPlayType('application/vnd.apple.mpegurl')){
-          document.getElementById('player').src='https://bgfuzq.fubohd.com/universo/mono.m3u8?token=cf02fa6e726b9ac6daccd7eb54afbdc4a270cff8-1b-1763087784-1763069784';
-        }
-      </script>
-    </div>
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+    } else {
+      video.src = url;
+    }
+  </script>
 </body>
 </html>
