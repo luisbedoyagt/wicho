@@ -42,6 +42,7 @@
         if(Hls.isSupported()){
           const hls=new Hls();
           hls.loadSource('https://bgfuzq.fubohd.com/universo/mono.m3u8?token=cf02fa6e726b9ac6daccd7eb54afbdc4a270cff8-1b-1763087784-1763069784');
+          hls.config.xhrSetup = function(xhr){ xhr.withCredentials = false; }
           hls.attachMedia(document.getElementById('player'));
         }else if(document.getElementById('player').canPlayType('application/vnd.apple.mpegurl')){
           document.getElementById('player').src='https://bgfuzq.fubohd.com/universo/mono.m3u8?token=cf02fa6e726b9ac6daccd7eb54afbdc4a270cff8-1b-1763087784-1763069784';
