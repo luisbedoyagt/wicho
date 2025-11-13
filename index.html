@@ -35,31 +35,18 @@
         reemplaza el iframe por un <audio> o <video> con controls.
       -->
 
-      <div class="iframe-wrap">
-        <iframe src="https://la14hd.com/vivo/canal.php?stream=universo" title="Canal Universo" allow="autoplay; fullscreen" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-      </div>
-
-      <div class="controls">
-        <button class="btn" onclick="openInNewTab()">Abrir en nueva pestaña</button>
-        <button class="btn secondary" onclick="showFallback()">Mostrar enlace directo / fallback</button>
-      </div>
-
-      <p class="small" id="fallbackNote">Si el iframe no reproduce (bloqueo de terceros o CORS), abre el enlace en una pestaña nueva o pide la URL directa del stream.</p>
+      <div class="player-card">
+      <video id="player" controls autoplay style="width:100%;border-radius:8px;background:#000;"></video>
+      <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+      <script>
+        if(Hls.isSupported()){
+          const hls=new Hls();
+          hls.loadSource('https://bgfuzq.fubohd.com/universo/mono.m3u8?token=cf02fa6e726b9ac6daccd7eb54afbdc4a270cff8-1b-1763087784-1763069784');
+          hls.attachMedia(document.getElementById('player'));
+        }else if(document.getElementById('player').canPlayType('application/vnd.apple.mpegurl')){
+          document.getElementById('player').src='https://bgfuzq.fubohd.com/universo/mono.m3u8?token=cf02fa6e726b9ac6daccd7eb54afbdc4a270cff8-1b-1763087784-1763069784';
+        }
+      </script>
     </div>
-  </main>
-
-  <footer>
-    Hecho con ❤️ — guarda este archivo como <code>index.html</code> y ábrelo en tu navegador.
-  </footer>
-
-  <script>
-    function openInNewTab(){
-      window.open('https://la14hd.com/vivo/canal.php?stream=universo','_blank');
-    }
-    function showFallback(){
-      const note = document.getElementById('fallbackNote');
-      note.innerHTML = 'Enlace original: <a href="https://la14hd.com/vivo/canal.php?stream=universo" target="_blank" rel="noopener">https://la14hd.com/vivo/canal.php?stream=universo</a>'; 
-    }
-  </script>
 </body>
 </html>
