@@ -1,244 +1,65 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis de Partidos de FUTBOL</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" href="general.css">
-    <link rel="stylesheet" href="mobile.css">
-    <link rel="stylesheet" href="desktop.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reproductor - Universo</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0}
+    body{display:flex;flex-direction:column;min-height:100vh;background:#0f172a;color:#e6eef8;align-items:center;justify-content:flex-start}
+    header{width:100%;padding:20px 16px;text-align:center;background:linear-gradient(90deg,#0b1220,#132033);box-shadow:0 4px 18px rgba(2,6,23,.6)}
+    h1{margin:0;font-size:1.25rem}
+    main{width:100%;max-width:980px;padding:28px}
+    .player-card{background:#071028;border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(2,6,23,.6)}
+    .iframe-wrap{position:relative;padding-top:56.25%;border-radius:8px;overflow:hidden;background:#000}
+    iframe{position:absolute;inset:0;border:0;width:100%;height:100%}
+    .controls{display:flex;gap:12px;align-items:center;justify-content:flex-start;margin-top:12px}
+    .btn{background:#0ea5a4;color:#042028;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,.06);color:#a8d0d9}
+    p.small{margin:12px 0 0;color:#98b8c6;font-size:.92rem}
+    footer{width:100%;text-align:center;padding:18px 12px;color:#7f99a6;font-size:.9rem}
+    @media (max-width:600px){main{padding:18px}.controls{flex-direction:column;align-items:stretch}.btn{width:100%}}
+  </style>
 </head>
 <body>
-    <div class="container">
-<header class="app-header">
-    <h1 style="text-align: center; display: block;">Análisis de Partidos de FUTBOL</h1>
- 
-</header>
-        <main class="main-grid">
-            <section class="card event-card">
-                <header class="card-header">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h3>Próximos Eventos</h3>
-                </header>
-                <div class="card-body">
-                    <div class="control-group">
-                        <label for="leagueSelect">Selecciona una Liga:</label>
-                        <select id="leagueSelect"></select>
-                    </div>
-                    <div class="control-group">
-                        <label>Selecciona un Evento:</label>
-                        <div id="selected-league-events" class="event-list">
-                            <div class="event-item placeholder"><span>Selecciona una liga para ver eventos próximos.</span></div>
-                        </div>
-                        <div id="transition-message" class="transition-message" style="display: none;">
-                            <span class="loading-text"></span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+  <header>
+    <h1>Reproductor - Canal Universo</h1>
+  </header>
 
-            <template id="event-item-template">
-                <div class="event-item">
-                    <div class="event-content">
-                        <div class="team-logo-container">
-                            <span class="team-name" data-home-team></span>
-                            <img class="team-logo home-logo" data-home-logo alt="">
-                            <span class="vs">vs.</span>
-                            <img class="team-logo away-logo" data-away-logo alt="">
-                            <span class="team-name" data-away-team></span>
-                        </div>
-                        <span class="event-details" data-event-datetime></span>
-                        <span class="event-details" data-event-stadium></span>
-                    </div>
-                </div>
-            </template>
+  <main>
+    <div class="player-card">
+      <!--
+        Si la URL que proporcionaste apunta a una página con el reproductor embebido,
+        usar un iframe suele ser la forma más rápida.
+        Si en cambio tienes la URL directa del stream (por ejemplo un .m3u8 o .mp3),
+        reemplaza el iframe por un <audio> o <video> con controls.
+      -->
 
-            <section class="card team-card" id="card-home">
-                <header class="card-header">
-                    <i class="fas fa-home"></i>
-                    <h3>Local</h3>
-                </header>
-                <div class="card-body">
-                    <div class="control-group">
-                        <label for="teamHome">Selecciona el Equipo Local:</label>
-                        <select id="teamHome"></select>
-                    </div>
-                    <div id="formHomeBox">
-                        <div class="team-details">
-                            <div class="stat-section">
-                                <span class="section-title">General</span>
-                                <div class="stat-metrics">
-                                    <span>PJ: --</span>
-                                    <span>Puntos: --</span>
-                                    <span>DG: --</span>
-                                </div>
-                            </div>
-                            <div class="stat-section">
-                                <span class="section-title">Local</span>
-                                <div class="stat-metrics">
-                                    <span>PJ: --</span>
-                                    <span>PG: --</span>
-                                    <span>DG: --</span>
-                                </div>
-                            </div>
-                            <div class="stat-section">
-                                <span class="section-title">Visitante</span>
-                                <div class="stat-metrics">
-                                    <span>PJ: --</span>
-                                    <span>PG: --</span>
-                                    <span>DG: --</span>
-                                </div>
-                            </div>
-                            <div class="stat-section">
-                                <span class="section-title">Datos</span>
-                                <div class="stat-metrics">
-                                    <span>Posición: --</span>
-                                    <span>% de Victorias: --</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+      <div class="iframe-wrap">
+        <iframe src="https://la14hd.com/vivo/canal.php?stream=universo" title="Canal Universo" allow="autoplay; fullscreen" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
 
-            <section class="card team-card" id="card-away">
-                <header class="card-header">
-                    <i class="fas fa-plane-departure"></i>
-                    <h3>Visitante</h3>
-                </header>
-                <div class="card-body">
-                    <div class="control-group">
-                        <label for="teamAway">Selecciona el Equipo Visitante:</label>
-                        <select id="teamAway"></select>
-                    </div>
-                    <div id="formAwayBox">
-                        <div class="team-details">
-                            <div class="stat-section">
-                                <span class="section-title">General</span>
-                                <div class="stat-metrics">
-                                    <span>PJ: --</span>
-                                    <span>Puntos: --</span>
-                                    <span>DG: --</span>
-                                </div>
-                            </div>
-                            <div class="stat-section">
-                                <span class="section-title">Local</span>
-                                <div class="stat-metrics">
-                                    <span>PJ: --</span>
-                                    <span>PG: --</span>
-                                    <span>DG: --</span>
-                                </div>
-                            </div>
-                            <div class="stat-section">
-                                <span class="section-title">Visitante</span>
-                                <div class="stat-metrics">
-                                    <span>PJ: --</span>
-                                    <span>PG: --</span>
-                                    <span>DG: --</span>
-                                </div>
-                            </div>
-                            <div class="stat-section">
-                                <span class="section-title">Datos</span>
-                                <div class="stat-metrics">
-                                    <span>Posición: --</span>
-                                    <span>% de Victorias: --</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <section class="card result-card">
-                <header class="card-header">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>Resultados y Probabilidades</h3>
-                </header>
-                <div class="card-body">
-                    <div id="details">
-                        <div class="info"><strong>Instrucciones:</strong> Selecciona una liga y los equipos local y visitante para obtener el pronóstico.</div>
-                    </div>
-                    <div class="probabilities-grid">
-                        <div class="probability-tile">
-                            <span class="label">Local</span>
-                            <span class="value" id="pHome">--</span>
-                        </div>
-                        <div class="probability-tile">
-                            <span class="label">Empate</span>
-                            <span class="value" id="pDraw">--</span>
-                        </div>
-                        <div class="probability-tile">
-                            <span class="label">Visitante</span>
-                            <span class="value" id="pAway">--</span>
-                        </div>
-                        <div class="probability-tile">
-                            <span class="label">Ambos Anotan</span>
-                            <span class="value" id="pBTTS">--</span>
-                        </div>
-                        <div class="probability-tile">
-                            <span class="label">Más de 2.5 Goles</span>
-                            <span class="value" id="pO25">--</span>
-                        </div>
-                    </div>
-                    <div class="recommendation-box">
-                        <h4 class="rec-title">Pronósticos Destacados</h4>
-                        <div class="rec-suggestion" id="suggestion">
-                            <ul id="suggestion-list"></ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <div class="recommendation-ia-grid">
-                <section class="card ia-card">
-                    <header class="card-header">
-                        <i class="fas fa-robot"></i>
-                        <h3>Análisis de la IA</h3>
-                    </header>
-                    <div class="card-body">
-                        <div id="detailed-prediction">
-                            <!-- Contenedor vacío para contenido dinámico -->
-                        </div>
-                    </div>
-                </section>
+      <div class="controls">
+        <button class="btn" onclick="openInNewTab()">Abrir en nueva pestaña</button>
+        <button class="btn secondary" onclick="showFallback()">Mostrar enlace directo / fallback</button>
+      </div>
 
-                <section class="card combined-card">
-                    <header class="card-header">
-                        <i class="fas fa-magic"></i>
-                        <h3>Pronóstico Combinado</h3>
-                    </header>
-                    <div class="card-body">
-                        <div id="combined-prediction">
-                            <div id="combined-prediction-content">
-                                <p>Esperando pronóstico combinado...</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </main>
-        
-        <footer class="reset-container">
-            <button class="btn btn-secondary" id="reset">Resetear Todo</button>
-        </footer>
+      <p class="small" id="fallbackNote">Si el iframe no reproduce (bloqueo de terceros o CORS), abre el enlace en una pestaña nueva o pide la URL directa del stream.</p>
     </div>
-    <script src="config-ligas.js"></script>
-    <script src="apuesta-ia.js"></script>
+  </main>
+
+  <footer>
+    Hecho con ❤️ — guarda este archivo como <code>index.html</code> y ábrelo en tu navegador.
+  </footer>
+
+  <script>
+    function openInNewTab(){
+      window.open('https://la14hd.com/vivo/canal.php?stream=universo','_blank');
+    }
+    function showFallback(){
+      const note = document.getElementById('fallbackNote');
+      note.innerHTML = 'Enlace original: <a href="https://la14hd.com/vivo/canal.php?stream=universo" target="_blank" rel="noopener">https://la14hd.com/vivo/canal.php?stream=universo</a>'; 
+    }
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
