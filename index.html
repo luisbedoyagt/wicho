@@ -1,142 +1,73 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mi Reproductor en Vivo</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background: #1a1a2e;
-      color: #e0e0e0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-    .player-container {
-      background: #16213e;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-    }
-    .player-container h1 {
-      margin-bottom: 16px;
-      font-size: 24px;
-      color: #f0f0f5;
-    }
-    .controls {
-      margin-top: 12px;
-    }
-    button {
-      background: #0f3460;
-      color: #ffffff;
-      border: none;
-      padding: 10px 20px;
-      margin: 0 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background: #274690;
-    }
-    .status {
-      margin-top: 14px;
-      font-size: 14px;
-      color: #a0a0b0;
-    }
-    audio {
-      width: 100%;
-      outline: none;
-      margin-top: 16px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reproductor Online</title>
+
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.06);
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  h2 {
+    color: #ffffff;
+    margin-top: 0;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #cbd5e1;
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+
+  audio {
+    width: 100%;
+    border-radius: 10px;
+    outline: none;
+  }
+
+  .footer {
+    margin-top: 15px;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+</style>
 </head>
+
 <body>
-  <div class="player-container">
-    <h1>Radio en Vivo</h1>
-    <audio id="audioPlayer">
-      <source src="http://216.230.129.132:8000/live" type="audio/mpeg">
-      Tu navegador no admite este reproductor de audio.
-    </audio>
 
-    <div class="controls">
-      <button id="btnPlay">▶️ Reproducir</button>
-      <button id="btnPause">⏸ Pausar</button>
-      <button id="btnReload">🔄 Reconectar</button>
-    </div>
+<div class="card">
+  <h2>Streaming en Vivo</h2>
+  <p>Haz clic en ▶ para escuchar la transmisión.</p>
 
-    <div class="status" id="status">Estado: listo</div>
-  </div>
+  <audio controls autoplay>
+    <source src="http://216.230.129.132:8000/live" type="audio/mpeg">
+    Tu navegador no soporta audio HTML5.
+  </audio>
 
-  <script>
-    const audio = document.getElementById('audioPlayer');
-    const btnPlay = document.getElementById('btnPlay');
-    const btnPause = document.getElementById('btnPause');
-    const btnReload = document.getElementById('btnReload');
-    const statusDiv = document.getElementById('status');
+  <div class="footer">© Tu Estación — Transmisión Online</div>
+</div>
 
-    function setStatus(msg) {
-      statusDiv.textContent = 'Estado: ' + msg;
-    }
-
-    btnPlay.addEventListener('click', () => {
-      audio.play().then(() => {
-        setStatus('reproduciendo');
-      }).catch((err) => {
-        console.error('Error al reproducir:', err);
-        setStatus('error al reproducir');
-      });
-    });
-
-    btnPause.addEventListener('click', () => {
-      audio.pause();
-      setStatus('pausado');
-    });
-
-    btnReload.addEventListener('click', () => {
-      // reconectar: se detiene y se reasigna la fuente
-      audio.pause();
-      audio.src = '';
-      // forzar recarga de la fuente
-      setTimeout(() => {
-        audio.src = "http://216.230.129.132:8000/live";
-        audio.load();
-        audio.play().then(() => {
-          setStatus('reconectado y reproduciendo');
-        }).catch((err) => {
-          console.error('Error al reconectar:', err);
-          setStatus('error al reconectar');
-        });
-      }, 200);
-    });
-
-    // Eventos para reflejar el estado
-    audio.addEventListener('waiting', () => setStatus('esperando buffer...'));
-    audio.addEventListener('playing', () => setStatus('reproduciendo'));
-    audio.addEventListener('pause', () => setStatus('pausado'));
-    audio.addEventListener('error', (e) => {
-      console.error('Audio error event', e);
-      setStatus('error de reproducción');
-    });
-
-    // Intentar conectar automáticamente al cargar la página
-    window.addEventListener('load', () => {
-      audio.load();
-      audio.play().then(() => {
-        setStatus('reproduciendo al cargar');
-      }).catch((err) => {
-        console.warn('No se pudo reproducir automáticamente:', err);
-        setStatus('haz click en reproducir');
-      });
-    });
-  </script>
 </body>
 </html>
