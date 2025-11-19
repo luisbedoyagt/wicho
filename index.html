@@ -1,156 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Reproductor de stream</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: #0f172a;
-      color: #e6eef8;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 24px;
-    }
-    .card {
-      background: rgba(255,255,255,0.03);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
-      width: 100%;
-      max-width: 820px;
-    }
-    h1 { margin: 0 0 12px 0; font-size: 20px; }
-    p { margin: 0 0 16px 0; color: #b7c6dd; }
-    video, audio {
-      width: 100%;
-      border-radius: 8px;
-      background: #000;
-      outline: none;
-      margin-bottom: 12px;
-    }
-    .row { display:flex; gap:8px; align-items:center; }
-    .btn {
-      background: linear-gradient(180deg,#2563eb,#1e40af);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .note { font-size: 13px; color:#9fb1d6; }
-  </style>
+<meta charset="UTF-8" />
+<title>Reproductor</title>
 </head>
 <body>
-  <div class="card">
-    <h1>Reproductor de stream</h1>
-    <p>Reproduciendo <code>http://216.230.129.132:8000/live</code></p>
 
-    <video id="player" controls playsinline preload="metadata"></video>
-    <audio id="audioPlayer" controls style="display:none;"></audio>
+<h2>Reproductor</h2>
 
-    <div class="row">
-      <button id="playBtn" class="btn">Play</button>
-      <button id="stopBtn" class="btn" style="background:transparent;border:1px solid rgba(255,255,255,0.06);">Stop</button>
-      <div style="flex:1"></div>
-      <div class="note" id="status">Estado: listo</div>
-    </div>
+<audio controls autoplay>
+  <source src="http://216.230.129.132:8000/live" type="audio/mpeg">
+  Tu navegador no soporta audio HTML5.
+</audio>
 
-    <p class="note" style="margin-top:14px;">
-      Si el navegador bloquea la reproducción desde GitHub Pages, puede ser por uso de HTTP sin HTTPS en el stream.
-    </p>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.3/dist/hls.min.js"></script>
-  <script>
-    const STREAM_URLS = [
-      "http://216.230.129.132:8000/live",
-      "http://216.230.129.132:8000/live/",
-    ];
-
-    const player = document.getElementById('player');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const status = document.getElementById('status');
-    const playBtn = document.getElementById('playBtn');
-    const stopBtn = document.getElementById('stopBtn');
-
-    let hlsInstance = null;
-    let currentUrl = STREAM_URLS[0];
-
-    function setStatus(txt) {
-      status.textContent = 'Estado: ' + txt;
-    }
-
-    async function tryLoad(url) {
-      setStatus('probando ' + url);
-
-      if (Hls.isSupported()) {
-        try {
-          if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-          hlsInstance = new Hls();
-          hlsInstance.loadSource(url);
-          hlsInstance.attachMedia(player);
-          await player.load();
-          setStatus('cargando (hls.js) — pulse Play');
-          player.style.display = '';
-          audioPlayer.style.display = 'none';
-          return true;
-        } catch (e) { console.warn('hls.js fallo', e); }
-      }
-
-      if (player.canPlayType('application/vnd.apple.mpegurl')) {
-        player.src = url;
-        player.style.display = '';
-        audioPlayer.style.display = 'none';
-        setStatus('uso nativo HLS — pulse Play');
-        return true;
-      }
-
-      try {
-        audioPlayer.src = url;
-        audioPlayer.style.display = '';
-        player.style.display = 'none';
-        setStatus('intentando como audio — pulse Play');
-        return true;
-      } catch (e) { console.warn('audio fallo', e); }
-
-      return false;
-    }
-
-    async function initPlayer() {
-      for (const url of STREAM_URLS) {
-        const ok = await tryLoad(url);
-        if (ok) { currentUrl = url; return; }
-      }
-      setStatus('No se pudo cargar el stream.');
-    }
-
-    playBtn.addEventListener('click', async () => {
-      setStatus('reproduciendo...');
-      try {
-        if (player.style.display !== 'none') {
-          await player.play();
-        } else {
-          await audioPlayer.play();
-        }
-        setStatus('reproduciendo — ' + currentUrl);
-      } catch (err) {
-        setStatus('Error al reproducir: ' + err.message);
-      }
-    });
-
-    stopBtn.addEventListener('click', () => {
-      if (!player.paused) player.pause();
-      if (!audioPlayer.paused) audioPlayer.pause();
-      setStatus('detenido');
-    });
-
-    initPlayer();
-  </script>
 </body>
 </html>
