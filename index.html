@@ -49,12 +49,9 @@
 <body>
   <div class="card">
     <h1>Reproductor de stream</h1>
-    <p>Intentando reproducir <code>http://192.168.113.85:8000/live</code>. Si el navegador bloquea la reproducción, revisa el aviso abajo.</p>
+    <p>Reproduciendo <code>http://216.230.129.132:8000/live</code></p>
 
-    <!-- Video player (hls.js) -->
     <video id="player" controls playsinline preload="metadata"></video>
-
-    <!-- Fallback audio control (por si es stream solo audio) -->
     <audio id="audioPlayer" controls style="display:none;"></audio>
 
     <div class="row">
@@ -65,18 +62,15 @@
     </div>
 
     <p class="note" style="margin-top:14px;">
-      Nota: GitHub Pages usa HTTPS. Si tu stream es HTTP local, el navegador lo bloqueará por seguridad (mixed content). Para probar sin problemas, abre este archivo desde la misma red local (por ejemplo con un servidor local) o habilita HTTPS en el stream / usa un proxy HTTPS.
+      Si el navegador bloquea la reproducción desde GitHub Pages, puede ser por uso de HTTP sin HTTPS en el stream.
     </p>
   </div>
 
-  <!-- hls.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.3/dist/hls.min.js"></script>
   <script>
-    // URL del stream (ajusta si tu endpoint necesita sufijo como /; prueba ambas)
     const STREAM_URLS = [
-      "http://192.168.113.85:8000/live",
-      "http://192.168.113.85:8000/live/",
-      // si tienes m3u8 usar: "http://192.168.113.85:8000/live/playlist.m3u8"
+      "http://216.230.129.132:8000/live",
+      "http://216.230.129.132:8000/live/",
     ];
 
     const player = document.getElementById('player');
@@ -88,32 +82,27 @@
     let hlsInstance = null;
     let currentUrl = STREAM_URLS[0];
 
-    function setStatus(txt) { status.textContent = 'Estado: ' + txt; }
+    function setStatus(txt) {
+      status.textContent = 'Estado: ' + txt;
+    }
 
     async function tryLoad(url) {
       setStatus('probando ' + url);
-      // Primero intentamos con HLS (hls.js) en video element
+
       if (Hls.isSupported()) {
         try {
           if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
           hlsInstance = new Hls();
           hlsInstance.loadSource(url);
           hlsInstance.attachMedia(player);
-          hlsInstance.on(Hls.Events.ERROR, function(event, data) {
-            console.warn('Hls error', event, data);
-          });
-          // Autoplay policy may block, require user gesture
           await player.load();
           setStatus('cargando (hls.js) — pulse Play');
           player.style.display = '';
           audioPlayer.style.display = 'none';
           return true;
-        } catch (e) {
-          console.warn('hls.js fallo', e);
-        }
+        } catch (e) { console.warn('hls.js fallo', e); }
       }
 
-      // Si navegador soporta nativamente HLS (Safari)
       if (player.canPlayType('application/vnd.apple.mpegurl')) {
         player.src = url;
         player.style.display = '';
@@ -122,27 +111,23 @@
         return true;
       }
 
-      // Si no es HLS, intentamos como stream de audio en audio tag
       try {
         audioPlayer.src = url;
         audioPlayer.style.display = '';
         player.style.display = 'none';
         setStatus('intentando como audio — pulse Play');
         return true;
-      } catch (e) {
-        console.warn('audio fallback fallo', e);
-      }
+      } catch (e) { console.warn('audio fallo', e); }
 
       return false;
     }
 
-    // Intentar varias variaciones de URL
     async function initPlayer() {
       for (const url of STREAM_URLS) {
         const ok = await tryLoad(url);
         if (ok) { currentUrl = url; return; }
       }
-      setStatus('No se pudo cargar ninguna URL. Revisa la dirección o CORS / mixed-content.');
+      setStatus('No se pudo cargar el stream.');
     }
 
     playBtn.addEventListener('click', async () => {
@@ -155,18 +140,16 @@
         }
         setStatus('reproduciendo — ' + currentUrl);
       } catch (err) {
-        console.error(err);
-        setStatus('Error al reproducir: ' + (err && err.message ? err.message : err));
+        setStatus('Error al reproducir: ' + err.message);
       }
     });
 
     stopBtn.addEventListener('click', () => {
-      if (player && !player.paused) player.pause();
-      if (audioPlayer && !audioPlayer.paused) audioPlayer.pause();
+      if (!player.paused) player.pause();
+      if (!audioPlayer.paused) audioPlayer.pause();
       setStatus('detenido');
     });
 
-    // Inicializa al cargar la página
     initPlayer();
   </script>
 </body>
