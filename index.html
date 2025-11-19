@@ -1,17 +1,173 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<title>Reproductor</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reproductor de stream</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #0f172a;
+      color: #e6eef8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+    }
+    .card {
+      background: rgba(255,255,255,0.03);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      width: 100%;
+      max-width: 820px;
+    }
+    h1 { margin: 0 0 12px 0; font-size: 20px; }
+    p { margin: 0 0 16px 0; color: #b7c6dd; }
+    video, audio {
+      width: 100%;
+      border-radius: 8px;
+      background: #000;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    .row { display:flex; gap:8px; align-items:center; }
+    .btn {
+      background: linear-gradient(180deg,#2563eb,#1e40af);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .note { font-size: 13px; color:#9fb1d6; }
+  </style>
 </head>
 <body>
+  <div class="card">
+    <h1>Reproductor de stream</h1>
+    <p>Intentando reproducir <code>http://216.230.129.132:8000/live</code>. Si el navegador bloquea la reproducción, revisa el aviso abajo.</p>
 
-<h2>Reproductor</h2>
+    <!-- Video player (hls.js) -->
+    <video id="player" controls playsinline preload="metadata"></video>
 
-<audio controls autoplay>
-  <source src="http://216.230.129.132:8000/live" type="audio/mpeg">
-  Tu navegador no soporta audio HTML5.
-</audio>
+    <!-- Fallback audio control (por si es stream solo audio) -->
+    <audio id="audioPlayer" controls style="display:none;"></audio>
 
+    <div class="row">
+      <button id="playBtn" class="btn">Play</button>
+      <button id="stopBtn" class="btn" style="background:transparent;border:1px solid rgba(255,255,255,0.06);">Stop</button>
+      <div style="flex:1"></div>
+      <div class="note" id="status">Estado: listo</div>
+    </div>
+
+    <p class="note" style="margin-top:14px;">
+      Nota: GitHub Pages usa HTTPS. Si tu stream es HTTP local, el navegador lo bloqueará por seguridad (mixed content). Para probar sin problemas, abre este archivo desde la misma red local (por ejemplo con un servidor local) o habilita HTTPS en el stream / usa un proxy HTTPS.
+    </p>
+  </div>
+
+  <!-- hls.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.3/dist/hls.min.js"></script>
+  <script>
+    // URL del stream (ajusta si tu endpoint necesita sufijo como /; prueba ambas)
+    const STREAM_URLS = [
+      "http://216.230.129.132:8000/live",
+      "http://216.230.129.132:8000/live",
+      // si tienes m3u8 usar: "http://216.230.129.132:8000/live/playlist.m3u8"
+    ];
+
+    const player = document.getElementById('player');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const status = document.getElementById('status');
+    const playBtn = document.getElementById('playBtn');
+    const stopBtn = document.getElementById('stopBtn');
+
+    let hlsInstance = null;
+    let currentUrl = STREAM_URLS[0];
+
+    function setStatus(txt) { status.textContent = 'Estado: ' + txt; }
+
+    async function tryLoad(url) {
+      setStatus('probando ' + url);
+      // Primero intentamos con HLS (hls.js) en video element
+      if (Hls.isSupported()) {
+        try {
+          if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+          hlsInstance = new Hls();
+          hlsInstance.loadSource(url);
+          hlsInstance.attachMedia(player);
+          hlsInstance.on(Hls.Events.ERROR, function(event, data) {
+            console.warn('Hls error', event, data);
+          });
+          // Autoplay policy may block, require user gesture
+          await player.load();
+          setStatus('cargando (hls.js) — pulse Play');
+          player.style.display = '';
+          audioPlayer.style.display = 'none';
+          return true;
+        } catch (e) {
+          console.warn('hls.js fallo', e);
+        }
+      }
+
+      // Si navegador soporta nativamente HLS (Safari)
+      if (player.canPlayType('application/vnd.apple.mpegurl')) {
+        player.src = url;
+        player.style.display = '';
+        audioPlayer.style.display = 'none';
+        setStatus('uso nativo HLS — pulse Play');
+        return true;
+      }
+
+      // Si no es HLS, intentamos como stream de audio en audio tag
+      try {
+        audioPlayer.src = url;
+        audioPlayer.style.display = '';
+        player.style.display = 'none';
+        setStatus('intentando como audio — pulse Play');
+        return true;
+      } catch (e) {
+        console.warn('audio fallback fallo', e);
+      }
+
+      return false;
+    }
+
+    // Intentar varias variaciones de URL
+    async function initPlayer() {
+      for (const url of STREAM_URLS) {
+        const ok = await tryLoad(url);
+        if (ok) { currentUrl = url; return; }
+      }
+      setStatus('No se pudo cargar ninguna URL. Revisa la dirección o CORS / mixed-content.');
+    }
+
+    playBtn.addEventListener('click', async () => {
+      setStatus('reproduciendo...');
+      try {
+        if (player.style.display !== 'none') {
+          await player.play();
+        } else {
+          await audioPlayer.play();
+        }
+        setStatus('reproduciendo — ' + currentUrl);
+      } catch (err) {
+        console.error(err);
+        setStatus('Error al reproducir: ' + (err && err.message ? err.message : err));
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (player && !player.paused) player.pause();
+      if (audioPlayer && !audioPlayer.paused) audioPlayer.pause();
+      setStatus('detenido');
+    });
+
+    // Inicializa al cargar la página
+    initPlayer();
+  </script>
 </body>
 </html>
