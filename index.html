@@ -3,45 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor VideoJS</title>
-    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <title>Reproductor M3U8 - Enlace Nuevo</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #121212;
+            background-color: #0f0f0f;
             margin: 0;
         }
-        .video-container {
+        video {
             width: 90%;
             max-width: 800px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.9);
+            background-color: #000;
         }
     </style>
 </head>
 <body>
 
-    <div class="video-container">
-        <video
-            id="mi-video"
-            class="video-js vjs-big-play-centered vjs-theme-city"
-            controls
-            preload="auto"
-            width="800"
-            height="450"
-            data-setup='{}'>
-            
-            <source src="https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8" type="application/x-mpegURL">
-            
-            <p class="vjs-no-js">
-                Para ver este video, habilita JavaScript y considera actualizar tu navegador.
-            </p>
-        </video>
-    </div>
+    <video id="mi-video" controls autoplay muted></video>
 
-    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script>
+        var video = document.getElementById('mi-video');
+        
+        // Tu nuevo enlace medialist
+        var urlM3U8 = 'https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/medialist_14854753276708185244_hls.m3u8'; 
+
+        if (Hls.isSupported()) {
+            var hls = new Hls({
+                debug: false,
+                // Configuraciones para tolerar mejor las variaciones de red en transmisiones en vivo
+                liveSyncDurationCount: 3,
+                liveMaxLatencyDurationCount: 10,
+            });
+            hls.loadSource(urlM3U8);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play();
+            });
+            
+            // Captura de errores en la consola por si CloudFront vuelve a bloquear
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) {
+                    console.error("Error fatal de HLS:", data);
+                }
+            });
+        }
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = urlM3U8;
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
+            });
+        }
+    </script>
 
 </body>
 </html>
