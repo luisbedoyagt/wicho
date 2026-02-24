@@ -1,73 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reproductor Online</title>
-
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .card {
-    background: rgba(255, 255, 255, 0.06);
-    padding: 30px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 420px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-  }
-
-  h2 {
-    color: #ffffff;
-    margin-top: 0;
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-
-  p {
-    color: #cbd5e1;
-    font-size: 15px;
-    margin-bottom: 20px;
-  }
-
-  audio {
-    width: 100%;
-    border-radius: 10px;
-    outline: none;
-  }
-
-  .footer {
-    margin-top: 15px;
-    color: #94a3b8;
-    font-size: 13px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor M3U8 Funcional</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            margin: 0;
+            font-family: sans-serif;
+        }
+        video {
+            width: 90%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+            background-color: #000;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="card">
-  <h2>Streaming en Vivo</h2>
-  <p>Haz clic en ▶ para escuchar la transmisión.</p>
+    <video id="mi-video" controls autoplay muted></video>
 
-  <audio controls autoplay>
-    <source src="http://216.230.129.132:8000/live" type="audio/mpeg">
-    Tu navegador no soporta audio HTML5.
-  </audio>
+    <script>
+        var video = document.getElementById('mi-video');
+        
+        // Aquí está tu enlace M3U8
+        var urlM3U8 = 'https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8'; 
 
-  <div class="footer">© Tu Estación — Transmisión Online</div>
-</div>
+        // Lógica de reproducción con hls.js (Chrome, Firefox, Edge, etc.)
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(urlM3U8);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play(); 
+            });
+        }
+        // Soporte nativo para Safari en iOS/macOS
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = urlM3U8;
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
+            });
+        }
+    </script>
 
 </body>
 </html>
