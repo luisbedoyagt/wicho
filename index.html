@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Radios Online</title>
+
 <style>
     body {
         margin: 0;
@@ -20,6 +21,7 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 20px;
+        padding: 40px 0;
     }
 
     .radio {
@@ -42,6 +44,14 @@
         box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     }
 
+    /* Radio centrada */
+    .destacada {
+        grid-column: 1 / -1;
+        max-width: 400px;
+        justify-self: center;
+    }
+
+    /* Responsive */
     @media (max-width: 900px) {
         .contenedor {
             grid-template-columns: repeat(2, 1fr);
@@ -55,6 +65,7 @@
     }
 </style>
 </head>
+
 <body>
 
 <div class="contenedor">
@@ -83,7 +94,8 @@
 
 <a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/fa526731-3570-44c6-8d5a-be366ce141a3/ts:abr.m3u8" target="_blank">Flix Capital 98.5</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/8e7a8a5b-a2db-4323-8397-46c17f4573ac/ts:abr.m3u8" target="_blank">Sonora 96.9 FM</a>
+<!-- CENTRADA -->
+<a class="radio destacada" href="https://d2qsan2ut81n2k.cloudfront.net/live/8e7a8a5b-a2db-4323-8397-46c17f4573ac/ts:abr.m3u8" target="_blank">Sonora 96.9 FM</a>
 
 </div>
 
