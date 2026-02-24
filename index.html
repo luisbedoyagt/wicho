@@ -2,68 +2,83 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Radios Online</title>
+<title>Central de Radios Guatemala</title>
 
 <style>
     body {
         margin: 0;
         font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
+        background: radial-gradient(circle at top, #1f2c3a, #0d141c 70%);
+        color: white;
+    }
+
+    .header {
+        text-align: center;
+        padding: 50px 20px 20px 20px;
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 42px;
+        letter-spacing: 2px;
+        font-weight: 700;
+    }
+
+    .header p {
+        margin-top: 10px;
+        opacity: 0.7;
+        font-size: 14px;
     }
 
     .contenedor {
         width: 90%;
-        max-width: 1100px;
+        max-width: 1200px;
+        margin: 40px auto 80px auto;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        padding: 40px 0;
+        gap: 30px;
     }
 
     .radio {
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(10px);
-        border-radius: 15px;
-        padding: 20px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 18px;
+        padding: 30px 20px;
         text-align: center;
         text-decoration: none;
         color: white;
-        font-weight: bold;
         transition: 0.3s ease;
-        border: 1px solid rgba(255,255,255,0.15);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     }
 
     .radio img {
-        width: 120px;
+        width: 130px;
         height: auto;
-        margin-bottom: 10px;
-        transition: 0.3s;
+        margin-bottom: 15px;
+        background: white;
+        padding: 10px;
+        border-radius: 12px;
     }
 
     .radio span {
         display: block;
-        font-size: 14px;
-        margin-top: 5px;
+        font-size: 15px;
+        font-weight: 600;
     }
 
     .radio:hover {
-        transform: translateY(-5px);
-        background: rgba(255,255,255,0.15);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    }
-
-    .radio:hover img {
-        transform: scale(1.05);
+        transform: translateY(-6px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        background: rgba(255,255,255,0.22);
     }
 
     .destacada {
         grid-column: 1 / -1;
-        max-width: 400px;
+        max-width: 420px;
         justify-self: center;
+        background: linear-gradient(135deg, #ffffff33, #ffffff1a);
+        border: 1px solid rgba(255,255,255,0.4);
     }
 
     @media (max-width: 900px) {
@@ -76,11 +91,20 @@
         .contenedor {
             grid-template-columns: 1fr;
         }
+
+        .header h1 {
+            font-size: 28px;
+        }
     }
 </style>
 </head>
 
 <body>
+
+<div class="header">
+    <h1>CENTRAL DE RADIOS GUATEMALA</h1>
+    <p>Escucha tus emisoras favoritas en vivo</p>
+</div>
 
 <div class="contenedor">
 
@@ -137,11 +161,6 @@
 <a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/ef0c82f1-e446-4093-8455-3a144ca2e171/ts:abr.m3u8" target="_blank">
 <img src="exitosx.png" alt="Exitos Xela 107.1 FM">
 <span>Exitos Xela 107.1 FM</span>
-</a>
-
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/fa526731-3570-44c6-8d5a-be366ce141a3/ts:abr.m3u8" target="_blank">
-<img src="fixx.png" alt="Flix Capital 98.5">
-<span>Flix Capital 98.5</span>
 </a>
 
 <a class="radio destacada" href="https://d2qsan2ut81n2k.cloudfront.net/live/8e7a8a5b-a2db-4323-8397-46c17f4573ac/ts:abr.m3u8" target="_blank">
