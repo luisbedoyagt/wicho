@@ -2,14 +2,36 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Audio HLS Directo</title>
+  <title>Audio HLS Seguro</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 
-  <audio controls autoplay style="width:600px;">
-    <source src="https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/medialist_14854753276708185244_hls.m3u8" 
-            type="application/vnd.apple.mpegurl">
-  </audio>
+  <video id="player" controls width="600" height="80"></video>
+
+  <script>
+    const url = "https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/medialist_14854753276708185244_hls.m3u8";
+    const video = document.getElementById("player");
+
+    if (Hls.isSupported()) {
+      const hls = new Hls({
+        debug: true,
+        enableWorker: true
+      });
+
+      hls.loadSource(url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.ERROR, function (event, data) {
+        console.log("HLS error:", data);
+      });
+
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = url;
+    } else {
+      alert("Navegador no soporta HLS.");
+    }
+  </script>
 
 </body>
 </html>
