@@ -3,226 +3,176 @@
 <head>
 <meta charset="UTF-8">
 <title>Central de Radios Guatemala</title>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: radial-gradient(circle at top, #1f2c3a, #0d141c 70%);
-    color: white;
-}
-
-/* HEADER */
-.header {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 36px;
-    letter-spacing: 2px;
-}
-
-/* GRID */
-.contenedor {
-    width: 90%;
-    max-width: 1200px;
-    margin: 20px auto 80px auto;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-}
-
-.radio {
-    background: rgba(255,255,255,0.15);
-    border-radius: 18px;
-    padding: 25px;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-}
-
-.radio img {
-    width: 130px;
-    background: white;
-    padding: 10px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-}
-
-.radio span {
-    display: block;
-    font-weight: 600;
-}
-
-.radio:hover {
-    transform: translateY(-6px);
-    background: rgba(255,255,255,0.25);
-}
-
-/* MODAL */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-}
-
-.modal-content {
-    background: #111;
-    padding: 30px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-    position: relative;
-}
-
-.modal h2 {
-    margin-top: 0;
-}
-
-.close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    cursor: pointer;
-    font-size: 20px;
-}
-
-video {
-    width: 100%;
-    margin-top: 15px;
-    border-radius: 12px;
-}
-
-@media (max-width: 900px) {
-    .contenedor {
-        grid-template-columns: repeat(2, 1fr);
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: radial-gradient(circle at top, #1f2c3a, #0d141c 70%);
+        color: white;
     }
-}
 
-@media (max-width: 600px) {
-    .contenedor {
-        grid-template-columns: 1fr;
+    .header {
+        text-align: center;
+        padding: 50px 20px 20px 20px;
     }
-}
+
+    .header h1 {
+        margin: 0;
+        font-size: 40px;
+        letter-spacing: 2px;
+        font-weight: 700;
+    }
+
+    .header p {
+        margin-top: 10px;
+        opacity: 0.7;
+        font-size: 14px;
+    }
+
+    .contenedor {
+        width: 90%;
+        max-width: 1200px;
+        margin: 40px auto 80px auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+    }
+
+    .radio {
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 18px;
+        padding: 30px 20px;
+        text-align: center;
+        text-decoration: none;
+        color: white;
+        transition: 0.3s ease;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.25);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        display:block;
+    }
+
+    .radio img {
+        width: 130px;
+        height: auto;
+        margin-bottom: 15px;
+        background: white;
+        padding: 10px;
+        border-radius: 12px;
+    }
+
+    .radio span {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .radio:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        background: rgba(255,255,255,0.25);
+    }
+
+    @media (max-width: 900px) {
+        .contenedor {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .contenedor {
+            grid-template-columns: 1fr;
+        }
+
+        .header h1 {
+            font-size: 26px;
+        }
+    }
 </style>
+
+<script>
+function abrirRadio(url){
+    window.open(
+        url,
+        "_blank",
+        "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=420,height=220"
+    );
+}
+</script>
+
 </head>
 
 <body>
 
 <div class="header">
     <h1>CENTRAL DE RADIOS GUATEMALA</h1>
+    <p>Escucha tus emisoras favoritas en vivo</p>
 </div>
 
 <div class="contenedor">
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8','Xtrema 101.3 FM')">
-<img src="xtrema.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8'); return false;">
+<img src="xtrema.png" alt="Xtrema 101.3 FM">
 <span>Xtrema 101.3 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/ca11fca0-0da4-4198-83bd-b50e5607d6f8/ts:abr.m3u8','Éxitos 90.9')">
-<img src="exitos.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/ca11fca0-0da4-4198-83bd-b50e5607d6f8/ts:abr.m3u8'); return false;">
+<img src="exitos.png" alt="Éxitos 90.9">
 <span>Éxitos 90.9</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/ef0c82f1-e446-4093-8455-3a144ca2e171/ts:abr.m3u8','Exitos Xela 107.1 FM')">
-<img src="exitosx.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/ef0c82f1-e446-4093-8455-3a144ca2e171/ts:abr.m3u8'); return false;">
+<img src="exitosx.png" alt="Exitos Xela 107.1 FM">
 <span>Exitos Xela 107.1 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/c2af032e-3e29-4551-a757-e4f3d349386c/ts:abr.m3u8','Flix Xela 93.9')">
-<img src="fixx.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/c2af032e-3e29-4551-a757-e4f3d349386c/ts:abr.m3u8'); return false;">
+<img src="fixx.png" alt="Flix Xela 93.9">
 <span>Flix Xela 93.9</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/9c2d6264-2009-49a8-a501-848a7bae1051/ts:abr.m3u8','Fiesta 103.7 FM')">
-<img src="fiesta.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/9c2d6264-2009-49a8-a501-848a7bae1051/ts:abr.m3u8'); return false;">
+<img src="fiesta.png" alt="Fiesta 103.7 FM">
 <span>Fiesta 103.7 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/a4e3175d-fa7e-4d4b-979f-e7f875468260/ts:abr.m3u8','Ranchera 95.7 FM')">
-<img src="ranchera.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/a4e3175d-fa7e-4d4b-979f-e7f875468260/ts:abr.m3u8'); return false;">
+<img src="ranchera.png" alt="Ranchera 95.7 FM">
 <span>Ranchera 95.7 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/406d6243-a8fc-4215-aca0-ffd43aac2bf3/ts:abr.m3u8','Galaxia 88.5 FM')">
-<img src="galaxia.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/406d6243-a8fc-4215-aca0-ffd43aac2bf3/ts:abr.m3u8'); return false;">
+<img src="galaxia.png" alt="Galaxia 88.5 FM">
 <span>Galaxia 88.5 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/53ee315d-206f-4271-994b-4c1927ae338b/ts:abr.m3u8','La Marca 94.1 FM')">
-<img src="lamarca.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/53ee315d-206f-4271-994b-4c1927ae338b/ts:abr.m3u8'); return false;">
+<img src="lamarca.png" alt="La Marca 94.1 FM">
 <span>La Marca 94.1 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/67aeb080-68fa-4197-89f6-c8bb70f9a395/ts:abr.m3u8','Tropicálida 104.9 FM')">
-<img src="tropicalida.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/67aeb080-68fa-4197-89f6-c8bb70f9a395/ts:abr.m3u8'); return false;">
+<img src="tropicalida.png" alt="Tropicálida 104.9 FM">
 <span>Tropicálida 104.9 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/e33ed625-2624-4334-a625-a53a70d95791/ts:abr.m3u8','Joya 92.9 FM')">
-<img src="joya.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/e33ed625-2624-4334-a625-a53a70d95791/ts:abr.m3u8'); return false;">
+<img src="joya.png" alt="Joya 92.9 FM">
 <span>Joya 92.9 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/3943e598-9843-4784-9388-80e97aa3674b/ts:abr.m3u8','Alfa 97.3 FM')">
-<img src="alfa.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/3943e598-9843-4784-9388-80e97aa3674b/ts:abr.m3u8'); return false;">
+<img src="alfa.png" alt="Alfa 97.3 FM">
 <span>Alfa 97.3 FM</span>
-</div>
+</a>
 
-<div class="radio" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/8e7a8a5b-a2db-4323-8397-46c17f4573ac/ts:abr.m3u8','Sonora 96.9 FM')">
-<img src="sonora.png">
+<a class="radio" href="#" onclick="abrirRadio('https://d2qsan2ut81n2k.cloudfront.net/live/8e7a8a5b-a2db-4323-8397-46c17f4573ac/ts:abr.m3u8'); return false;">
+<img src="sonora.png" alt="Sonora 96.9 FM">
 <span>Sonora 96.9 FM</span>
-</div>
+</a>
 
 </div>
-
-<!-- MODAL PLAYER -->
-<div class="modal" id="modal">
-    <div class="modal-content">
-        <span class="close" onclick="cerrarModal()">✕</span>
-        <h2 id="tituloRadio"></h2>
-        <video id="video" controls autoplay></video>
-    </div>
-</div>
-
-<script>
-let hls;
-
-function abrirRadio(url, nombre) {
-    document.getElementById("modal").style.display = "flex";
-    document.getElementById("tituloRadio").innerText = nombre;
-
-    const video = document.getElementById("video");
-
-    if (hls) {
-        hls.destroy();
-    }
-
-    if (Hls.isSupported()) {
-        hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url;
-    }
-}
-
-function cerrarModal() {
-    document.getElementById("modal").style.display = "none";
-    document.getElementById("video").pause();
-}
-</script>
 
 </body>
 </html>
