@@ -3,54 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor M3U8 Funcional</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <title>Reproductor VideoJS</title>
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <style>
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #1a1a1a;
+            background-color: #121212;
             margin: 0;
-            font-family: sans-serif;
         }
-        video {
+        .video-container {
             width: 90%;
             max-width: 800px;
-            border-radius: 8px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.8);
-            background-color: #000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
     </style>
 </head>
 <body>
 
-    <video id="mi-video" controls autoplay muted></video>
+    <div class="video-container">
+        <video
+            id="mi-video"
+            class="video-js vjs-big-play-centered vjs-theme-city"
+            controls
+            preload="auto"
+            width="800"
+            height="450"
+            data-setup='{}'>
+            
+            <source src="https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8" type="application/x-mpegURL">
+            
+            <p class="vjs-no-js">
+                Para ver este video, habilita JavaScript y considera actualizar tu navegador.
+            </p>
+        </video>
+    </div>
 
-    <script>
-        var video = document.getElementById('mi-video');
-        
-        // Aquí está tu enlace M3U8
-        var urlM3U8 = 'https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8'; 
-
-        // Lógica de reproducción con hls.js (Chrome, Firefox, Edge, etc.)
-        if (Hls.isSupported()) {
-            var hls = new Hls();
-            hls.loadSource(urlM3U8);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play(); 
-            });
-        }
-        // Soporte nativo para Safari en iOS/macOS
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = urlM3U8;
-            video.addEventListener('loadedmetadata', function() {
-                video.play();
-            });
-        }
-    </script>
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
 </body>
 </html>
