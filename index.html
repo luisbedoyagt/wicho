@@ -2,30 +2,27 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Reproductor Audio HLS</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <title>Audio HLS Player</title>
+
+  <!-- Video.js CSS -->
+  <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet" />
+
+  <!-- Video.js -->
+  <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
 </head>
 <body>
 
-  <audio id="audio" controls autoplay></audio>
+  <audio
+    id="audio-player"
+    class="video-js vjs-default-skin"
+    controls
+    preload="auto"
+    width="600"
+    height="50"
+    data-setup='{}'>
 
-  <script>
-    const audio = document.getElementById('audio');
-    const url = "https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/medialist_14854753276708185244_hls.m3u8";
-
-    if (Hls.isSupported()) {
-      const hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: true
-      });
-      hls.loadSource(url);
-      hls.attachMedia(audio);
-    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-      audio.src = url;
-    } else {
-      alert("Tu navegador no soporta HLS.");
-    }
-  </script>
+    <source src="https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/medialist_14854753276708185244_hls.m3u8" type="application/x-mpegURL">
+  </audio>
 
 </body>
 </html>
