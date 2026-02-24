@@ -2,34 +2,31 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Audio HLS Seguro</title>
+  <title>Xtrema 101.3 FM en línea</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 
-  <video id="player" controls width="600" height="80"></video>
+  <h2>Xtrema 101.3 FM - en línea</h2>
+
+  <audio id="player" controls autoplay style="width:600px;"></audio>
 
   <script>
-    const url = "https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/medialist_14854753276708185244_hls.m3u8";
-    const video = document.getElementById("player");
+    const streamUrl = "https://alba-gt-chapinradio-xtrema.stream.mediatiquestream.com/index.m3u8";
+    const audio = document.getElementById("player");
 
     if (Hls.isSupported()) {
-      const hls = new Hls({
-        debug: true,
-        enableWorker: true
+      const hls = new Hls();
+      hls.loadSource(streamUrl);
+      hls.attachMedia(audio);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        audio.play().catch(err => console.log("Play error:", err));
       });
-
-      hls.loadSource(url);
-      hls.attachMedia(video);
-
-      hls.on(Hls.Events.ERROR, function (event, data) {
-        console.log("HLS error:", data);
-      });
-
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = url;
+    } else if (audio.canPlayType("application/vnd.apple.mpegurl")) {
+      audio.src = streamUrl;
+      audio.addEventListener("loadedmetadata", () => audio.play());
     } else {
-      alert("Navegador no soporta HLS.");
+      alert("Tu navegador no soporta este tipo de streaming.");
     }
   </script>
 
