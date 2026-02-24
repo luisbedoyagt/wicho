@@ -2,37 +2,28 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Reproductor HLS Básico</title>
-
-  <!-- Carga hls.js desde CDN (no necesitas instalar nada) -->
+  <title>Reproductor Audio HLS</title>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 
-  <h3>Reproduciendo tu stream HLS 👀</h3>
-
-  <video id="videoPlayer" controls width="800" height="450"></video>
+  <audio id="audio" controls autoplay></audio>
 
   <script>
-    const video = document.getElementById('videoPlayer');
-    const streamUrl = "https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/medialist_14854753276708185244_hls.m3u8";
+    const audio = document.getElementById('audio');
+    const url = "https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/medialist_14854753276708185244_hls.m3u8";
 
     if (Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(streamUrl);
-      hls.attachMedia(video);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(err => console.log("Error al intentar reproducir:", err));
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true
       });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Para Safari y algunos navegadores que sí soportan HLS nativo
-      video.src = streamUrl;
-      video.addEventListener('loadedmetadata', () => {
-        video.play().catch(err => console.log("Error al intentar reproducir:", err));
-      });
+      hls.loadSource(url);
+      hls.attachMedia(audio);
+    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+      audio.src = url;
     } else {
-      console.log("HLS no es compatible en este navegador.");
+      alert("Tu navegador no soporta HLS.");
     }
   </script>
 
