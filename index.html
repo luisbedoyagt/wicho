@@ -28,14 +28,26 @@
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(10px);
         border-radius: 15px;
-        padding: 25px;
+        padding: 20px;
         text-align: center;
         text-decoration: none;
         color: white;
         font-weight: bold;
-        font-size: 16px;
         transition: 0.3s ease;
         border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .radio img {
+        width: 120px;
+        height: auto;
+        margin-bottom: 10px;
+        transition: 0.3s;
+    }
+
+    .radio span {
+        display: block;
+        font-size: 14px;
+        margin-top: 5px;
     }
 
     .radio:hover {
@@ -44,14 +56,16 @@
         box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     }
 
-    /* Radio centrada */
+    .radio:hover img {
+        transform: scale(1.05);
+    }
+
     .destacada {
         grid-column: 1 / -1;
         max-width: 400px;
         justify-self: center;
     }
 
-    /* Responsive */
     @media (max-width: 900px) {
         .contenedor {
             grid-template-columns: repeat(2, 1fr);
@@ -70,32 +84,70 @@
 
 <div class="contenedor">
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8" target="_blank">Xtrema 101.3 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8" target="_blank">
+<img src="xtrema.png" alt="Xtrema 101.3 FM">
+<span>Xtrema 101.3 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/ca11fca0-0da4-4198-83bd-b50e5607d6f8/ts:abr.m3u8" target="_blank">Éxitos 90.9</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/ca11fca0-0da4-4198-83bd-b50e5607d6f8/ts:abr.m3u8" target="_blank">
+<img src="exitos.png" alt="Éxitos 90.9">
+<span>Éxitos 90.9</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/c2af032e-3e29-4551-a757-e4f3d349386c/ts:abr.m3u8" target="_blank">Flix Xela 93.9</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/c2af032e-3e29-4551-a757-e4f3d349386c/ts:abr.m3u8" target="_blank">
+<img src="fixx.png" alt="Flix Xela 93.9">
+<span>Flix Xela 93.9</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/9c2d6264-2009-49a8-a501-848a7bae1051/ts:abr.m3u8" target="_blank">Fiesta 103.7 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/9c2d6264-2009-49a8-a501-848a7bae1051/ts:abr.m3u8" target="_blank">
+<img src="fiesta.png" alt="Fiesta 103.7 FM">
+<span>Fiesta 103.7 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/a4e3175d-fa7e-4d4b-979f-e7f875468260/ts:abr.m3u8" target="_blank">Ranchera 95.7 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/a4e3175d-fa7e-4d4b-979f-e7f875468260/ts:abr.m3u8" target="_blank">
+<img src="ranchera.png" alt="Ranchera 95.7 FM">
+<span>Ranchera 95.7 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/406d6243-a8fc-4215-aca0-ffd43aac2bf3/ts:abr.m3u8" target="_blank">Galaxia 88.5 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/406d6243-a8fc-4215-aca0-ffd43aac2bf3/ts:abr.m3u8" target="_blank">
+<img src="galaxia.png" alt="Galaxia 88.5 FM">
+<span>Galaxia 88.5 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/53ee315d-206f-4271-994b-4c1927ae338b/ts:abr.m3u8" target="_blank">La Marca 94.1 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/53ee315d-206f-4271-994b-4c1927ae338b/ts:abr.m3u8" target="_blank">
+<img src="lamarca.png" alt="La Marca 94.1 FM">
+<span>La Marca 94.1 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/67aeb080-68fa-4197-89f6-c8bb70f9a395/ts:abr.m3u8" target="_blank">Tropicálida 104.9 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/67aeb080-68fa-4197-89f6-c8bb70f9a395/ts:abr.m3u8" target="_blank">
+<img src="tropicalida.png" alt="Tropicálida 104.9 FM">
+<span>Tropicálida 104.9 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/e33ed625-2624-4334-a625-a53a70d95791/ts:abr.m3u8" target="_blank">Joya 92.9 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/e33ed625-2624-4334-a625-a53a70d95791/ts:abr.m3u8" target="_blank">
+<img src="joya.png" alt="Joya 92.9 FM">
+<span>Joya 92.9 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/3943e598-9843-4784-9388-80e97aa3674b/ts:abr.m3u8" target="_blank">Alfa 97.3 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/3943e598-9843-4784-9388-80e97aa3674b/ts:abr.m3u8" target="_blank">
+<img src="alfa.png" alt="Alfa 97.3 FM">
+<span>Alfa 97.3 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/ef0c82f1-e446-4093-8455-3a144ca2e171/ts:abr.m3u8" target="_blank">Exitos Xela 107.1 FM</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/ef0c82f1-e446-4093-8455-3a144ca2e171/ts:abr.m3u8" target="_blank">
+<img src="exitosx.png" alt="Exitos Xela 107.1 FM">
+<span>Exitos Xela 107.1 FM</span>
+</a>
 
-<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/fa526731-3570-44c6-8d5a-be366ce141a3/ts:abr.m3u8" target="_blank">Flix Capital 98.5</a>
+<a class="radio" href="https://d2qsan2ut81n2k.cloudfront.net/live/fa526731-3570-44c6-8d5a-be366ce141a3/ts:abr.m3u8" target="_blank">
+<img src="fixx.png" alt="Flix Capital 98.5">
+<span>Flix Capital 98.5</span>
+</a>
 
-<!-- CENTRADA -->
-<a class="radio destacada" href="https://d2qsan2ut81n2k.cloudfront.net/live/8e7a8a5b-a2db-4323-8397-46c17f4573ac/ts:abr.m3u8" target="_blank">Sonora 96.9 FM</a>
+<a class="radio destacada" href="https://d2qsan2ut81n2k.cloudfront.net/live/8e7a8a5b-a2db-4323-8397-46c17f4573ac/ts:abr.m3u8" target="_blank">
+<img src="sonora.png" alt="Sonora 96.9 FM">
+<span>Sonora 96.9 FM</span>
+</a>
 
 </div>
 
