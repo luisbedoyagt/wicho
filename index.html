@@ -1,34 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Xtrema 101.3 FM en línea</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<meta charset="UTF-8">
+<title>Radios Online</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: #fff;
+        padding: 40px;
+    }
+
+    .lista {
+        max-width: 500px;
+        margin: auto;
+    }
+
+    a {
+        display: block;
+        text-decoration: none;
+        background: #000;
+        color: #fff;
+        padding: 12px 20px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border: 1px solid #333;
+        transition: 0.3s;
+    }
+
+    a:hover {
+        background: #222;
+        border-color: #888;
+    }
+</style>
 </head>
 <body>
 
-  <h2>Xtrema 101.3 FM - en línea</h2>
-
-  <audio id="player" controls autoplay style="width:600px;"></audio>
-
-  <script>
-    const streamUrl = "https://alba-gt-chapinradio-xtrema.stream.mediatiquestream.com/index.m3u8";
-    const audio = document.getElementById("player");
-
-    if (Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(streamUrl);
-      hls.attachMedia(audio);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        audio.play().catch(err => console.log("Play error:", err));
-      });
-    } else if (audio.canPlayType("application/vnd.apple.mpegurl")) {
-      audio.src = streamUrl;
-      audio.addEventListener("loadedmetadata", () => audio.play());
-    } else {
-      alert("Tu navegador no soporta este tipo de streaming.");
-    }
-  </script>
+<div class="lista">
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/c2cce928-c69c-45d5-bd0a-5a5eba167a0d/ts:abr.m3u8" target="_blank">Xtrema 101.3 FM</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/ca11fca0-0da4-4198-83bd-b50e5607d6f8/ts:abr.m3u8" target="_blank">Éxitos 90.9</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/c2af032e-3e29-4551-a757-e4f3d349386c/ts:abr.m3u8" target="_blank">Flix Xela 93.9 (XELA)</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/9c2d6264-2009-49a8-a501-848a7bae1051/ts:abr.m3u8" target="_blank">Fiesta 103.7 FM</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/a4e3175d-fa7e-4d4b-979f-e7f875468260/ts:abr.m3u8" target="_blank">Ranchera 95.7 FM</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/406d6243-a8fc-4215-aca0-ffd43aac2bf3/ts:abr.m3u8" target="_blank">Galaxia 88.5 FM</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/53ee315d-206f-4271-994b-4c1927ae338b/ts:abr.m3u8" target="_blank">La Marca 94.1 FM</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/67aeb080-68fa-4197-89f6-c8bb70f9a395/ts:abr.m3u8" target="_blank">Tropicálida 104.9 FM</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/e33ed625-2624-4334-a625-a53a70d95791/ts:abr.m3u8" target="_blank">Joya 92.9 FM</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/3943e598-9843-4784-9388-80e97aa3674b/ts:abr.m3u8" target="_blank">Alfa 97.3 FM</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/ef0c82f1-e446-4093-8455-3a144ca2e171/ts:abr.m3u8" target="_blank">Exitos Xela 107.1 FM (XELA)</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/fa526731-3570-44c6-8d5a-be366ce141a3/ts:abr.m3u8" target="_blank">Flix Capital 98.5</a>
+    <a href="https://d2qsan2ut81n2k.cloudfront.net/live/8e7a8a5b-a2db-4323-8397-46c17f4573ac/ts:abr.m3u8" target="_blank">Sonora 96.9 FM</a>
+</div>
 
 </body>
 </html>
